@@ -1,0 +1,15 @@
+{
+  "name": "helayo-cli",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "collate": "node collate.js",
+    "apparatus": "node apparatus.js"
+  },
+  "dependencies": {
+    "glob-fs": "^0.1.7",
+    "jsdom": "^25.0.1"
+  }
+}
