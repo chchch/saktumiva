@@ -42,7 +42,7 @@ const readOne = async (file) => {
 };
 
 const languageSpecificOptions = textel => {
-    const langcode = textel.getAttribute('xml:lang');
+    const langcode = textel.getAttribute('xml:lang') || textel.querySelector('[*|lang]')?.getAttribute('xml:lang');
     if(!langcode) return;
     
     const lang = langcode === 'ta' || langcode === 'ta-Taml' ? 'tamil' :
@@ -70,7 +70,7 @@ const languageSpecificOptions = textel => {
         normies.querySelector('input[value="36"]').checked = true; // remove spaces
 
     const filterhead = lang === 'sanskrit' ? normies.querySelector('.sanskrit') :
-                    lang === 'tamil' ? normies.querySelectorAll('.tamil') :
+                    lang === 'tamil' ? normies.querySelector('.tamil') :
                     null;
     if(filterhead) {
         filterhead.parentNode.querySelector('input').click();

@@ -46,7 +46,7 @@ const main = () => {
         const alignfn = Path.join(config.dirname, config.alignmentdir, block + '.xml');
         const alignxml = parseString(Fs.readFileSync(alignfn,{encoding: 'utf-8'}));
         if(config.edition.readingsfromfiles) {
-            for(const wit of getWits(alignxml)) {
+            for(const wit of getWits(teixml,alignxml)) {
                 if(!cachedwitnesses.get(wit.name)) {
                     let file = cachedfiles.get(wit.name);
                     if(!file) {
