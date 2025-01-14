@@ -55,6 +55,7 @@ const main = () => {
                         cachedfiles.set(wit.name,file);
                     }
                     cachedwitnesses.set(wit.name,{
+                        name: wit.name,
                         type: wit.type,
                         select: wit.select,
                         xml: file
