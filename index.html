@@ -300,41 +300,41 @@ button:hover, label[for="teifiles"]:hover {
                 <legend>Options</legend>
                 <details id="scoring" open>
                     <summary>Scoring</summary>
-                    <div><label>Match score</label><input type="number" value="1"/></div>
-                    <div><label>Mismatch score</label><input type="number" value="-1"/></div>
-                    <div><label>Gap opening score</label><input type="number" value="-2"/></div>
-                    <div><label>Gap extension score</label><input type="number" value="-0.25"/></div>
-                    <div><input type="checkbox" checked/><label style="text-decoration: 2px gray dotted underline" title="When scoring akṣaras or larger units, recursively score the consonants and vowels within them">Recursive scoring</label></div>
-                    <div><label style="text-decoration: 2px gray dotted underline" title="Number of iterative re-alignments to perform, starting from the leaves and moving up the guide tree">Re-alignment depth</label><input type="number" value="20"/></div>
+                    <div><label for="input_match">Match score</label><input id="input_match" type="number" value="1"/></div>
+                    <div><label for="input_mismatch">Mismatch score</label><input id="input_mismatch" type="number" value="-1"/></div>
+                    <div><label for="input_gapopen">Gap opening score</label><input id="input_gapopen" type="number" value="-2"/></div>
+                    <div><label for="input_gapext">Gap extension score</label><input id="input_gapext" type="number" value="-0.25"/></div>
+                    <div><input type="checkbox" id="check_recursive" checked/><label style="text-decoration: 2px gray dotted underline" title="When scoring akṣaras or larger units, recursively score the consonants and vowels within them" for="check_recursive">Recursive scoring</label></div>
+                    <div><label for="input_realigndepth" style="text-decoration: 2px gray dotted underline" title="Number of iterative re-alignments to perform, starting from the leaves and moving up the guide tree">Re-alignment depth</label><input id="input_realigndepth" type="number" value="20"/></div>
                 </details>
                 <details open>
                     <summary>Tokenization</summary>
                     <div>
-                        <input type="radio" name="tokenization" value="whitespace"/><label>Whitespace-delimited</label>
+                        <input type="radio" name="tokenization" value="whitespace" id="radio_whitespace"/><label for="radio_whitespace">Whitespace-delimited</label>
                     </div>
                     <div>
-                        <input type="radio" name="tokenization" value="aksara"/><label>Akṣara (conjuncts and vowels together)</label>
+                        <input type="radio" name="tokenization" value="aksara" id="radio_aksara"/><label for="radio_aksara">Akṣara (conjuncts and vowels together)</label>
                     </div>
                     <div>
-                        <input type="radio" name="tokenization" value="grapheme" checked/><label>Eḻuttu (without conjuncts)</label>
+                        <input type="radio" name="tokenization" value="grapheme" id="radio_grapheme" checked/><label for="radio_grapheme">Eḻuttu (without conjuncts)</label>
                     </div>
                     <div>
-                        <input type="radio" name="tokenization" value="character"/><label>Consonants and vowels separate</label>
+                        <input type="radio" name="tokenization" id="radio_character" value="character"/><label for="radio_character">Consonants and vowels separate</label>
                     </div>
                     <div>
-                        <select name="targetedition" id="targetedition"></select>
+                        <select name="targetedition" id="targetedition"></select><label for="targetedition">Target edition</label>
                 </details>
                 <details id="normalization" open>
                     <summary>Normalization</summary>
                     <!--div><input type="checkbox"><label>Remove whitespace</label></div-->
                     <div class="horizontal">
-                        <input type="checkbox" name="language" autocomplete="off"/><label>Tamil</label>
+                        <input type="checkbox" name="language" id="check_tamil" autocomplete="off"/><label for="check_tamil">Tamil</label>
                         <details class="tamil">
                             <summary></summary>
                         </details>
                     </div>
                     <div class="horizontal">
-                    <input type="checkbox" name="language" autocomplete="off"/><label>Sanskrit</label>
+                    <input type="checkbox" name="language" id="check_sanskrit" autocomplete="off"/><label for="check_sanskrit">Sanskrit</label>
                     <details class="sanskrit">
                         <summary></summary>
                     </details>

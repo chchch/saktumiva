@@ -73,8 +73,11 @@ const languageSpecificOptions = textel => {
                     lang === 'tamil' ? normies.querySelector('.tamil') :
                     null;
     if(filterhead) {
-        filterhead.parentNode.querySelector('input').click();
-        filterhead.open = false;
+        const input = filterhead.parentNode.querySelector('input');
+        if(!input.checked) {
+            input.click();
+            filterhead.open = false;
+        }
     }
 };
 
@@ -141,16 +144,20 @@ const appendList = (par, els) => {
     const input1 = document.createElement('input');
     input1.setAttribute('type','checkbox');
     input1.setAttribute('name','selectall');
+    input1.id = `input_${Date.now() + Math.random()}`;
     const label1 = document.createElement('label');
     label1.textContent = 'Select all';
+    label1.setAttribute('for',input1.id);
     item1.appendChild(input1);
     item1.appendChild(label1);
     par.appendChild(item1);
     for(const el of els) {
         const item = document.createElement('div');
         const input = document.createElement('input');
+        input.id = `input_${Date.now() + Math.random()}`;
         input.setAttribute('type','checkbox');
         const label = document.createElement('label');
+        label.setAttribute('for',input.id);
         label.textContent = el;
         item.appendChild(input);
         item.appendChild(label);
@@ -352,9 +359,11 @@ const makeOption = (index,obj) => {
     const div = document.createElement('div');
     const box = document.createElement('input');
     box.setAttribute('type','checkbox');
+    box.id = `checkbox_${Date.now() + Math.random()}`;
     box.value = index;
     if(obj.checked) box.setAttribute('checked',true);
     const label = document.createElement('label');
+    label.setAttribute('for',box.id);
     if(obj.search && obj.replace)
         label.title = `Search: ${obj.search} Replace: ${obj.replace.toString()}`;
     label.append(obj.name);
