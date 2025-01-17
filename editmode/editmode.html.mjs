@@ -36,13 +36,15 @@ const shadow =
 
 .boxen > * {
     flex-grow: 1;
-    overflow-y: scroll;
     height: 100%;
     display: flex;
     flex-direction: column;
 }
 fieldset {
     background: white;
+}
+#blocklist {
+    overflow-y: scroll;
 }
 .popup button {
     width: max-content;
