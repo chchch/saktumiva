@@ -293,7 +293,6 @@ const XSLTransform = async (xsltsheet, doc) => {
     const xproc = new XSLTProcessor();
     const compiled = await compileImports(xsltsheet);
     xproc.importStylesheet(compiled);
-    xproc.importStylesheet(xsltsheet);
     return xproc.transformToDocument(doc);
 };
 
