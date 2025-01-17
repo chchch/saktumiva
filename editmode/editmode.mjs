@@ -1,5 +1,5 @@
 import popupHTML from './editmode.html.mjs';
-import { makeApp, addWitnesses, addApparatus, getWits } from './apparatus.mjs';
+import { makeApp, addWitnesses, addApparatus, getWits } from '../lib/apparatus.mjs';
 
 const _state = {
     curDoc: null,
