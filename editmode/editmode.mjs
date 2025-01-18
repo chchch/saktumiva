@@ -11,7 +11,7 @@ const _state = {
 const alignmentDir = 'alignments';
 
 const init = async () => {
-    const searchparams = new URLSearchParams(window.location.saerch);
+    const searchparams = new URLSearchParams(window.location.search);
     const islocal = ['localhost','127.0.0.1'].includes(window.location.hostname);
     if(searchparams.get('noedit')) return;
     if(!searchparams.get('edit') && !islocal) return;
