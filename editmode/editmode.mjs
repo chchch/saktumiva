@@ -1,5 +1,6 @@
 import popupHTML from './editmode.html.mjs';
 import { makeApp, addWitnesses, addApparatus, getWits } from '../lib/apparatus.mjs';
+import { showSaveFilePicker } from './native-file-system-adapter/es6.js';
 
 const _state = {
     curDoc: null,
@@ -45,13 +46,17 @@ const injectCSS = () => {
     border-radius: 0.3rem;
     color: black;
     height: fit-content;
+    font-size: 1.1rem;
+    padding: 0.2rem 0.4rem 0.2rem 0.4rem;
 }
-#topbar button:hover {
+#topbar #button_savebutton {
+    background-color: rgb(255, 73, 73);
+    color: white;
+    font-weight: bold;
+}
+#topbar button:hover, #topbar #button_savebutton:hover {
     background-color: #eeee99;
     border-color: #eeee00;
-}
-#button_savebutton {
-    background-color: rgb(255, 73, 73);
 }
 #topbar {
     background: linear-gradient(rgb(255,255,248) 60%, rgba(255,255,255,0));
