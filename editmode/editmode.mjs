@@ -13,6 +13,7 @@ const alignmentDir = 'alignments';
 const init = async () => {
     const searchparams = new URLSearchParams(window.location.saerch);
     const islocal = ['localhost','127.0.0.1'].includes(window.location.hostname);
+    if(searchparams.get('noedit')) return;
     if(!searchparams.get('edit') && !islocal) return;
 
     _state.curDoc = await loadDoc(window.location.pathname);
