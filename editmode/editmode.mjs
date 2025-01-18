@@ -50,6 +50,9 @@ const injectCSS = () => {
     background-color: #eeee99;
     border-color: #eeee00;
 }
+#button_savebutton {
+    background-color: rgb(255, 73, 73);
+}
 #topbar {
     background: linear-gradient(rgb(255,255,248) 60%, rgba(255,255,255,0));
     height: auto;
@@ -100,6 +103,11 @@ const injectHTML = async () => {
     editbutton.append('Add/edit apparatus');
     topbar.appendChild(editbutton);
     editbutton.addEventListener('click',editApp);
+    const savebutton = document.createElement('button');
+    savebutton.id = 'button_savebutton';
+    savebutton.append('Save as...');
+    topbar.appendChild(savebutton);
+    savebutton.addEventListener('click',saveAs);
 };
 
 const loadDoc = async (fn,cache='no-cache') => {
@@ -362,6 +370,22 @@ const cacheWitnesses = async (doc, witmap, filemap) => {
             }
         }
     }
+};
+
+const saveAs = async () => {
+    const thisFilename = window.location.pathname.split('/').pop();
+    const fileHandle = await showSaveFilePicker({
+        suggestedName: thisFilename,
+        types: [
+            { description: 'TEI XML', accept: { 'text/xml': [ '.xml'] } }
+        ],
+    });
+    const serialized = (new XMLSerializer()).serializeToString(_state.curDoc);
+    const file = new Blob([serialized], {type: 'text/xml;charset=utf-8'});
+    const writer = await fileHandle.createWritable();
+    writer.write(file);
+    writer.close();
+    
 };
 
 window.addEventListener('load',init);
