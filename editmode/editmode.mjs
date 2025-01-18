@@ -241,8 +241,13 @@ const collate = async () => {
     const curarticle = document.querySelector('article');
     curarticle.parentNode.replaceChild(newDoc.querySelector('article'), curarticle);
     document.getElementById('editblackout').style.display = 'none';
-    if(document.querySelector('.apparatus-block.hidden'))
-        document.getElementById('apparatusbutton').click();
+    
+    // keep clicking until the apparatus appears... pretty hacky solution
+    const appbutton = document.getElementById('apparatusbutton');
+    appbutton.click();
+    if(document.querySelector('.apparatus-block.hidden'))  {
+        appbutton.click();
+    }
 };
 
 const getXSLTSheet = async doc => {
