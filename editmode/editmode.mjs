@@ -58,6 +58,12 @@ const injectCSS = () => {
 #buttoncontainer {
     top: auto;
 }
+.editbutton: {
+    position: relative;
+    left: -1rem;
+    top: 0;
+    height: 0;
+}
 `
     );
     document.head.appendChild(style);
