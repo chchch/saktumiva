@@ -57,6 +57,7 @@ const injectCSS = () => {
 #topbar button:hover, #topbar #button_savebutton:hover {
     background-color: #eeee99;
     border-color: #eeee00;
+    color: black;
 }
 #topbar {
     background: linear-gradient(rgb(255,255,248) 60%, rgba(255,255,255,0));
