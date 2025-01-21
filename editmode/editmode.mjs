@@ -1,6 +1,7 @@
 import popupHTML from './editmode.html.mjs';
 import { makeApp, addWitnesses, addApparatus, getWits } from '../lib/apparatus.mjs';
 import { showSaveFilePicker } from './native-file-system-adapter/es6.js';
+import { loadDoc } from './utils.mjs';
 import previewDoc from './preview.mjs';
 
 const _state = {
@@ -117,12 +118,6 @@ const injectHTML = async () => {
     savebutton.append('Save as...');
     topbar.appendChild(savebutton);
     savebutton.addEventListener('click',saveAs);
-};
-
-const loadDoc = async (fn,cache='no-cache') => {
-    const res = await fetch(fn, {cache: cache});
-    const xmltext = await res.text();
-    return (new DOMParser()).parseFromString(xmltext, 'text/xml');
 };
 
 const updateChecklist = e => {
@@ -294,7 +289,7 @@ const collate = async () => {
         
     }
 
-    const newDoc = previewDoc(_state.curDoc);
+    const newDoc = await previewDoc(_state.curDoc);
     const curarticle = document.querySelector('article');
     curarticle.parentNode.replaceChild(newDoc.querySelector('article'), curarticle);
     document.getElementById('editblackout').style.display = 'none';
