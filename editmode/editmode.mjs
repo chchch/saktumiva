@@ -300,7 +300,7 @@ const collate = async () => {
         newblock.style.border = '1px dashed red';
     }
     document.getElementById('editblackout').style.display = 'none';
-    
+    document.getElementById(blocklist[0]).scrollIntoView({behavior: 'smooth',block: 'center'}); 
     const blocks = _state.curDoc.querySelectorAll('lg[*|id],p[*|id],div[*|id],div[*|id]');
     addEditButtons(blocks);
 
