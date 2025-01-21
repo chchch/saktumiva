@@ -270,8 +270,11 @@ const collate = async () => {
     const cachedfiles = new Map();
     await cacheWitnesses(_state.curDoc,cachedwitnesses,cachedfiles);
     const siglum = _state.curDoc.querySelector('idno[type="siglum"]')?.textContent;
+    const blocklist = [];
     for(const block of _state.shadowRoot.querySelectorAll('#blocklist input[value]')) {
         if(!block.checked) continue;
+        blocklist.push(block.value);
+
         const base = _state.curDoc.querySelector(`[*|id='${block.value}']`).closest('text').getAttribute('corresp')?.replace(/^#/,'') || siglum;
         const alignobj = _state.alignments.get(block.value);
         if(!alignobj.doc)
@@ -290,8 +293,11 @@ const collate = async () => {
     }
 
     const newDoc = await previewDoc(_state.curDoc);
-    const curarticle = document.querySelector('article');
-    curarticle.parentNode.replaceChild(newDoc.querySelector('article'), curarticle);
+    for(const newblock of newDoc.getElementById(block.value)) {
+        const oldblock = document.getElementById(block.value);
+        oldblock.parentNode.replaceChild(newblock,oldblock);
+        newblock.style.border = '1px dashed red';
+    }
     document.getElementById('editblackout').style.display = 'none';
     
     const blocks = _state.curDoc.querySelectorAll('lg[*|id],p[*|id],div[*|id],div[*|id]');
