@@ -40,7 +40,7 @@ const injectCSS = () => {
     background: none;
     backdrop-filter: blur(5px) brightness(60%) saturate(150%);
 }
-#topbar button {
+button {
     margin: 0.3em 0 0.3em 0.5em;
     background-color: rgb(240,202,121);
     border-color: rgb(240,202,121);
@@ -50,12 +50,12 @@ const injectCSS = () => {
     font-size: 1.1rem;
     padding: 0.2rem 0.4rem 0.2rem 0.4rem;
 }
-#topbar #button_savebutton {
+button.important {
     background-color: rgb(255, 73, 73);
     color: white;
     font-weight: bold;
 }
-#topbar button:hover, #topbar #button_savebutton:hover {
+button:hover {
     background-color: #eeee99;
     border-color: #eeee00;
     color: black;
@@ -111,6 +111,7 @@ const injectHTML = async () => {
     topbar.appendChild(editbutton);
     editbutton.addEventListener('click',editApp);
     const savebutton = document.createElement('button');
+    savebutton.className = 'important';
     savebutton.id = 'button_savebutton';
     savebutton.append('Save as...');
     topbar.appendChild(savebutton);
