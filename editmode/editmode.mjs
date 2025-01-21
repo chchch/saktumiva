@@ -152,7 +152,7 @@ const updateChecklist = e => {
 const addEditButtons = blocks => {for(const block of blocks) addEditButton(block);};
 
 const addEditButton = blockel => {
-    const xmlid = blockel.getAttribute('xml:id');
+    const xmlid = typeof blockel === 'string' ? blockel : blockel.getAttribute('xml:id');
     const block = document.getElementById(xmlid);
     const editbutton = document.createElement('div');
     editbutton.className = 'editbutton';
@@ -301,8 +301,7 @@ const collate = async () => {
     }
     document.getElementById('editblackout').style.display = 'none';
     document.getElementById(blocklist[0]).scrollIntoView({behavior: 'smooth',block: 'center'}); 
-    const blocks = _state.curDoc.querySelectorAll('lg[*|id],p[*|id],div[*|id],div[*|id]');
-    addEditButtons(blocks);
+    addEditButtons(blocklist);
 
     // keep clicking until the apparatus appears... pretty hacky solution
     const appbutton = document.getElementById('apparatusbutton');
