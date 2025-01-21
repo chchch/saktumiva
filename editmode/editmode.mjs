@@ -293,8 +293,9 @@ const collate = async () => {
     }
 
     const newDoc = await previewDoc(_state.curDoc);
-    for(const newblock of newDoc.getElementById(block.value)) {
-        const oldblock = document.getElementById(block.value);
+    for(const id of blocklist) {
+        const newblock = newdoc.getElementById(id);
+        const oldblock = document.getElementById(id);
         oldblock.parentNode.replaceChild(newblock,oldblock);
         newblock.style.border = '1px dashed red';
     }
