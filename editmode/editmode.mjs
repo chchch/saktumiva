@@ -269,7 +269,7 @@ const collate = async () => {
     const cachedwitnesses = new Map();
     const cachedfiles = new Map();
     await cacheWitnesses(_state.curDoc,cachedwitnesses,cachedfiles);
-    const siglum = _state.curDoc.querySelector('idno[type="siglum"]')?.textContent;
+    const siglum = _state.curDoc.querySelector('idno[type="siglum"]')?.textContent || _state.curDoc.documentElement.getAttribute('n');
     const blocklist = [];
     for(const block of _state.shadowRoot.querySelectorAll('#blocklist input[value]')) {
         if(!block.checked) continue;
