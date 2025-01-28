@@ -102,7 +102,7 @@ const injectHTML = async () => {
     shadow.querySelector('.closeicon').addEventListener('click', _ => blackout.style.display = 'none');
     shadow.getElementById('collatebutton').addEventListener('click',collate);
     _state.shadowRoot = shadow;
-    const blocks = _state.curDoc.querySelectorAll('lg[*|id],p[*|id],div[*|id],div[*|id]');
+    const blocks = _state.curDoc.querySelectorAll('text lg[*|id],text p[*|id],text div[*|id]');
     fillBlocks(blocks);
     addEditButtons(blocks);
 
