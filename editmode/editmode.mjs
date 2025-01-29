@@ -301,11 +301,11 @@ const collate = async () => {
 
     const newDoc = await previewDoc(_state.curDoc);
     for(const id of blocklist) {
-        const newblock = newDoc.getElementById(blockid);
+        const newblock = newDoc.getElementById(id);
         const newpar = newblock.closest('.wide');
         const newwide = newpar || newblock; // TODO: this is ugly
 
-        const oldblock = document.getElementById(blockid);
+        const oldblock = document.getElementById(id);
         const oldpar = oldblock.closest('.wide');
         const oldwide = oldpar || oldblock;
 
