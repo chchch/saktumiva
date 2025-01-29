@@ -83,6 +83,13 @@ button:hover {
 .editbutton:hover svg {
     fill:  rgb(168,81,16);
 }
+.edited {
+    border: 1px dashed red;
+    border-radius: 10px;
+    margin-bottom: 5px;
+    margin-left: -5px;
+    padding-left: 5px;
+}
 `
     );
     document.head.appendChild(style);
@@ -294,12 +301,17 @@ const collate = async () => {
 
     const newDoc = await previewDoc(_state.curDoc);
     for(const id of blocklist) {
-        let newblock = newDoc.getElementById(id);
-        const par = newblock.closest('.wide'); // TODO: this is ugly
-        if(par) newblock = par;
-        const oldblock = document.getElementById(id);
-        oldblock.parentNode.replaceChild(newblock,oldblock);
-        newblock.style.border = '1px dashed red';
+        const newblock = newDoc.getElementById(blockid);
+        const newpar = newblock.closest('.wide');
+        const newwide = newpar || newblock; // TODO: this is ugly
+
+        const oldblock = document.getElementById(blockid);
+        const oldpar = oldblock.closest('.wide');
+        const oldwide = oldpar || oldblock;
+
+        oldwide.parentNode.replaceChild(newwide,oldwide);
+        //newblock.style.border = '1px dashed red';
+        newwide.classList.add('edited');
     }
     document.getElementById('editblackout').style.display = 'none';
     document.getElementById(blocklist[0]).scrollIntoView({behavior: 'smooth',block: 'center'}); 
