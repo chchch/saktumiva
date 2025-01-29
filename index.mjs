@@ -67,7 +67,7 @@ const languageSpecificOptions = textel => {
     const normies = document.getElementById('normalization');
     normies.querySelector('input').checked = true; // ignore punctuation
     if(lang === 'sanskrit' || lang === 'tamil')
-        normies.querySelector('input[value="36"]').checked = true; // remove spaces
+        normies.querySelector('input[value="41"]').checked = true; // remove spaces
 
     const filterhead = lang === 'sanskrit' ? normies.querySelector('.sanskrit') :
                     lang === 'tamil' ? normies.querySelector('.tamil') :
