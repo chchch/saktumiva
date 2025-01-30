@@ -71,7 +71,8 @@ const main = () => {
             sort: config.edition.sort,
             blockid: block,
             witnesses: config.edition.readingsfromfiles ? cachedwitnesses : null,
-            idsel: 'xml:id'
+            idsel: 'xml:id',
+            logger: console.log
         });
         if(app.error)
             console.log(`Error creating apparatus for ${block}!`);
