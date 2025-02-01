@@ -72,7 +72,6 @@ const main = () => {
             blockid: block,
             witnesses: config.edition.readingsfromfiles ? cachedwitnesses : null,
             idsel: 'xml:id',
-            logger: console.log
         });
         if(app.error)
             console.log(`Error creating apparatus for ${block}!`);
