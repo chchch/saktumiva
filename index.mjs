@@ -78,6 +78,11 @@ const languageSpecificOptions = textel => {
             input.click();
             filterhead.open = false;
         }
+        if(lang === 'tamil') {
+            const arr = [5,6,7,8,9,10];
+            for(const n of arr)
+                filterhead.parentNode.querySelector(`input[value="${n}"]`).click();
+        }
     }
 };
 
