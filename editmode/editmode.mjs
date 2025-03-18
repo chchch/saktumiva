@@ -68,7 +68,7 @@ button:hover {
     top: 0;
     padding-top: 1em;
     padding-bottom: 2em;
-    z-index: 2;
+    z-index: 3;
     backdrop-filter: blur(1px);
 }
 #buttoncontainer {
