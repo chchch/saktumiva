@@ -8,7 +8,7 @@ const _state = {
     curDoc: null,
     shadowRoot: null,
     alignments: new Map(),
-    doneFindAlignments: false
+    //doneFindAlignments: false
 };
 const alignmentDir = 'alignments';
 
@@ -85,13 +85,14 @@ button:hover {
     position: relative;
     left: -1rem;
     top: 0;
+    flex-shrink: 0;
 }
 .editbutton svg {
     height: 0.7rem;
     width: 0.7rem;
     position: relative;
-    top: -0.1rem;
-    left: -0.05rem;
+    top: 0;
+    left: 0.2rem;
 }
 .editbutton:hover {
     background-color: #eeee99;
@@ -178,6 +179,7 @@ const addEditButton = blockel => {
     const minieditbutton = document.createElement('button');
     minieditbutton.className = 'editbutton';
     const appsvg = document.getElementById('apparatussvg').cloneNode(true);
+    appsvg.style.display = 'block';
     delete appsvg.dataset.anno;
     minieditbutton.appendChild(appsvg);
     minieditbutton.dataset.anno = `Edit apparatus for ${xmlid}`;
@@ -251,10 +253,12 @@ const getAlignmentFile = async e => {
 const editApp = (opts,e) => {
     const blackout = document.getElementById('editblackout');
     blackout.style.display = 'flex';
-    if(!_state.doneFindAlignments) {
+    for(const foundlabel of _state.shadowRoot.querySelectorAll('.foundlabel'))
+        foundlabel.remove();
+    //if(!_state.doneFindAlignments) {
         findAlignments(opts);
-        return;
-    }
+    //    return;
+    //}
     if(!opts.block)
         return;
     // else clear other checkboxes 
@@ -270,7 +274,7 @@ const findAlignments = async opts => {
     for(const input of _state.shadowRoot.querySelectorAll('#blocklist input[type="checkbox"][value]')) {
         const blockid = input.value;
         const srcname = `${alignmentDir}/${blockid}.xml`;
-        const res = await fetch(srcname,{method: 'HEAD'});
+        const res = await fetch(srcname,{method: 'HEAD', cache: 'no-cache'});
         if(!res.ok)  {
             continue;
         }
@@ -285,7 +289,7 @@ const findAlignments = async opts => {
                input.checked = true;
         }
     }
-    _state.doneFindAlignments = true;
+    //_state.doneFindAlignments = true;
 };
 
 const collate = async () => {
