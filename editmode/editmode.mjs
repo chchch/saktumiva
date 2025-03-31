@@ -76,7 +76,7 @@ button:hover {
 }
 .editbutton {
     height: 1.4rem;
-    width: 1.2rem;
+    width: 1.4rem;
     background-color: rgb(249,202,121);
     border-color: rgb(240,202,121);
     border-radius: 0.3rem;
@@ -91,6 +91,7 @@ button:hover {
     width: 0.7rem;
     position: relative;
     top: -0.1rem;
+    left: -0.05rem;
 }
 .editbutton:hover {
     background-color: #eeee99;
@@ -174,13 +175,14 @@ const addEditButtons = blocks => {for(const block of blocks) addEditButton(block
 const addEditButton = blockel => {
     const xmlid = typeof blockel === 'string' ? blockel : blockel.getAttribute('xml:id');
     const block = document.getElementById(xmlid);
-    const editbutton = document.createElement('div');
-    editbutton.className = 'editbutton';
-    editbutton.appendChild(
-        document.getElementById('apparatussvg').cloneNode(true));
-    editbutton.dataset.anno = `Edit apparatus for ${xmlid}`;
-    editbutton.addEventListener('click',editApp.bind(null,{block: xmlid}));
-    block.prepend(editbutton);
+    const minieditbutton = document.createElement('button');
+    minieditbutton.className = 'editbutton';
+    const appsvg = document.getElementById('apparatussvg').cloneNode(true);
+    delete appsvg.dataset.anno;
+    minieditbutton.appendChild(appsvg);
+    minieditbutton.dataset.anno = `Edit apparatus for ${xmlid}`;
+    minieditbutton.addEventListener('click',editApp.bind(null,{block: xmlid}));
+    block.prepend(minieditbutton);
 };
 
 const fillBlocks = (blocks) => {
