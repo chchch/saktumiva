@@ -85,7 +85,6 @@ button:hover {
     position: relative;
     left: -1rem;
     top: 0;
-    height: 0;
 }
 .editbutton svg {
     height: 0.7rem;
