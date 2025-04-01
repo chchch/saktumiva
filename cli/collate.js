@@ -113,7 +113,7 @@ const main = () => {
     const configfunc = tok === 'character' ? 'character' : 
         config.scoring.recursive ? 'arr' : 'arr_simple';
     
-    const [filterindices,filternames] = getFilterIndices(config);
+    const [filtersindices,filtersnames] = getFilterIndices(config);
 
     const selectedsigla = config.hasOwnProperty('sigla') && config.sigla.length !== 0 ? 
         config.sigla : [...alltexts.keys()];
@@ -126,23 +126,24 @@ const main = () => {
 
     for(const block of selectedblocks) {
         Process.stdout.write(`Aligning ${block}... `);
-        const texts = preProcess(block, selectedtexts, {splitfunc: splitfunc, selectedfilters: filterindices, ignoretags: config.ignoretags, idsel: 'xml:id', langsel: 'xml:lang'});
+        const texts = preProcess(block, selectedtexts, {splitfunc: splitfunc, selectedfilters: filtersindices, ignoretags: config.ignoretags, idsel: 'xml:id', langsel: 'xml:lang'});
         if(texts.length === 1) {
             console.log('Nothing to align.');
             continue;
         }
-        const filtersmap = new Map(texts.map(t => [t.siglum, t.filters]));
         const aligned = MultiAlign(texts, configfunc, scores);
-        const postaligned = postProcess(
-            aligned,
-            {block: block, filtersmap: filtersmap},
-            filternames, 
-            alltexts,
-            config.ignoretags
-         );
+        const filtersmap = new Map(texts.map(t => [t.siglum, t.filters]));
+        const meta = {
+                      alltexts: alltexts,
+                      filtersnames: filtersnames, 
+                      tagfilters: config.ignoretags,
+                      lang: texts[0].lang
+                     };
+        let postaligned = postProcess(aligned, filtersmap, meta);
+
         if(!config.hasOwnProperty('lemmagroups') || config.lemmagroups === true) {
-            const grouped = groupBySpace(parseString(postaligned[1],`${block}.xml`),config.edition?.siglum);
-            postaligned[1] = serializeXML(grouped);
+            const grouped = groupBySpace(parseString(postaligned,`${block}.xml`),config.edition?.siglum);
+            postaligned = serializeXML(grouped);
         }
         saveFile(postaligned,Path.join(config.dirname,config.alignmentdir,`${block}.xml`));
     }

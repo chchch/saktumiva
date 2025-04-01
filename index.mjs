@@ -187,7 +187,7 @@ const getFilterIndices = () => {
     },[[],[]]);
 };
 
-const getIgnoreTags = () => {
+const getTagFilters = () => {
     const ret = [];
     const par = document.getElementById('xmltags');
     for(const box of par.querySelectorAll('input:checked')) {
@@ -238,8 +238,8 @@ const align = () => {
         return;
     }
     
-    const [filterindices, filternames] = getFilterIndices();
-    const ignoretags = getIgnoreTags();
+    const [filtersindices, filtersnames] = getFilterIndices();
+    const tagfilters = getTagFilters();
     const targetedition = document.getElementById('targetedition').value;
 
     document.getElementById('blackout').style.display = 'flex';
@@ -254,16 +254,15 @@ const align = () => {
             return {siglum: s,text:_state.alltexts.get(s)};
         });
     for(const block of selectedblocks) {
-        const texts = preProcess(block, selectedtexts, {splitfunc: splitfunc, selectedfilters: filterindices, ignoretags: ignoretags}); 
+        const texts = preProcess(block, selectedtexts, {splitfunc: splitfunc, selectedfilters: filtersindices, ignoretags: tagfilters}); 
         if(texts.length === 1) {
             alert(`Nothing to align in ${block}.`);
             continue;
         }
 
-        const filtersmap = new Map(texts.map(t => [t.siglum,t.filters]));
-        todo.push({workerdata: [texts,configfunc,scores.scores], block: block, filtersmap: filtersmap});
+        todo.push({workerdata: [texts,configfunc,scores.scores], block: block});
     }
-
+    
     const alignWorker = new Worker('./lib/multialignworker.mjs',{type: 'module'});
     let n = 0;
     document.getElementById('popupmessage').textContent = `Aligning ${todo[n].block}...`;
@@ -277,13 +276,19 @@ const align = () => {
                 document.getElementById('popupmessage').textContent = e.data.message;
             return;
         }
-
-        const finished = postProcess(e.data,todo[n],filternames,_state.alltexts,ignoretags);
+        const filtersmap = new Map(todo[n].workerdata[0].map(t => [t.siglum,t.filters]));
+        const meta = {
+            alltexts: _state.alltexts,
+            filtersnames: filtersnames,
+            tagfilters: tagfilters,
+            lang: todo[n].workerdata[0][0].lang
+            };
+        const finished = postProcess(e.data,filtersmap,meta);
 
         // TODO: add option here
-        const grouped = groupBySpace(parseString(finished[1],todo[n].block),targetedition);
-        finished[1] = serializeXML(grouped);
-        alignedblocks.set(...finished);
+        const grouped = groupBySpace(parseString(finished,todo[n].block),targetedition);
+        const serialized = serializeXML(grouped);
+        alignedblocks.set(todo[n].block,serialized);
 
         n = n + 1;
         if(n < todo.length) {
