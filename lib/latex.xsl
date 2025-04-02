@@ -337,7 +337,7 @@
     <xsl:value-of select="@n"/>
     <xsl:text>}</xsl:text>
 </xsl:template>
-<xsl:template match="x:app[x:rdg]">
+<xsl:template match="x:app[x:rdg or x:rdgGrp]">
     <xsl:text>\edtext{}{\linenum{|\xlineref{</xsl:text>
     <xsl:value-of select="@corresp"/>
     <xsl:text>}}</xsl:text>
@@ -345,10 +345,10 @@
     <xsl:apply-templates select=".//x:lem/node()"/>
     <xsl:text>}\Afootnote{</xsl:text>
     <xsl:call-template name="splitwit">
-        <xsl:with-param name="mss" select="x:lem/@wit | x:rdgGrp[@type='lemma']/@select"/>
+        <xsl:with-param name="mss" select="./x:lem/@wit | ./x:rdgGrp[@type='lemma']/@select"/>
     </xsl:call-template>
     <xsl:text>; </xsl:text>
-    <xsl:apply-templates select="x:rdg | x:rdgGrp"/>
+    <xsl:apply-templates select="./x:rdg | ./x:rdgGrp"/>
     <xsl:text>}}</xsl:text>
 </xsl:template>
 <xsl:template match="x:lem"/>
@@ -367,7 +367,7 @@
     </xsl:choose>
 </xsl:template>
 <xsl:template match="x:rdgGrp">
-    <xsl:apply-templates select="x:rdg[@type='main']"/>
+    <xsl:apply-templates select="x:rdg[@type='main']/node()"/>
     <xsl:text> </xsl:text>
     <xsl:call-template name="splitwit"/>
     <xsl:choose>
