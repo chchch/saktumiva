@@ -3,6 +3,7 @@ import { makeApp, addWitnesses, addApparatus, getWits } from '../lib/apparatus.m
 import { showSaveFilePicker } from './native-file-system-adapter/es6.js';
 import { loadDoc } from './utils.mjs';
 import previewDoc from './preview.mjs';
+import { exportLaTeX } from '../lib/export.mjs';
 
 const _state = {
     curDoc: null,
@@ -134,6 +135,11 @@ const injectHTML = async () => {
     editbutton.append('Add/edit apparatus');
     topbar.appendChild(editbutton);
     editbutton.addEventListener('click',editApp);
+    const exportbutton = document.createElement('button');
+    exportbutton.id = 'button_exportbutton';
+    exportbutton.append('Export');
+    topbar.appendChild(exportbutton);
+    exportbutton.addEventListener('click',exportFile);
     const savebutton = document.createElement('button');
     savebutton.className = 'important';
     savebutton.id = 'button_savebutton';
@@ -363,6 +369,22 @@ const cacheWitnesses = async (doc, witmap, filemap) => {
             }
         }
     }
+};
+
+const exportFile = async () => {
+    const outdoc = await exportLaTeX(_state.curDoc);
+    const thisFilename = window.location.pathname.split('/').pop();
+    const basename = thisFilename.substring(0,thisFilename.lastIndexOf('.'));
+    const fileHandle = await showSaveFilePicker({
+        suggestedName: `${basename}.tex`,
+        types: [
+            { description: 'LaTeX', accept: { 'application/x-latex': [ '.tex'] } }
+        ],
+    });
+    const file = new Blob([outdoc], {type: 'text/x-tex;charset=utf-8'});
+    const writer = await fileHandle.createWritable();
+    writer.write(file);
+    writer.close();
 };
 
 const saveAs = async () => {
