@@ -77,13 +77,13 @@
 \Xnotenumfont[A]{\bfseries}
 \Xlemmafont[A]{\bfseries}
 
-\setdefaultlanguage{sanskrit}
-\setotherlanguage{english}
-\newfontfamily\devanagarifont{Brill}
+\setdefaultlanguage{english}
+\setmainfont{Brill}
+\setotherlanguage{sanskrit}
+\newfontfamily\sanskritfont{Brill}
 
 \begin{document}
-    \raggedright
-\input{sanskrit-hyphenations}
+\begin{sanskrit}
 
 \lineation{page}
 \begingroup
@@ -93,6 +93,7 @@
     <xsl:text>
 \endnumbering
 \endgroup
+\end{sanskrit}
 \end{document}</xsl:text>
 </xsl:template>
 
