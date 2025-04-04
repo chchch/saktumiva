@@ -65,6 +65,7 @@
 \usepackage{polyglossia,fontspec,xunicode}
 \usepackage[normalem]{ulem}
 \usepackage[noend,noeledsec,noledgroup]{reledmac}
+\usepackage{reledpar}
 \usepackage[top=1in, bottom=1.5in,right=1in,left=1in]{geometry}
 \usepackage{setspace}
 \usepackage{xcolor}
@@ -89,18 +90,12 @@
 \setcounter{stanzaindentsrepetition}{2}
 
 \begin{document}
-\begin{sanskrit}
 
 \onehalfspacing
 \lineation{page}
-\begingroup
-\beginnumbering
     </xsl:text>
     <xsl:apply-templates select="x:text"/>
     <xsl:text>
-\endnumbering
-\endgroup
-\end{sanskrit}
 \end{document}</xsl:text>
 </xsl:template>
 
@@ -108,6 +103,27 @@
     <xsl:apply-templates/>
 </xsl:template>
 
+<xsl:template match="x:div[@rend='parallel']">
+    <xsl:text>
+\begin{pages}
+\begin{Leftside}
+\beginnumbering
+</xsl:text>
+    <xsl:apply-templates select="./*[@type='edition']"/>
+    <xsl:text>
+\endnumbering
+\end{Leftside}
+\begin{Rightside}
+\beginnumbering
+</xsl:text>
+    <xsl:apply-templates select="./*[@type='translation']"/>
+    <xsl:text>
+\endnumbering
+\end{Rightside}
+\end{pages}
+\Pages
+</xsl:text>
+</xsl:template>
 <xsl:template match="x:p">
 <xsl:text>
 \pstart
@@ -298,7 +314,7 @@
 <xsl:template match="x:caesura">
 <xsl:variable name="pretext" select="preceding::text()[1]"/>
 <xsl:if test="normalize-space(substring($pretext,string-length($pretext))) != ''">
-    <xsl:text>\-</xsl:text>
+    <xsl:text>-</xsl:text>
 </xsl:if>
     <xsl:text>&amp;
 </xsl:text>
