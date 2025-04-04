@@ -85,7 +85,10 @@
 \setmainfont{Brill}
 \setotherlanguage{sanskrit}
 \newfontfamily\sanskritfont{Brill}
+\newICUfeature{AllAlternates}{1}{+aalt}
+\newcommand{\vowelsign}{\tamilfont\addfontfeature{AllAlternates=1}}
 \setlength{\parskip}{12pt}
+
 \setstanzaindents{1,0,0}
 \setcounter{stanzaindentsrepetition}{2}
 
