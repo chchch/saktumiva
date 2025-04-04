@@ -371,7 +371,7 @@
         <xsl:with-param name="mss" select="./x:lem/@wit | ./x:rdgGrp[@type='lemma']/@select"/>
     </xsl:call-template>
     <xsl:text>}</xsl:text>
-    <xsl:text>; \textsanskritl{</xsl:text>
+    <xsl:text>; \textsanskrit{</xsl:text>
     <xsl:apply-templates select="./x:rdg | ./x:rdgGrp"/>
     <xsl:text>}}}</xsl:text>
 </xsl:template>
