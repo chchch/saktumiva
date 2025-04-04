@@ -65,8 +65,10 @@
 \usepackage{polyglossia,fontspec,xunicode}
 \usepackage[normalem]{ulem}
 \usepackage[noend,noeledsec,noledgroup]{reledmac}
-\usepackage[margin=1in]{geometry}
+\usepackage[top=1in, bottom=1.5in,right=1in,left=1in]{geometry}
 \usepackage{setspace}
+\usepackage{xcolor}
+\usepackage[colorlinks,linkcolor=olive]{hyperref}
 
 \arrangementX[A]{paragraph}
 \arrangementX[B]{paragraph}
@@ -84,10 +86,12 @@
 \newfontfamily\sanskritfont{Brill}
 \setlength{\parskip}{12pt}
 \setstanzaindents{1,0,0}
+\setcounter{stanzaindentsrepetition}{2}
 
 \begin{document}
 \begin{sanskrit}
 
+\onehalfspacing
 \lineation{page}
 \begingroup
 \beginnumbering
@@ -154,7 +158,7 @@
 </xsl:template>
 
 <xsl:template match="x:unclear">
-<xsl:text>\uwave{</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>
+<xsl:text>{\color{lightgray}(}</xsl:text><xsl:apply-templates/><xsl:text>{\color{lightgray})}</xsl:text>
 </xsl:template>
 
 <xsl:template match="x:subst">
@@ -181,7 +185,7 @@
 </xsl:template>
 
 <xsl:template match="x:sic">
-        <xsl:text>\uwave{</xsl:text><xsl:apply-templates /><xsl:text>}</xsl:text>
+    <xsl:text>{\color{lightgray}¿}</xsl:text><xsl:apply-templates/><xsl:text>{\color{lightgray}?}</xsl:text>
 </xsl:template>
 
 <xsl:template match="x:surplus">
@@ -236,6 +240,9 @@
 <xsl:template match="x:g">
     <xsl:text>\uwave{</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>           
 </xsl:template>
+<xsl:template match="x:g[@rend='vowel-sign']">
+    <xsl:text>\vowelsign{</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>           
+</xsl:template>
 
 <xsl:template match="x:supplied">
     <xsl:text>(\textbf{</xsl:text><xsl:apply-templates/><xsl:text>})</xsl:text>
@@ -255,7 +262,7 @@
 </xsl:template>
 
 <xsl:template match="x:gap">
-    <xsl:text>\textenglish{</xsl:text>
+    <xsl:text>\textenglish{[</xsl:text>
     <xsl:variable name="quantity">
         <xsl:choose>
             <xsl:when test="@quantity"><xsl:value-of select="@quantity"/></xsl:when>
@@ -272,7 +279,7 @@
         <xsl:with-param name="output" select="$gapchar"/>
         <xsl:with-param name="count" select="$quantity"/>
     </xsl:call-template>
-    <xsl:text>}</xsl:text>
+    <xsl:text>]}</xsl:text>
 </xsl:template>
 
 <xsl:template match="x:space">
