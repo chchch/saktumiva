@@ -1,10 +1,7 @@
 const loadDoc = async (fn,cache='no-cache') => {
-    let res;
-    try {
-        res = await fetch(fn, {cache: cache});
-    }
-    catch(err) {
-        console.log(err);
+    const res = await fetch(fn, {cache: cache});
+    if(!res.ok) {
+        console.log(res.statusText);
         return null;
     }
     const xmltext = await res.text();
