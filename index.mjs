@@ -262,7 +262,6 @@ const align = () => {
 
         todo.push({workerdata: [texts,configfunc,scores.scores], block: block});
     }
-    
     const alignWorker = new Worker('./lib/multialignworker.mjs',{type: 'module'});
     let n = 0;
     document.getElementById('popupmessage').textContent = `Aligning ${todo[n].block}...`;
