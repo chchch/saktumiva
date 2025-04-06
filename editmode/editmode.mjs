@@ -357,7 +357,7 @@ const cacheWitnesses = async (doc, witmap, filemap) => {
             let file = filemap.get(wit.filename);
             if(!file) {
                 file = await loadDoc(wit.filename);
-                filemap.set(wit.filename,file);
+                if(file) filemap.set(wit.filename,file);
             }
             if(file) {
                 witmap.set(wit.name, {
