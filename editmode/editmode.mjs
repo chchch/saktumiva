@@ -372,7 +372,8 @@ const cacheWitnesses = async (doc, witmap, filemap) => {
 };
 
 const exportFile = async () => {
-    const outdoc = await exportLaTeX(_state.curDoc);
+    const libRoot = document.getElementById('injectedscript')?.dataset.root;
+    const outdoc = await exportLaTeX(_state.curDoc,libRoot);
     const thisFilename = window.location.pathname.split('/').pop();
     const basename = thisFilename.substring(0,thisFilename.lastIndexOf('.'));
     const fileHandle = await showSaveFilePicker({
