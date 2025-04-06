@@ -1,6 +1,7 @@
 const loadDoc = async (fn,cache='no-cache') => {
+    let res;
     try {
-        const res = await fetch(fn, {cache: cache});
+        res = await fetch(fn, {cache: cache});
     }
     catch(err) {
         console.log(err);
