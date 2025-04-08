@@ -139,12 +139,12 @@
 </xsl:template>
 
 <xsl:template match="x:lg">
-<xsl:text>
-\stanza[\smallskip]
+    <xsl:text>
+\begin{astanza}[\smallskip]
 
 </xsl:text><xsl:apply-templates select="x:l | x:trailer"/>
 <xsl:text>
-
+\end{astanza}
 </xsl:text>
 </xsl:template>
 
@@ -181,7 +181,7 @@
 </xsl:template>
 
 <xsl:template match="x:unclear">
-<xsl:text>{\color{lightgray}(}</xsl:text><xsl:apply-templates/><xsl:text>{\color{lightgray})}</xsl:text>
+<xsl:text>\textenglish{\color{lightgray}(}</xsl:text><xsl:apply-templates/><xsl:text>\textenglish{\color{lightgray})}</xsl:text>
 </xsl:template>
 
 <xsl:template match="x:subst">
@@ -264,7 +264,7 @@
     <xsl:text>\uwave{</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>           
 </xsl:template>
 <xsl:template match="x:g[@rend='vowel-sign']">
-    <xsl:text>\vowelsign{</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>           
+    <xsl:text>{\vowelsign{}</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>           
 </xsl:template>
 
 <xsl:template match="x:supplied">
@@ -285,7 +285,7 @@
 </xsl:template>
 
 <xsl:template match="x:gap">
-    <xsl:text>\textenglish{[</xsl:text>
+    <xsl:text>\textenglish{{\color{gray}[}</xsl:text>
     <xsl:variable name="quantity">
         <xsl:choose>
             <xsl:when test="@quantity"><xsl:value-of select="@quantity"/></xsl:when>
@@ -302,10 +302,11 @@
         <xsl:with-param name="output" select="$gapchar"/>
         <xsl:with-param name="count" select="$quantity"/>
     </xsl:call-template>
-    <xsl:text>]}</xsl:text>
+    <xsl:text>{\color{gray}]}}</xsl:text>
 </xsl:template>
 
 <xsl:template match="x:space">
+    <xsl:text>\textenglish{{\color{gray}[}</xsl:text>
     <xsl:variable name="quantity">
         <xsl:choose>
             <xsl:when test="@quantity"><xsl:value-of select="@quantity"/></xsl:when>
@@ -316,6 +317,7 @@
         <xsl:with-param name="output">\_</xsl:with-param>
         <xsl:with-param name="count" select="$quantity"/>
     </xsl:call-template>
+    <xsl:text>{\color{gray}]}}</xsl:text>
 </xsl:template>
 
 <xsl:template match="x:caesura">
@@ -415,7 +417,7 @@
         <xsl:when test="./node()">
             <xsl:apply-templates select="./node()"/>
         </xsl:when>
-        <xsl:otherwise><xsl:text>\textsc{om.}</xsl:text></xsl:otherwise>
+        <xsl:otherwise><xsl:text>\textenglish{\textsc{om.}}</xsl:text></xsl:otherwise>
     </xsl:choose>
     <xsl:text> </xsl:text>
     <xsl:text>\textenglish{</xsl:text>
