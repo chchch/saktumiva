@@ -86,7 +86,7 @@
 \setotherlanguage{sanskrit}
 \newfontfamily\sanskritfont{Brill}
 \newICUfeature{AllAlternates}{1}{+aalt}
-\newcommand{\vowelsign}{\tamilfont\addfontfeature{AllAlternates=1}}
+% \newcommand{\vowelsign}{\tamilfont\addfontfeature{AllAlternates=1}}
 \setlength{\parskip}{12pt}
 
 \setstanzaindents{1,0,0}
@@ -181,7 +181,7 @@
 </xsl:template>
 
 <xsl:template match="x:unclear">
-<xsl:text>\textenglish{\color{lightgray}(}</xsl:text><xsl:apply-templates/><xsl:text>\textenglish{\color{lightgray})}</xsl:text>
+<xsl:text>\textenglish{\color{gray}(}</xsl:text><xsl:apply-templates/><xsl:text>\textenglish{\color{gray})}</xsl:text>
 </xsl:template>
 
 <xsl:template match="x:subst">
@@ -208,7 +208,7 @@
 </xsl:template>
 
 <xsl:template match="x:sic">
-    <xsl:text>\textenglish{\color{lightgray}¿}</xsl:text><xsl:apply-templates/><xsl:text>\textenglish{\color{lightgray}?}</xsl:text>
+    <xsl:text>\textenglish{\color{gray}¿}</xsl:text><xsl:apply-templates/><xsl:text>\textenglish{\color{gray}?}</xsl:text>
 </xsl:template>
 
 <xsl:template match="x:surplus">
@@ -263,9 +263,9 @@
 <xsl:template match="x:g">
     <xsl:text>\uwave{</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>           
 </xsl:template>
-<xsl:template match="x:g[@rend='vowel-sign']">
-    <xsl:text>{\vowelsign{}</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>           
-</xsl:template>
+<!--xsl:template match="x:g[@rend='vowel-sign']">
+    <xsl:text>{\vowelsign{}</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>          
+</xsl:template-->
 
 <xsl:template match="x:supplied">
     <xsl:text>(\textbf{</xsl:text><xsl:apply-templates/><xsl:text>})</xsl:text>
