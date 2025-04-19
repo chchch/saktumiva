@@ -18,6 +18,20 @@
     </xsl:if>
 </xsl:template>
 
+<xsl:template name="langstart">
+    <xsl:choose>
+        <xsl:when test="./@xml:lang='sa'"><xsl:text>\texttamil{</xsl:text></xsl:when>
+        <xsl:when test="./@xml:lang='en'"><xsl:text>\textenglish{</xsl:text></xsl:when>
+        <xsl:otherwise/>
+    </xsl:choose>
+</xsl:template>
+<xsl:template name="langend">
+    <xsl:choose>
+        <xsl:when test="./@xml:lang='sa'"><xsl:text>}</xsl:text></xsl:when>
+        <xsl:when test="./@xml:lang='en'"><xsl:text>}</xsl:text></xsl:when>
+        <xsl:otherwise/>
+    </xsl:choose>
+</xsl:template>
 <xsl:template name="splitwit">
     <xsl:param name="mss" select="@wit | @select"/>
     <xsl:variable name="msstring" select="substring-before(
@@ -73,9 +87,11 @@
 
 \arrangementX[A]{paragraph}
 \arrangementX[B]{paragraph}
-\renewcommand*{\thefootnoteB}{\Roman{footnoteB}}
+\renewcommand*{\thefootnoteB}{\alph{footnoteB}}
 \arrangementX[C]{paragraph}
-\renewcommand*{\thefootnoteC}{\roman{footnoteC}}
+\renewcommand*{\thefootnoteC}{\Roman{footnoteC}}
+\arrangementX[D]{paragraph}
+\renewcommand*{\thefootnoteD}{\roman{footnoteD}}
 
 \Xarrangement[A]{paragraph}
 \Xnotenumfont[A]{\bfseries}
@@ -91,6 +107,19 @@
 
 \setstanzaindents{1,0,0}
 \setcounter{stanzaindentsrepetition}{2}
+
+\fnpos{%
+    {A}{familiar},
+    {A}{critical},%
+    {B}{critical},%
+    {C}{critical},%
+    {D}{critical},%
+    {E}{critical},%
+    {B}{familiar},%
+    {C}{familiar},%
+    {D}{familiar},%
+    {E}{familiar}%
+}
 
 \begin{document}
 
@@ -130,33 +159,64 @@
 </xsl:template>
 <xsl:template match="x:p">
 <xsl:text>
-\pstart
+\pstart</xsl:text>
+<xsl:call-template name="langstart"/>
+<xsl:text>
 </xsl:text>
 <xsl:apply-templates/><xsl:text>
-\pend
+</xsl:text>
+<xsl:call-template name="langend"/>
+<xsl:text>\pend
 
 </xsl:text>
 </xsl:template>
 
 <xsl:template match="x:lg">
-    <xsl:text>
+    <xsl:choose>
+        <xsl:when test="ancestor::x:div[@rend='parallel']">
+<xsl:text>
 \begin{astanza}[\smallskip]
 
-</xsl:text><xsl:apply-templates select="x:l | x:trailer"/>
+</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+<xsl:text>
+\stanza[\smallskip]
+
+</xsl:text>
+        </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates select="x:l | x:trailer"/>
+    <xsl:choose>
+        <xsl:when test="ancestor::x:div[@rend='parallel']">
 <xsl:text>
 \end{astanza}
+
 </xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+<xsl:text>
+
+</xsl:text>
+        </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
 <xsl:template match="x:lg/x:l">
 <!--xsl:text>\large </xsl:text-->
-<xsl:apply-templates/><xsl:text>&amp;
+<xsl:call-template name="langstart"/>
+<xsl:apply-templates/>
+<xsl:call-template name="langend"/>
+<xsl:text>&amp;
 </xsl:text>
 </xsl:template>
 
 <xsl:template match="x:lg/x:l[position()=last()]">
 <!--xsl:text>\large </xsl:text-->
-<xsl:apply-templates/><xsl:text>\&amp;
+<xsl:call-template name="langstart"/>
+<xsl:apply-templates/>
+<xsl:call-template name="langend"/>
+<xsl:text>\&amp;
 </xsl:text>
 </xsl:template>
 
@@ -172,8 +232,21 @@
 <xsl:template match="x:hi[@rend='superscript']">
 <xsl:text>\textsuperscript{</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>
 </xsl:template>
+
 <xsl:template match="x:hi[@rend='italic']">
 <xsl:text>\emph{</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>
+</xsl:template>
+<xsl:template match="x:term">
+    <xsl:call-template name="langstart"/>
+    <xsl:apply-templates/>
+    <xsl:call-template name="langend"/>
+</xsl:template>
+<xsl:template match="x:q | x:quote">
+    <xsl:text>“</xsl:text>
+    <xsl:call-template name="langstart"/>
+    <xsl:apply-templates/>
+    <xsl:call-template name="langend"/>
+    <xsl:text>”</xsl:text>
 </xsl:template>
 
 <xsl:template match="x:label">
@@ -320,15 +393,15 @@
 <xsl:template match="x:app//x:caesura"/>
 
 <xsl:template match="x:note">
-    <xsl:if test="@xml:lang='en'"><xsl:text>\textenglish{</xsl:text></xsl:if>
-    <xsl:text>\emph{</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>
-    <xsl:if test="@xml:lang='en'"><xsl:text>}</xsl:text></xsl:if>
+    <xsl:call-template name="langstart"/>
+    <xsl:apply-templates/>
+    <xsl:call-template name="langend"/>
 </xsl:template>
 <xsl:template match="x:note[@place='foot']">
     <xsl:text>\footnoteA{</xsl:text>
-    <xsl:if test="@xml:lang='en'"><xsl:text>\textenglish{</xsl:text></xsl:if>
+    <xsl:call-template name="langstart"/>
     <xsl:apply-templates/>
-    <xsl:if test="@xml:lang='en'"><xsl:text>}</xsl:text></xsl:if>
+    <xsl:call-template name="langend"/>
     <xsl:text>}</xsl:text>
 </xsl:template>
 
@@ -373,6 +446,34 @@
     <xsl:value-of select="@n"/>
     <xsl:text>}</xsl:text>
 </xsl:template>
+<xsl:template match="x:anchor">
+    <xsl:variable name="noteid" select="concat('#',@xml:id)"/>
+    <xsl:variable name="note" select="//x:note[@target=$noteid]"/>
+    <xsl:variable name="type" select="$note/ancestor::x:standOff/@type"/>
+    <xsl:choose>
+        <xsl:when test="$type = 'notes1'">
+            <xsl:text>\footnoteA{</xsl:text>
+            <xsl:apply-templates select="$note"/>
+            <xsl:text>}</xsl:text>
+        </xsl:when>
+        <xsl:when test="$type = 'notes2'">
+            <xsl:text>\footnoteB{</xsl:text>
+            <xsl:apply-templates select="$note"/>
+            <xsl:text>}</xsl:text>
+        </xsl:when>
+        <xsl:when test="$type = 'notes3'">
+            <xsl:text>\footnoteC{</xsl:text>
+            <xsl:apply-templates select="$note"/>
+            <xsl:text>}</xsl:text>
+        </xsl:when>
+        <xsl:when test="$type = 'notes4'">
+            <xsl:text>\footnoteD{</xsl:text>
+            <xsl:apply-templates select="$note"/>
+            <xsl:text>}</xsl:text>
+        </xsl:when>
+    </xsl:choose>
+</xsl:template>
+
 <xsl:template match="x:app[x:rdg or x:rdgGrp]">
     <xsl:text>\edtext{}{\linenum{|\xlineref{</xsl:text>
     <xsl:value-of select="@corresp"/>
