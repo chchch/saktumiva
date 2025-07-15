@@ -411,6 +411,25 @@ const updateBoxes = (e) => {
 };
 
 window.addEventListener('load', () => {
+    const date = new Date();
+    if(date.getHours() > 5 || date.getHours() < 5 || date.getDay() > 5) {
+        const dialog = document.createElement('dialog');
+        dialog.setAttribute('open',true);
+        if(date.getDay() > 5) 
+            dialog.innerHTML = "<p>Leo, it's the weekend, are you sure?</p><button>I guessssss</button>";
+        else
+            dialog.innerHTML = "<p>Leo, it's past 5 PM, are you sure?</p><button>Yessssssss</button>";
+        document.getElementById('popup').style.display = 'none';
+        dialog.querySelector('button').addEventListener('click',() => {
+            dialog.remove();
+            document.getElementById('blackout').style.display = 'none';
+            document.getElementById('popup').style.display = 'flex';
+        });
+        const blackout = document.getElementById('blackout');
+        document.getElementById('popup').style.display = 'none';
+        blackout.appendChild(dialog);
+        blackout.style.display = 'flex';
+    }
     document.getElementById('teifiles').addEventListener('change',updatePreview);
     for(const box of document.querySelectorAll('.checklist'))
         box.addEventListener('click',updateCheckboxes);
