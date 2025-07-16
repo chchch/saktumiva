@@ -412,7 +412,7 @@ const updateBoxes = (e) => {
 
 window.addEventListener('load', () => {
     const date = new Date();
-    if(date.getHours() > 5 || date.getHours() < 5 || date.getDay() > 5) {
+    if(date.getHours() > 17 || date.getHours() < 5 || date.getDay() > 5) {
         const dialog = document.createElement('dialog');
         dialog.setAttribute('open',true);
         if(date.getDay() > 5) 
