@@ -1,4 +1,4 @@
-import { collateHTML, exportHTML } from './editmode.html.mjs';
+import popupHTML from './editmode.html.mjs';
 import { makeApp, addWitnesses, addApparatus, getWits } from '../lib/apparatus.mjs';
 import { showSaveFilePicker } from './native-file-system-adapter/es6.js';
 import { loadDoc } from './utils.mjs';
@@ -7,8 +7,7 @@ import { exportLaTeX } from '../lib/export.mjs';
 
 const _state = {
     curDoc: null,
-    collateRoot: null,
-    exportRoot: null,
+    shadowRoot: null,
     alignments: new Map(),
     //doneFindAlignments: false
 };
@@ -114,33 +113,21 @@ button:hover {
 
 const closePopup = () => {
     document.getElementById('editblackout').style.display = 'none';
-    _state.collateRoot.querySelector('.popup').style.display = 'none';
-    _state.exportRoot.querySelector('.popup').style.display = 'none';
+    for(const popup of _state.shadowRoot.querySelectorAll('.popup'))
+        popup.style.display = 'none';
 };
 
 const injectHTML = async () => {
     const blackout = document.createElement('div');
     blackout.id = 'editblackout';
-    const collateShadow = blackout.attachShadow({mode: 'open'});
+    const shadowRoot = blackout.attachShadow({mode: 'open'});
+    shadowRoot.innerHTML = popupHTML;
 
-    const popup = document.createElement('div');
-    popup.className = 'popup';
-    popup.id = 'variants-popup';
-    popup.innerHTML = collateHTML;
-    collateShadow.appendChild(popup);
-    collateShadow.querySelector('.closeicon').addEventListener('click', closePopup);
-    collateShadow.getElementById('collatebutton').addEventListener('click',collate);
-    _state.collateRoot = collateShadow;
-
-    const exportShadow = blackout.attachShadow({mode: 'open'});
-    const popup2 = document.createElement('div');
-    popup2.className = 'popup';
-    popup2.id = 'export-popup';
-    popup2.innerHTML = exportHTML;
-    exportShadow.appendChild(popup2);
-    exportShadow.querySelector('.closeicon').addEventListener('click', closePopup);
-    exportShadow.querySelecotR('button').addEventListener('click',exportFile);
-    _state.exportRoot = exportShadow;
+    for(const closer of shadowRoot.querySelectorAll('.closeicon'))
+        closer.addEventListener('click', closePopup);
+    shadowRoot.getElementById('collatebutton').addEventListener('click',collate);
+    shadowRoot.getElementById('exportbutton').addEventListener('click',exportFile);
+    _state.shadowRoot = shadowRoot;
 
     document.body.appendChild(blackout);
     const blocks = _state.curDoc.querySelectorAll('text lg[*|id],text p[*|id],text div[*|id]');
@@ -212,7 +199,7 @@ const addEditButton = blockel => {
 };
 
 const fillBlocks = (blocks) => {
-    const blocklist = _state.collateRoot.getElementById('blocklist');
+    const blocklist = _state.shadowRoot.getElementById('blocklist');
     blocklist.classList.add('checklist');
     blocklist.addEventListener('click',updateChecklist);
     const div1 = document.createElement('div');
@@ -277,14 +264,14 @@ const getAlignmentFile = async e => {
 const showExportOptions = () => {
     const blackout = document.getElementById('editblackout');
     blackout.style.display = 'flex';
-    _state.exportShadow.querySelector('.popup').style.display = 'flex';
+    _state.shadowRoot.getElementById('export-popup').style.display = 'flex';
 };
 
 const editApp = (opts,e) => {
     const blackout = document.getElementById('editblackout');
     blackout.style.display = 'flex';
-    _state.collateShadow.querySelector('.popup').style.display = 'flex';
-    for(const foundlabel of _state.collateRoot.querySelectorAll('.foundlabel'))
+    _state.shadowRoot.querySelector('.popup').style.display = 'flex';
+    for(const foundlabel of _state.shadowRoot.querySelectorAll('.foundlabel'))
         foundlabel.remove();
     //if(!_state.doneFindAlignments) {
         findAlignments(opts);
@@ -293,7 +280,7 @@ const editApp = (opts,e) => {
     if(!opts.block)
         return;
     // else clear other checkboxes 
-    for(const input of _state.collateRoot.querySelectorAll('#blocklist input[type="checkbox"][value]')) {
+    for(const input of _state.shadowRoot.querySelectorAll('#blocklist input[type="checkbox"][value]')) {
         if(opts.block === input.value && !input.disabled)
            input.checked = true;
         else 
@@ -302,7 +289,7 @@ const editApp = (opts,e) => {
 };
 
 const findAlignments = async opts => {
-    for(const input of _state.collateRoot.querySelectorAll('#blocklist input[type="checkbox"][value]')) {
+    for(const input of _state.shadowRoot.querySelectorAll('#blocklist input[type="checkbox"][value]')) {
         const blockid = input.value;
         const srcname = `${alignmentDir}/${blockid}.xml`;
         const res = await fetch(srcname,{method: 'HEAD', cache: 'no-cache'});
@@ -329,7 +316,7 @@ const collate = async () => {
     await cacheWitnesses(_state.curDoc,cachedwitnesses,cachedfiles);
     const siglum = _state.curDoc.querySelector('idno[type="siglum"]')?.textContent || _state.curDoc.documentElement.getAttribute('n');
     const blocklist = [];
-    for(const block of _state.collateRoot.querySelectorAll('#blocklist input[value]')) {
+    for(const block of _state.shadowRoot.querySelectorAll('#blocklist input[value]')) {
         if(!block.checked) continue;
         blocklist.push(block.value);
 
@@ -340,8 +327,8 @@ const collate = async () => {
         await cacheWitnesses(alignobj.doc,cachedwitnesses,cachedfiles);
         const app = makeApp(alignobj.doc, _state.curDoc, {
             base: base,
-            normlem: _state.collateRoot.getElementById('normlem').checked,
-            mergerdgs: _state.collateRoot.getElementById('mergerdgs').checked,
+            normlem: _state.shadowRoot.getElementById('normlem').checked,
+            mergerdgs: _state.shadowRoot.getElementById('mergerdgs').checked,
             blockid: block.value,
             witnesses: cachedwitnesses
         });
@@ -398,7 +385,7 @@ const cacheWitnesses = async (doc, witmap, filemap) => {
 
 const exportFile = async () => {
     const libRoot = document.getElementById('injectedscript')?.dataset.root;
-    const outdoc = await exportLaTeX(_state.curDoc,libRoot,_state.exportRoot);
+    const outdoc = await exportLaTeX(_state.curDoc,libRoot,_state.shadowRoot);
     const thisFilename = window.location.pathname.split('/').pop();
     const basename = thisFilename.substring(0,thisFilename.lastIndexOf('.'));
     const fileHandle = await showSaveFilePicker({
