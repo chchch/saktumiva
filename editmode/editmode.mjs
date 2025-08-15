@@ -11,7 +11,10 @@ const _state = {
     alignments: new Map(),
     //doneFindAlignments: false
 };
-const alignmentDir = 'alignments';
+const _opts = {
+    alignmentDir: 'alignments',
+    witnessDir: 'witnesses'
+};
 
 const init = async () => {
     const searchparams = new URLSearchParams(window.location.search);
@@ -291,7 +294,7 @@ const editApp = (opts,e) => {
 const findAlignments = async opts => {
     for(const input of _state.shadowRoot.querySelectorAll('#blocklist input[type="checkbox"][value]')) {
         const blockid = input.value;
-        const srcname = `${alignmentDir}/${blockid}.xml`;
+        const srcname = `${_opts.alignmentDir}/${blockid}.xml`;
         const res = await fetch(srcname,{method: 'HEAD', cache: 'no-cache'});
         if(!res.ok)  {
             continue;
@@ -367,8 +370,13 @@ const cacheWitnesses = async (doc, witmap, filemap) => {
     for(const wit of getWits(doc)) {
         if(!witmap.get(wit.name)) {
             let file = filemap.get(wit.filename);
+	    let newfilename;
             if(!file) {
                 file = await loadDoc(wit.filename);
+                if(!file) {
+		    newfilename = `${_opts.witnessDir}/${wit.filename}`;
+                    file = await loadDoc(newfilename);
+                }
                 if(file) filemap.set(wit.filename,file);
             }
             if(file) {
@@ -378,6 +386,8 @@ const cacheWitnesses = async (doc, witmap, filemap) => {
                     select: wit.select,
                     xml: file
                 });
+		if(newfilename)
+		    witmap.get(wit.name).updatedfilename = newfilename;
             }
         }
     }

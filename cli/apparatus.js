@@ -17,7 +17,7 @@ const parseString = (str, fname) => {
 };
 
 const getAllBlocks = teixml => {
-    const els = teixml.querySelectorAll('p[xml:id],p[corresp],lg[xml:id],lg[corresp],l[xml:id],l[corresp],div[xmlid]');
+    const els = teixml.querySelectorAll('p[xml:id],p[corresp],lg[xml:id],lg[corresp],l[xml:id],l[corresp]'); // no more div[xml:id]
     const allblocks = new Set();
     for(const el of els) {
         const id = el.getAttribute('xml:id');
