@@ -47,6 +47,7 @@ const languageSpecificOptions = textel => {
     
     const lang = langcode === 'ta' || langcode === 'ta-Taml' ? 'tamil' :
                  langcode === 'sa' || langcode === 'sa-Latn' ? 'sanskrit' :
+                 langcode === 'pi' || langcode === 'pi-Latn' ? 'pali' :
                  langcode === 'bo' || langcode === 'bo-Tibt' ? 'tibetan' :
                  null;
 
@@ -56,7 +57,7 @@ const languageSpecificOptions = textel => {
     for(const tok of toks) {
         if(tok.value === 'grapheme' && lang === 'tamil')
             tok.checked = true;
-        else if(tok.value === 'character' && lang === 'sanskrit')
+        else if(tok.value === 'character' && lang === 'sanskrit' || lang === 'pali')
             tok.checked = true;
         else if (tok.value === 'whitespace' && lang === 'tibetan')
             tok.checked = true;
@@ -66,11 +67,12 @@ const languageSpecificOptions = textel => {
 
     const normies = document.getElementById('normalization');
     normies.querySelector('input').checked = true; // ignore punctuation
-    if(lang === 'sanskrit' || lang === 'tamil')
-        normies.querySelector('input[value="41"]').checked = true; // remove spaces
+    if(lang === 'sanskrit' || lang === 'tamil' || lang === 'pali')
+        normies.querySelector('input[value="45"]').checked = true; // remove spaces
 
     const filterhead = lang === 'sanskrit' ? normies.querySelector('.sanskrit') :
                     lang === 'tamil' ? normies.querySelector('.tamil') :
+                    lang === 'pali' ? normies.querySelector('.pali') :
                     null;
     if(filterhead) {
         const input = filterhead.parentNode.querySelector('input');
@@ -445,11 +447,16 @@ window.addEventListener('load', () => {
     tamil.addEventListener('click',updateBoxes);
     const sanskrit = normies.querySelector('details.sanskrit');
     sanskrit.addEventListener('click',updateBoxes);
+    const pali = normies.querySelector('details.pali');
+    pali.addEventListener('click',updateBoxes);
+
     for(const [i, filter] of allFilters.entries()) {
         if(filter.group === 'general')
             normies.insertBefore(makeOption(i,filter),tamil.parentNode);
         else if(filter.group === 'tamil')
             tamil.appendChild(makeOption(i,filter));
+        else if(filter.group === 'pali')
+            pali.appendChild(makeOption(i,filter));
         else
             sanskrit.appendChild(makeOption(i,filter));
     }
