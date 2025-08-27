@@ -45,10 +45,10 @@ const languageSpecificOptions = textel => {
     const langcode = textel.getAttribute('xml:lang') || textel.querySelector('[*|lang]')?.getAttribute('xml:lang');
     if(!langcode) return;
     
-    const lang = langcode === 'ta' || langcode === 'ta-Taml' ? 'tamil' :
-                 langcode === 'sa' || langcode === 'sa-Latn' ? 'sanskrit' :
-                 langcode === 'pi' || langcode === 'pi-Latn' ? 'pali' :
-                 langcode === 'bo' || langcode === 'bo-Tibt' ? 'tibetan' :
+    const lang = langcode === 'ta' || langcode.startsWith('ta-Taml') ? 'tamil' :
+                 langcode === 'sa' || langcode.startsWith('sa-Latn') ? 'sanskrit' :
+                 langcode === 'pi' || langcode.startsWith('pi-Latn') ? 'pali' :
+                 langcode === 'bo' || langcode.startsWith('bo-Tibt') ? 'tibetan' :
                  null;
 
     if(!lang) return;
