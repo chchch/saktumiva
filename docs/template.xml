@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="tei-to-html.xsl" ?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+   <teiHeader>
+      <fileDesc>
+         <titleStmt>
+            <title><!-- title of witness --></title>
+            <editor>
+                <persName>
+                    <forename><!-- first name --></forename>
+                    <surname><!-- last name --></surname>
+                </persName>
+                <orgName><!-- affiliation --></orgName>
+            </editor>
+         </titleStmt>
+         <publicationStmt>
+            <publisher><!-- name of project --></publisher>
+            <date><!-- date of publication --></date>
+         </publicationStmt>
+         <sourceDesc>
+            <msDesc>
+               <msIdentifier>
+                  <repository>
+                     <orgName><!-- name of repository of witness --></orgName>
+                  </repository>
+                  <idno type="shelfmark"><!-- shelfmark of witness --></idno>
+                  <idno type="alternate"></idno>
+               </msIdentifier>
+               <msContents class="">
+                  <summary></summary>
+                  <msItem defective="">
+                     <title></title>
+                     <author></author>
+                     <textLang mainLang=""></textLang>
+                     <filiation>
+                        <p></p>
+                     </filiation>
+                     <rubric></rubric>
+                     <incipit></incipit>
+                     <explicit></explicit>
+                     <finalRubric></finalRubric>
+                     <colophon></colophon>
+                  </msItem>
+               </msContents>
+               <physDesc>
+                  <objectDesc form="">
+                     <supportDesc material="">
+                        <support>
+                           <p></p>
+                        </support>
+                        <extent>
+                           <measure unit="folio" quantity=""></measure>
+                           <dimensions type="object" unit="mm">
+                              <width quantity=""/>
+                              <height quantity=""/>
+                           </dimensions>
+                           <dimensions type="leaf" unit="mm">
+                              <width quantity=""/>
+                              <height quantity=""/>
+                           </dimensions>
+                           <dimensions type="written" unit="mm">
+                              <width quantity=""/>
+                              <height quantity=""/>
+                           </dimensions>
+                        </extent>
+                        <foliation></foliation>
+                        <collation></collation>
+                        <condition></condition>
+                     </supportDesc>
+                     <layoutDesc>
+                        <layout columns="" writtenLines=""/>
+                     </layoutDesc>
+                  </objectDesc>
+                  <handDesc><handNote scope="" script=""><desc></desc></handNote></handDesc>
+                  <decoDesc><decoNote type=""><desc></desc></decoNote></decoDesc>
+                  <additions>
+                  </additions>
+                  <bindingDesc>
+                     <binding>
+                        <p></p>
+                        <decoNote type="stringhole">
+                           <measure unit="stringhole" quantity=""/>
+                        </decoNote>
+                    </binding>
+                  </bindingDesc>
+               </physDesc>
+               <history>
+                  <origin>
+                     <origDate calendar="gregorian" when=""></origDate>
+                     <origPlace></origPlace>
+                  </origin>
+                  <provenance></provenance>
+                  <acquisition></acquisition>
+               </history>
+               <additional>
+                  <listBibl>
+                     <bibl></bibl>
+                  </listBibl>
+               </additional>
+            </msDesc>
+         </sourceDesc>
+      </fileDesc>
+      <encodingDesc><p></p></encodingDesc>
+      <revisionDesc><change when=""></change></revisionDesc>
+   </teiHeader>
+   <facsimile>
+   </facsimile>
+   <text>
+   </text>
+</TEI>

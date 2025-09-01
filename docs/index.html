@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconstructing a Pali Sanskrit, Tamil, or Tibetan text using computers</title>
+    <link rel="stylesheet" href="tufte.css">
+    <style>
+        table {font-size: 1.4rem;}
+        th {
+            white-space: nowrap;
+            font-weight: normal;
+            text-align: left;
+        }
+        a.image-link {
+            background: none;
+            vertical-align: sub;
+        }
+        figure > img {
+            box-shadow: -3px 2px 6px darkgray;
+        }
+    </style>
+    <script>
+const latestCommits = () => {
+    const loc = window.location;
+    const span = document.getElementById('latestcommit');
+    if(span && loc.hostname.endsWith('.github.io')) {
+        const sub = loc.hostname.split('.',1)[0];
+        const pathsplit = loc.pathname.split('/');
+        pathsplit.shift(); // pathname starts with a slash
+        const repo = pathsplit.shift();
+        const path = pathsplit.join('/');
+        const apiurl = `https://api.github.com/repos/${sub}/${repo}/commits?path=${path}`;
+        fetch(apiurl)
+            .then((resp) => {
+                if(resp.ok)
+                    return resp.json();
+            })
+            .then((data) => {
+                if(data) {
+                    const date = new Date(data[0].commit.committer.date);
+                    const datestr = date.toLocaleString('en-GB', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    span.innerHTML = `Last updated <a href="${data[0].html_url}">${datestr}</a>.`;
+                }
+            });
+    }
+};
+window.addEventListener('load',latestCommits);
+    </script>
+</head>
+<body>
+    <article>
+        <h1>Reconstructing a Pali, Sanskrit, Tamil, or Tibetan text</h1>
+        <p class="subtitle">Charles Li</p>
+        <p id="latestcommit"></p>
+        <section>
+            <blockquote>
+                <p>
+    This document is a companion to the <a href="https://github.com/chchch/saktumiva">saktumiva GitHub repository</a>, where you will find open source software developed to work with multi-witness texts in Pali, Sanskrit, Tamil, and Tibetan. The software has been used to edit the <cite><a href="https://tst-project.github.io/siberupakhyana">Śiber upākhāna</a></cite> of the <cite>Vahnipurāṇa</cite>; a previous iteration of this software was used to edit Bhartṛhari's 5<sup>th</sup>-century <cite><a href="https://saktumiva.org/wiki/dravyasamuddesa/">Dravyasamuddeśa</a></cite> along with its 10<sup>th</sup>-century commentary.
+                </p>
+                <p>
+    The tutorial assumes some knowledge of both Indic philology, XML, &amp; phylogeny. For a short, gentle introduction to phylogeny, see <a href="https://www.researchgate.net/publication/10712132_Phylogeny_for_the_faint_of_heart_A_tutorial">Baldauf 2003, <q>Phylogeny for the faint of heart: a tutorial.</q></a>
+                </p>
+                <p>
+    <a rel="license" class="image-link" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a> This document is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>. Its change history can be accessed through GitHub as part of the <a href="https://github.com/chchch/saktumiva">saktumiva GitHub repository</a>. This is a draft under active revision; it is the latest iteration of both the <a href="https://github.com/chchch/upama">Upama/Saktumiva project</a> and the <a href="https://github.com/chchch/sanskrit-alignment">Sanskrit Alignment project</a>, the latter of which was published in the Journal of Open Source Software (<a href="https://doi.org/10.21105/joss.04022">JOSS 4022</a>). If you have any comments, suggestions, corrections, or other changes, don't hesitate to contact me or to create an <a href="https://github.com/chchch/saktumiva/issues">issue</a> or submit a <a href="https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests">pull request</a>.
+                </p>
+            </blockquote>
+        </section>
+        <section>
+            <h2 id="table-of-contents">Table of Contents</h2>
+                <ul>
+                    <li><a href="#tldr">tl;dr</a></li>
+                    <li><a href="#introduction">Introduction</a></li>
+                    <li><a href="#setup">Setup</a></li>
+                    <li><a href="#transcription">Transcription</a></li>
+                    <li><a href="#alignment">Alignment</a>
+                        <ul>
+                            <li><a href="#alignment-using">Using the alignment tool</a></li>
+                            <li><a href="#alignment-options1">Alignment options: tokenization</a></li>
+                            <li><a href="#alignment-options2">Alignment options: scoring</a></li>
+                            <li><a href="#alignment-options3">Alignment options: normalization</a></li>
+                            <li><a href="#alignment-options4">Alignment options: XML tags</a></li>
+                            <li><a href="#alignment-editor">Using the matrix-editor</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#tree">Building a tree</a> <strong>To be updated</strong>
+                        <ul>
+                            <li><a href="#tree-root">Rooting the tree</a></li>
+                            <li><a href="#tree-bootstrapping">Bootstrapping</a></li>
+                            <li><a href="#tree-export">Exporting to NeXML</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#reconstruction">Reconstructing a text</a> <strong>To be updated</strong>
+                        <ul>
+                            <li><a href="#reconstruction-lemma">Reconstructing a single lemma</a></li>
+                            <li><a href="#reconstruction-passage">Reconstructing an entire passage</a></li>
+                        </ul>
+                    </li>
+                    <li>Creating an edition <strong>TODO</strong>
+                        <ul>
+                            <li>Creating an edition file</li>
+                            <li>Re-aligning with the edition</li>
+                            <li>Creating a critical apparatus</li>
+                        </ul>
+                    </li>
+                    <li><a href="#further">Going further</a></li>
+                    <li><a href="#bibliography">Bibliography</a></li>
+                </ul>
+        </section>
+        <section>
+            <h2 id="tldr"><abbr title="too long; didn't read">tl;dr</abbr></h2>
+            <ol>
+                <li>Setup
+                    <ul>
+                        <li>create a directory for your project. Create two empty subdirectories: <code>witnesses/</code> and <code>alignments/</code>.</li>
+                        <li>clone the <a href="https://github.com/TST-Project/lib">TST libs</a> into a subdirectory called <code>lib/</code>.</li>
+                        <li>clone the <a href="https://github.com/chchch/saktumiva">saktumiva project</a> into a subdirectory called <code>saktumiva/</code>.</li>
+                        <li>download the <code><a href="./edition.xsl">edition.xsl</a></code> &amp; <code><a href="./tei-to-html.xsl">tei-to-html.xsl</a></code> files, and place them in the root directory.</li>
+                    </ul>
+                </li>
+                <li>Transcription
+                    <ul>
+                        <li>transcribe your manuscripts in TEI XML, and save them in <code>witnesses/</code>. Each file needs to have a siglum, and each paragraph or verse to be collated needs to have an <code>xml:id</code>. The <a href="https://tst-project.github.io/editor">TST editor</a> can be used to create a template, or even to transcribe witnesses. Link your transcription to digital images, if possible.</li>
+                    </ul>
+                </li>
+                <li>Alignment
+                    <ul>
+                        <li>use the <a href="https://chchch.github.io/saktumiva">TEI Multitext aligner</a> to create alignments of your XML files. Save the alignments in <code>alignments/</code>.</li>
+                        <li>open your <code>.xml</code> files in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">matrix-editor</a> and fix any big alignment errors. Save each file individually.</li>
+                        <li>open all your <code>.xml</code> files in the matrix-editor at once (use Ctrl-Click or Shift-Click to select multiple files). Export to NEXUS.</li>
+                    </ul>
+                </li>
+                <li>Building a tree
+                    <ul>
+                        <li>open your NEXUS file in tree inference software (like <a href="https://uni-tuebingen.de/en/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/algorithms-in-bioinformatics/software/splitstree/">SplitsTree6</a>).</li>
+                        <li>build a tree (or trees) and root it.</li>
+                        <li>export the tree as NeXML.</li>
+                    </ul>
+                </li>
+                <li>Reconstructing a text
+                    <ul>
+                        <li>open the NeXML tree in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">matrix-editor</a>.</li>
+                        <li>make sure that the texts are normalized (<code>View -&gt; Normalized</code>).</li>
+                        <li>click on the node that you want to reconstruct (probably the root).</li>
+                    </ul>
+                </li>
+                <li>Creating an edition
+                    <ul>
+                        <li>create an XML file in your root directory for your critical edition (e.g., <code>Ed.xml</code>).</li>
+                        <li>input the critically edited text, using the stemmatic reconstruction as a guide.</li>
+                        <li>re-align all of your witnesses along with the critical text.</li>
+                        <li>preview the edition file in a local webserver (e.g., using VSCodium).</li>
+                        <li>use the <q>Add/Edit apparatus...</q> button to create an apparatus.</li>
+                        <li>the file can also be exported to LaTeX and complied with XeLaTeX.</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+        <section>
+            <h2 id="introduction">Introduction</h2>
+            <p>
+<span class="newthought">Karl Lachmann's stemmatic method</span> has often been derided as overly <q>mechanical</q><label class="margin-toggle sidenote-number" for="n-trovato1"></label><input type="checkbox" id="n-trovato1" class="margin-toggle" /><span class="sidenote"><a href="#b-trovato2014">Trovato 2014</a>, 79, 82.</span> by its opponents. But now, centuries later and with our ability to automate mechanical tasks using computers, this is, decidedly, a great virtue. That is not to say that a well-trained philologist is no longer needed in order to edit texts; as this document will show, every step of the process requires careful decision-making on the part of the scholar. However, by offloading much of the work onto computer software, each automated task becomes not only quicker and more accurate, but also, crucially, reproducible. As you will see in this tutorial, given some data (i.e., a set of transcriptions), any scholar will be able to reproduce the steps leading up to a purely stemmatic reconstruction of the text. The final critical text will, undoubtedly, not match this reconstruction completely, not least because, in many cases, the reconstruction will still leave open the possibilty of multiple readings. However, comparing the stemmatic reconstruction with the critical text can initiate a rich discussion on the different scholarly assumptions inherent in the different steps of the process.
+            </p>
+            <p>
+There are six main steps in this tutorial:
+            </p>
+                <ol>
+                    <li>Setup, in which a directory structure is created and some files are downloaded,</li>
+                    <li>Transcription, in which each witness is carefully and diplomatically transcribed,</li>
+                    <li>Alignment, or Collation, in which the similarities and differences between each witness are tabulated,</li>
+                    <li>Building a tree, in which the alignment is used to infer a process of textual transmission,</li>
+                    <li>Reconstructing a text, in which one or more stemmatic reconstructions is created, based on a tree, or multiple trees, and</li>
+                    <li>Creating an edition, in which a critical text with an apparatus of variants is produced.</li>
+                </ol>
+                <p>
+Each step in the process — as with all meaning-making — is inherently reductive. From the very moment when we read a manuscript, interpreting marks on a leaf as a sequence of characters from a fixed character set, we are reducing and generalizing its complex material reality in order to extract some meaning from it. As we proceed in the process of transcribing manuscripts, aligning their readings, and editing the text, it is worth keeping in mind the information that is discarded in each step. This tutorial is designed so that the intermediate results of each step are saved, so that, firstly, they can be examined with a critical eye, and secondly, one can easily trace your steps backwards from the edited text all the way to the manuscript images (if available).
+                </p>
+        </section>
+        <section>
+            <h2 id="setup">Setup</h2>
+            <p>
+This tutorial will describe the typical setup for a critial edition project. However, all of the tools described here can be used independently, and for different purposes and kinds of projects. At the end of this tutorial, you will have produced a critical edition with an apparatus of variants, linked to transcriptions of all witnesses, as well as images of those witnesses if available. This edition can be put online and/or exported to LaTeX for printing.
+            </p>
+            <h3>Directory structure</h3>
+            <p>
+            <input id="n-submodule" class="margin-toggle" type="checkbox"/><label class="margin-toggle" for="n-ms1">&dagger;</label>
+            <span class="marginnote">
+Some knowledge of git is required. For help with cloning, see <a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository">Cloning a repository</a>. if your directory is also a git repository, you can optionally create submodules for the TST libs and for saktumiva.
+            </span>
+Create a directory for your project, and then create two empty subdirectories, <code>witnesses/</code> and <code>alignments/</code>. Then, download or clone the <a href="https://github.com/TST-Project/lib">TST libs</a> into a subdirectory called <code>lib/</code>. Download or clone the <a href="https://github.com/chchch/saktumiva">saktumiva project</a> into a subdirectory called <code>saktumiva/</code>. Finally, download the <code><a href="./edition.xsl">edition.xsl</a></code> &amp; <code><a href="./tei-to-html.xsl">tei-to-html.xsl</a></code> files, and place them in the root directory.
+            </p>
+            <p>Your project directory should look like this:</p>
+            <ul>
+                <li><code>alignments/</code></li>
+                <li><code>lib/</code></li>
+                <li><code>saktumiva/</code></li>
+                <li><code>witnesses/</code></li>
+                <li><code>edition.xsl</code></li>
+                <li><code>tei-to-html.xsl</code></li>
+            </ul>
+            <p>
+You should not modify anything in the <code>lib/</code> and <code>saktumiva/</code> directories, nor should you change the two <code>.xsl</code> files. These directories and files are used to display the transcriptions and edition in a web browser.
+            </p>
+        </section>
+        <section>
+            <h2 id="transcription">Transcription</h2>
+            <p>
+            <label class="margin-toggle" for="n-ms1">&dagger;</label>
+            <input id="n-ms1" class="margin-toggle" type="checkbox"/>
+            <span class="marginnote">
+                <img src="img/rori-ms-4781-small.png" alt="image of a manuscript"/>
+                Rajasthan Oriental Research Institute, MS 4781.
+            </span>
+The most arduous task in this process is the collection of witnesses and their transcription. Previously, transcribing each witness individually was considered to be too daunting a task; when a text is collated by hand, the editor only notes the differences between a witness and their edition. But in this process, a lot of information is lost: orthography and punctuation are ignored, and any variant readings that are considered insignificant are not mentioned. Moreover, marginal and interlineal corrections might have been ignored. But with computer-aided collation, we can create diplomatic transcriptions of our witnesses and then automatically filter out variations that we wish to ignore.
+            </p>
+            <h3>Are your images online?</h3>
+            <p>
+In recent years, there have been a number of manuscript digitization initiatives that have revolutionized the field of philology. Many manuscripts and old books can be found online at websites such as the <a href="https://eap.bl.uk">Endangered Archives Project</a>, the <a href="https://tst-project.github.io">TST Project</a>, <a href="https://gallica.bnf.fr">Gallica</a>, the <a href="https://www.digitale-sammlungen.de">Münchener DigitalisierungsZentrum Digitale Bibliothek</a>, the <a href="https://www.bdrc.io">Buddhist Digital Resource Center</a>, the <a href="https://tamildigitallibrary.in">Tamil Digital Library</a>, the <a href="www.splrarebooks.com">SP Lohia Foundation</a>, or digitized by projects such as eGangotri or institutions like the Universty of Toronto and hosted by <a href="https://archive.org">Archive.org</a>. If these websites provide a IIIF manifest, then you can link your transcriptions to your images. Alternatively, you can upload your images to a service like <a href="https://archive.org">Archive.org</a> or <a href="https://zenodo.org">Zenodo</a>, which provide IIIF manifests, depending on the copyright status of your images.
+            </p>
+            <h3>Transcription conventions</h3>
+            <p>
+For Pali &amp; Sanskrit texts, all witnesses should be transcribed in <a href="https://en.wikipedia.org/wiki/International_Alphabet_of_Sanskrit_Transliteration">IAST</a>, with these exceptions, borrowed from <a href="https://en.wikipedia.org/wiki/ISO_15919">ISO 15919</a>:
+            </p>
+            <ul>
+                <li>the vowel l: <code>l̥</code></li>
+                <li>the retroflex consonant la: <code>ḷ</code></li>
+                <li>ya with dot below: <code>ẏ</code> (Devanagari, Bengali)</li>
+            </ul>
+            <p>
+In addition, Devanagari pṛṣṭhamātras can be transcribed with ê, âi, ô, âu. Spaces can be added between words where possible, and an underscore or middot can be used to indicate an explicit virāma.
+            </p>
+            <p>
+For Tamil texts, witnesses can be transcribed either in Unicode Tamil script or in Madras lexicon transliteration (similar to IAST). In transliteration, vowels are interpreted as independent vowel signs if they are at the beginning of a paragraph/verse line or if they are preceded by a space or punctuation.
+            </p>
+            <p>
+For Tibetan texts, witnesses can be transcribed either in Unicode Tibetan script or in Wylie transliteration.
+            </p>
+            <h3>Describing a (manuscript) witness</h3>
+            <p>
+Each witness should be a TEI XML file, with some metadata about the witness (see this template: <code><a href="template.xml">template.xml</a></code>). The easiest way to start is by using the <a href="https://tst-project.github.io/editor">TST editor</a>.
+            </p>
+            <p>
+Although the TST editor was created to produce manuscript catalogue entries for the <a href="https://tst-project.github.io">TST Project</a>, it can also be used to produce TEI XML transcriptions. Navigate to <a href="https://tst-project.github.io/editor">tst-project.github.io/editor</a>, then:
+            </p>
+            <ul>
+                <li>click on <q>new file.</q></li>
+                <li>fill in, at a minumum, the fields that are marked in red.</li>
+                <li>if your images are online, you can put the URL of the IIIF manifest in the <q>IIIF manifest</q> field.</li>
+                <li>in the <q>Text <span style="font-variant-caps: small-caps">id</span></q> field of the <q>Contents</q> section, put the siglum of your witness (e.g., <q>A</q>).</li>
+                <li>At the bottom of the editor window, under <q>Text transcription</q>, click the <code>+</code> button to start a new transcription.</li>
+                <li>In the <q>Textual unit(s)</q> dropdown box, select the siglum that you gave for this witness (e.g., <q>A</q>).</li>
+            </ul>
+            <p>
+For more information on using the editor, as well as describing manuscripts, IIIF manifests, and transcription conventions, see the <a href="https://docs.google.com/document/d/14b1KnY2tKPWLvLcopoaUS0CWR13NHhV9f0QvKXrCrKE/edit?usp=sharing">TST Encoding Guide</a>.
+            </p>
+            <p>
+When producing your transcriptions, each paragraph or verse (<code>&lt;p&gt; or &lt;lg&gt;</code>) should have a unique <span style="font-variant-caps: small-caps">id</span>, so that the alignment software knows how to collate them. For examples, see the TEI XML transcriptions of the <cite>Śiber upākhyāna</cite>, such as <a href="https://github.com/TST-Project/mss/blob/main/Sanscrit_1442_2.xml">BnF Sanscrit 1142.2.</a> You can download the TEI XML files and then open them in the TST editor. You will see that verse one has the <span style="font-variant-caps: small-caps">id</span> <code>VP65.1</code> verse two has the <span style="font-variant-caps: small-caps">id</span> <code>VP65.2</code>, etc. 
+            </p>
+            <figure>
+            <img src="img/tst-editor.png" alt="TST editor">
+            <figcaption style="float: initial; clear: initial; max-width: initial; padding-top: 1rem">TST editor, with <code>Sanscrit_1442_2.xml</code> open.</figcaption>
+            </figure>
+            <p>
+There are two methods to assign ids: The first is by using the <code>xml:id</code> attribute, like this:
+            </p>
+            <blockquote>
+            <code>&lt;lg xml:id="VP65.1"&gt;</code>
+            </blockquote>
+            <p>
+            Or by using the <code>corresp</code> attribute:
+            </p>
+            <blockquote>
+            <code>&lt;lg corresp="#VP65.1"&gt;</code>
+            </blockquote>
+            <p>
+Functionally, these two approaches are the same, but semantically, they are slightly different. In the first case, you are identifying the verse as <code>VP65.1</code> ― that is, you are saying that this is verse one of <cite>Vahnipurāṇa</cite> chapter 65. In the second case, you are making a lesser claim, identifying this verse as <em>corresponding to</em> <code>VP65.1</code>. For example, you may be transcribing a witness of the <cite>Mahābhārata</cite>, in which there are verses that are almost identical to those found in the <cite>Vahnipurāṇa</cite>.
+            </p>
+            <p>
+When you are ready, save each of your files in the <code>witnesses/</code> directory. To begin with, you may wish to transcribe only one or two verses/paragraphs from each witness.
+            </p>
+        </section>
+        <section>
+            <h2 id="alignment">Alignment</h2>
+            <p>
+Once your witnesses are transcribed, you can create alignments. An alignment is a table: each row of the table represents the text as it is in one witness. The table is used for comparing readings across witnesses.
+            </p>
+            <p>
+To begin, go to <a href="https://chchch.github.io/saktumiva">chchch.github.io/saktumiva</a> and select all of the witness files that you wish to compare. Two lists will appear: on the left, a list of all of your sigla, including <abbr title="ante correctionem">ac</abbr> and <abbr title="post correctionem">pc</abbr> sigla if you have transcribed scribal additions and deletions in XML (i.e., using the <code>&lt;del&gt;</code> &amp; <code>&lt;add&gt;</code> tags); on the right, a list of all of the <span style="font-variant-caps: small-caps">id</span>s that you have marked in your text.
+            </p>
+            <figure>
+            <img src="img/aligner.png" alt="TEI XML Multitext Aligner">
+            <figcaption style="float: initial; clear: initial; max-width: initial; padding-top: 1rem">The aligner, <a href="https://chchch.github.io/saktumiva">chchch.github.io/saktumiva</a>, with all the witnesses of the <cite>Vahnipuraṇa śiber upākhyāna</cite> open.</figcaption>
+            </figure>
+            <p>
+Select the witnesses that you wish you include, as well as the paragraphs/verses that you wish to align. In the options section, sensible defaults should already be automatically chosen based on the language of the text that was detected (i.e., as defined in your XML files). At this point, you can click <code>Align</code>, or read on below for detailed information on the alignment options.
+            </p>
+            <h3 id="alignment-options1">Alignment options: tokenization</h3>
+            <p>
+The text must be <em>tokenized</em> before it can be compared — that is, it must be split into smaller units that can be compared to one another. These <em>tokens</em> can be characters (i.e. consonants and vowels separated), eḻuttu, akṣara, or space-separated words. Characters works well in most situations, and space-separated words only makes sense for metrical Tamil or Wylie-transliterated Tibetan. To get an idea of the different options, here is the same text aligned as characters, eḻuttu, akṣara, and words:
+            </p>
+            <blockquote>
+                <pre style="font-size: 0.7em">
+v a s t u s v a r ū - - - - - p a m a r th a k r i y ā k ā r i d r a v y a ṃ<br/>
+v a s t a s v a l a k ṣ a - - ṇ a - - - -  - k r i y ā k ā r i d r a v y a ṃ<br/>
+v a s t u s v a l a k ṣ a m ā n a m a r th a k r i y ā k ā r i d r a v y a ṃ
+                </pre>
+            </blockquote>
+            <blockquote>
+                <pre style="font-size: 0.7em">
+va s tu s va rū - -  -  pa ma r tha k ri yā kā ri d ra v yaṃ<br/>
+va s ta s va la k ṣa -  ṇa -  - -   k ri yā kā ri d ra v yaṃ<br/>
+va s tu s va la k ṣa mā na ma r tha k ri yā kā ri d ra v yaṃ<br/>
+                </pre>
+            </blockquote>
+            <blockquote>
+                <pre style="font-size: 0.7em">
+va stu sva rū -  -  pa  ma rtha kri yā kā ri dra vyaṃ<br/>
+va sta sva la kṣa -  ṇa -  -    kri yā kā ri dra vyaṃ<br/>
+va stu sva la kṣa mā na ma rtha kri yā kā ri dra vyaṃ<br/>
+                </pre>
+            </blockquote>
+            <blockquote>
+                <pre style="font-size: 0.7em">
+vastu svarūpam            arthakriyākāri      dravyaṃ<br/>
+vasta svalakṣaṇakriyākāri -                   dravyaṃ<br/>
+vastu svalakṣamānam       arthakriyākāri      dravyaṃ<br/>
+                </pre>
+            </blockquote>
+            <p>
+When experimenting with tokenization options, think about how your text might have been transmitted, and the mechanism by which changes occur. For example, if a scribe misinterprets a <em>pṛṣṭhamātrā</em>, then change is occuring on the character level. If a scribe writes <em>rā</em> instead of <em>śa</em>, then change is occuring on the akṣara level. If a scribe substitutes <em>satyam</em> with <em>vidyām</em>, then change is occuring on the word level.
+            </p>
+            <p>
+If you have chosen character, eḻuttu, or akṣara tokenization, the computer will try to group the table columns back into words, based on whitespace. This is mostly so that the apparatus of variants will look good. We will return to this option in section 6.
+            </p>
+            <h3 id="alignment-options2">Alignment options: scoring</h3>
+            <p>
+The alignment algorithm works by assigning positive and negative scores to different situations: matches, mismatches, and gaps. By default, the alignment is scored like this:<label class="margin-toggle" for="n-gap-penalties">&dagger;</label><input id="n-gap-penalties" class="margin-toggle" type="checkbox"/><span class="marginnote"><a href="#b-cartwright2006">Cartwright 2006</a>, suggests an affine gap penalty function of G<sub>A</sub>(k) = 4 + k/4, but, in my work on the <i>Prakīrṇaprakāśa</i> manuscripts, this produced mismatches in places where gaps would have been more appropriate. The match score and the gap opening score have been adjusted accordingly.</span>
+            </p>
+            <table>
+                <tbody>
+                <tr><th>match</th><td>1</td></tr>
+                <tr><th>mismatch</th><td>-1</td></tr>
+                <tr><th>gap opening</th><td>-2</td></tr>
+                <tr><th>gap extension</th><td>-0.25</td></tr>
+                </tbody>
+            </table>
+            <p>
+That is, a match between two readings, such as <i>k</i> and <i>k</i> (on a character level) or <i>ka</i> and <i>ka</i> (on an akṣara level) are given the score 1. A mismatch, such as <i>k</i> and <i>p</i>, is given the score -1. If the <code>Recursive scoring</code> option is chosen — when working in eḻuttu, akṣara, or word tokenization — mismatched readings have their total score divided by the length of the alignment. For example, <i>ka</i> and <i>pa</i> would be scored 0 (<math><mfrac><mn>-1</mn><mn>2</mn></mfrac> <mo>+</mo> <mfrac><mn>1</mn><mn>2</mn></mfrac> <mo>=</mo> <mfrac><mn>0</mn><mn>2</mn></mfrac></math>), but <i>ka</i> and <i>pi</i> would be scored -1 (<math><mfrac><mn>-1</mn><mn>2</mn></mfrac> <mo>+</mo> <mfrac><mn>-1</mn><mn>2</mn></mfrac> <mo>=</mo> <mfrac><mn>-2</mn><mn>2</mn></mfrac></math>).
+            </p>
+            <p>
+The alignment algorithm first creates a <q>guide tree</q>, a preliminary stemma, in order to help guide the alignment. After the alignment has been completed, the computer can attempt to improve the alignment by re-aligning different sections of it, starting from the bottom of the guide tree and working upwards. The <code>Re-alignment depth</code> option controls how far up the tree the realignment attempts will go.
+            </p>
+            <p>
+In case there is a gap, such as between <i>r ū p a</i> and <i>r ū</i>, the gap is scored using the formula: <math><mi>gap opening score</mi> <mo>+</mo> <mi>gap extension score</mi> <mo>×</mo> <mi>gap length</mi></math>. In the case of a gap of two characters in the second witness, where the first witness has <i>p a</i>, the gap would be scored -2.25 (<math><mn>-2</mn> <mo>+</mo> <mn>-0.25</mn></math>). In cases where your witnesses have large lacunae, a lower gap opening score (e.g., -3, -4) may improve the alignment.
+            </p>
+            <h3 id="alignment-options3">Alignment options: normalization</h3>
+            <p>
+Since the transcriptions of the witnesses were done diplomatically, they should be first normalized so that things such as puncuation, spaces, and sandhi variants are not taken into account when they are aligned. Different languages have different normalization options that can be turned on or off. Default options are selected automatically, depending on the language. At the very least, you should turn on <code>ignore punctuation</code> and <code>remove spaces</code>. The <code>ignore case</code> option is mainly important for transcriptions of Roman-transliterated Pali sources and Wylie Tibetan, where capital letters are sometimes used for names.
+            </p>
+            <h3 id="alignment-options4">Alignment options: XML Tags</h3>
+            <p>
+By default, many XML tags are also ignored, such as <code>&lt;note&gt;</code>, <code>&lt;metamark&gt;</code>, <code>&lt;supplied&gt;</code>, etc. Tags with no content, such as <code>&lt;pb&gt;</code> and <code>&lt;lb&gt;</code>, will also not show up in the alignment. However, they will show up in the apparatus (see step 6).
+            </p>
+            <h3 id="alignment-editor">Using the matrix-editor</h3>
+            <p>
+Now that the texts are aligned, you can check them in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">matrix-editor</a>. Load one of the XML files, and it will be displayed with each text as a row and each lemma as a column.
+            </p>
+            <figure>
+                <img src="img/matrix-editor-1.png" alt="image of the matrix editor"/>
+            </figure>
+            <p>
+To see how the alignment tool has normalized the text, use the <code>View</code> menu and click <code>Normalized</code>.
+            </p>
+           <figure>
+                <img src="img/matrix-editor-2.png" alt="image of the matrix editor"/>
+            </figure>
+            <p>
+There may be some minor mis-alignments; you can edit an individual cell by clicking it and pressing <code>Enter</code> or using the menu option <code>Cell -&gt; Edit cell</code>. In practice, the alignments are generally good enough <em>as-is</em> in order to produce a viable tree. Especially when the text is long, I have found the small mis-alignments have no effect.
+            </p>
+            <p>
+It is possible to export the alignment as a CSV file and edit it in any spreadsheet software, but, in doing so, you will lose the normalization data. You can, however, re-normalize the texts at any time by selecting columns and using the menu option <code>Column -&gt; (Re)normalize columns</code>.
+            </p>
+            <p>
+If you have done a character-, eḻuttu-, or akṣara-based alignment, you can also ask the editor to try to group the columns into words, using the whitespace between characters as cues (if this has not yet been done automatically). This can be done by using the <code>Group all words</code> command in the <code>Edit</code> menu.
+            </p>
+            <figure>
+            <img src="img/matrix-editor-grouped-words-2.png" alt="word grouping in the matrix editor"/>
+            </figure>
+            <p>
+The results will differ depending on whether characters or akṣaras are being grouped. In this example,
+            </p>
+            <blockquote>
+                <pre style="font-size: 0.7em">
+pa dā rthā vi tyu ktaṃ
+                </pre>
+            </blockquote>
+            <p>
+has been grouped together as <em>padārthāvityuktaṃ</em>, even though, in the unnormalized text, there are spaces between <em>padārthāv</em>, <em>ity</em>, and <em>uktaṃ</em>. The sequence <code>vi</code> is a single akṣara and cannot be split; the same applies to <code>tyu</code>. However, if we had done a character-based alignment,
+            </p>
+            <blockquote>
+                <pre style="font-size: 0.7em">
+p a d ā r th ā v i t y u k t a ṃ
+                </pre>
+            </blockquote>
+            <p>
+the sequence could then be grouped as <em>padārthāv</em> <em>ity</em> <em>uktaṃ</em>.
+            </p>
+            <p>
+<label class="margin-toggle" for="n-alignment6">&dagger;</label><input id="n-alignment6" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export.png" style="border: 1px solid black" alt="the NEXUS export dialog box"/><br/>The NEXUS export dialog.</span>
+When you are satisfied with the alignment, you can export it as a NEXUS file, which can be used in phylogenetics software. If you have multiple files, you should open all of them together in the matrix-editor (use Ctrl-Click or Shift-Click to select multiple). Then use the <code>Export</code> menu and click <code>NEXUS</code>. You will probably want to use the normalized text in your phylogenetic analysis, so check the <code>Normalize spellings</code> box.
+            </p>
+            <p>
+At this point, if you have done a character- or akṣara-based alignment, and you have used the <code>Group all words</code> function, you can also use the <code>Merge groups</code> option in order to try analyzing the alignment as words rather than characters or akṣaras.
+            </p>
+            <p>
+The resulting NEXUS file is available in the GitHub repository at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/full-alignment.nex">example/full-alignment.nex</a>.
+            </p>
+        </section>
+        <section>
+            <h2 id="tree">Building a tree</h2>
+            <p><strong>TODO: This section needs to be updated.</strong></p>
+            <p>
+Now that we have a full alignment, we can use phylogenetics software to build a tree. There are many options for this, but in this tutorial we will use <a href="https://software-ab.informatik.uni-tuebingen.de/download/splitstree5/welcome.html">SplitsTree5</a>.<label class="margin-toggle sidenote-number" for="n-phylogenetics1"></label><input type="checkbox" id="n-phylogenetics1" class="margin-toggle" /><span class="sidenote">Other possibilities include <a href="https://paup.phylosolutions.com/">PAUP*</a>, <a href="https://evolution.genetics.washington.edu/phylip.html">PHYLIP</a>, and <a href="http://www.mesquiteproject.org/">Mesquite</a>.</span>
+            </p>
+            <p>
+When you open the NEXUS file in SplitsTree, you will see a splits network representing the relationships between the witnesses.
+            </p>
+            <figure>
+                <img src="img/splitstree-1.png" alt="SplitsTree">
+            </figure>
+            <p>
+For more information on what this network represents, and how to interpret it, see <a href="#b-rodriguez2007">Phillips-Rodriguez 2007</a> and <a href="#b-huson2006">Huson & Bryant 2006</a>.
+            </p>
+            <p>
+We can filter our lemmata so that only parsimony-informative lemmata are used in the construction of our network. Use the <code>Data</code> menu, click <code>Filter Characters</code>, and check the box next to <code>Exclude Parsimony Uninformative Sites</code>. Of the 7486 total lemmata, only 5499 were used in the creation of this network.
+            </p>
+            <figure>
+                <img src="img/splitstree-2.png" alt="SplitsTree">
+            </figure>
+            <p>
+Now, we will use the Neighbor-joining algorithm to construct a tree from this network. Use the <code>Tree</code> menu and click <code>NJ</code>.
+            </p>
+            <figure>
+                <img src="img/splitstree-3.png" alt="SplitsTree">
+            </figure>
+            <h3 id="tree-root">Rooting the tree</h3>
+            <p>
+Next, we will root our tree.<label class="margin-toggle sidenote-number" for="n-rodriguez2"></label><input type="checkbox" id="n-rodriguez2" class="margin-toggle" /><span class="sidenote">Rooting is not strictly necessary; for a discussion of unrooted trees, see <a href="b-rodriguez2012">Phillips-Rodriguez 2012</a>.</span> The decision about how to root a tree is dependent on many factors, and relies entirely on the expertise of the philolgist. In the case of this particular text tradition, I decided that there were two main branches — a <em>southern</em> branch, consisting of the witnesses C<sub>T</sub>, T, and H, and a <em>northern</em> branch, consisting of the remaining witnesses. Therefore, I rooted my tree with C<sub>T</sub>, T, and H as my outgroup.
+            </p>
+            <figure>
+                <img src="img/splitstree-4.png" alt="SplitsTree">
+            </figure>
+            <h3 id="tree-bootstrapping">Bootstrapping</h3>
+            <p>
+In order to test how well our tree fits our data, we can do a simple test called <em>bootstrapping</em>. As Sandra L. Baldauf puts it,
+            </p>
+            <blockquote>
+                <p>
+            This is done by taking random subsamples of the dataset, building trees from each of these and calculating the frequency with which the various parts of your tree are reproduced in each of these random subsamples. If group X is found in every subsample tree, then its bootstrap support is 100%, if its(!) found in only two-thirds of the subsample trees, its bootstrap support is 67%.
+                </p>
+                <footer><a href="#b-baldauf2003">Baldauf 2003, 350</a>.</footer>
+            </blockquote>
+            <figure>
+                <img src="img/splitstree-5-alt.png" alt="SplitsTree">
+            </figure>
+            <p>
+I used an <a href="https://software-ab.informatik.uni-tuebingen.de/download/splitstree4/welcome.html">older version of SplitsTree</a> to perform bootstrapping (<code>Analysis -&gt; Bootstrap</code>), since SplitsTree5 does not yet support it. As you can see, almost every branch has 100% or &gt;90% bootstrap support. There are two exceptions:
+            </p>
+            <ol>
+                <li>the branching of G<sub>V</sub> and P has only 27.7% support. This is very low, but G<sub>V</sub> is an extremely fragmentary manuscript, containing only the commentary on two verses, so this low score is understandable;</li>
+                <li>the branching of D from the group A, K, and V has only 77.6% support. This is probably because D is a <em>contaminated</em> manuscript; the scribe/scholar has taken some readings from another branch and used them to correct his manuscript. In order to get better results, it may be better to omit D from our tree, or, alternatively, to use the <em>ante correctionem</em> readings from it, wherever legible.</li>
+            </ol>
+            <h3 id="tree-export">Exporting to NeXML</h3>
+            <p>
+In order to use our tree in the matrix-editor, we need to export it to <a href="https://nexml.org/">NeXML</a> format. Right-click on <code>Trees</code> in the sidebar (the second one, which is the rooted tree) and click <code>Export...</code>.
+            </p>
+            <figure>
+                <img src="img/splitstree-6.png" alt="SplitsTree">
+            </figure>
+            <p>
+The exported tree from the example data can be found at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/trees/rooted-tree.xml"><code>example/trees/rooted-tree.xml</code></a>.<label class="margin-toggle sidenote-number" for="n-nexml"></label><input type="checkbox" id="n-nexml" class="margin-toggle" /><span class="sidenote">Earlier versions of SplitsTree5 were missing the top-level <code>&lt;nex:nexml&gt;</code> element, but this has been fixed since version 5_2_22-beta.</span> <!--However, SplitsTree5 seems to export a fragment of a file; it's missing the top-level <code>&lt;nex:nexml&gt;</code> tag. Practically, this means that the beginning of the file needs this:-->
+            </p>
+            <!--blockquote>
+                <code>
+&lt;nex:nexml xmlns="http://www.nexml.org/2009"<br/>
+xsi:schemaLocation="http://www.nexml.org/2009 http://www.nexml.org/2009/nexml.xsd"<br/>
+xmlns:nex="http://www.nexml.org/2009"<br/>
+xmlns:xml="http://www.w3.org/XML/1998/namespace"<br/> 
+xmlns:dc="http://purl.org/dc/elements/1.1/"<br/> 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"<br/>
+xmlns:xsd="http://www.w3.org/2001/XMLSchema#"&gt;
+                </code>
+            </blockquote>
+            <p>
+And the end of the file needs <code>&lt;/nex:nexml&gt;</code>.
+            </p>
+            <p>
+In addition, for each <code>&lt;node&gt;</code> that is one of our witnesses, change
+            </p>
+            <blockquote>
+                <code>
+&lt;node id="n1" <span style="font-weight:bold">label="n1"</span> otu="GV"/&gt;
+                </code>
+            </blockquote>
+            <p>
+to this:
+            </p>
+            <blockquote>
+                <code>
+&lt;node id="n1" <span style="font-weight:bold">label="GV"</span> otu="GV"/&gt;
+                </code>
+            </blockquote>        
+            <p>
+To see the file with all of the requisite changes, look at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/trees/rooted-tree.xml"><code>example/trees/rooted-tree.xml</code></a>.
+            </p-->
+        </section>
+        <section>
+            <h2 id="reconstruction">Reconstructing a text</h2>
+            <h3 id="reconstruction-lemma">Reconstructing a single lemma</h3>
+            <p>
+Now that we have prepared the tree, we can open it in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">matrix-editor</a> to do some reconstruction. First, in the matrix-editor, open up one or more of the aligned files again. It is probably easier to do them one at a time, or a couple at a time. Then, from the <code>Trees</code> menu, open the NeXML tree.
+            </p>
+            <figure>
+                <img src="img/matrix-editor-3.png" alt="The matrix editor">
+            </figure>
+            <p>
+In this example, I have opened the file <code>c3.2.4-2.xml</code>, and then opened <code>rooted-tree.xml</code>. As you can see, if you hover your mouse over any one of the nodes in the tree, the editor will give you a reconstructed reading based on <a href="#b-fitch1971">Fitch's algorithm</a>.
+            </p>
+            <p>
+As I mentioned previously, I hypothesized there to be two main branches in this text tradition: a southern branch, consisting of witnesses C<sub>T</sub>, T, and H, and a northern branch. Here, the southern branch consistently reads <em>dhya</em>. The northern branch is split between <em>dhya</em> and <em>kya</em>.<label class="margin-toggle sidenote-number" for="n-li1"></label><input type="checkbox" id="n-li1" class="margin-toggle" /><span class="sidenote">For a discussion of this lemma and its significance, see <a href="#b-li2018">Li 2018</a>, 48n118.</span> Because of the way I've rooted the tree, the algorithm has decided that <q>dhya</q> is the correct reading, since it has support in both main branches. But what if I had decided that all of the witnesses with the reading <q>dhya</q> form one outgroup?
+            </p>
+            <figure>
+                <img src="img/matrix-editor-4.png" alt="the Matrix Editor">
+            </figure>
+            <p>
+I re-rooted the tree, this time using C<sub>T</sub>, T, H, M, P, and G<sub>V</sub> as my outgroup (this file is available at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/trees/alternative-rooted-tree.xml"><code>example/trees/alternative-rooted-tree.xml</code></a>). Now, both readings, <q>kya</q> and <q>dhya</q>, are equally weighted.<label class="margin-toggle sidenote-number" for="n-maas1"></label><input type="checkbox" id="n-maas1" class="margin-toggle" /><span class="sidenote">This is exactly the situation described in <a href="#b-maas1958">Maas 1958, 6</a>: <q>The reconstruction of α is a different matter. If its tradition has two branches only, β and γ, and β and γ agree, we have the text of α. If they do not agree, then either of the two readings may be the text of α; we have here <em>variants</em>, between which it is not possible to decide on the lines of our procedure hitherto.</q></span>
+            </p>
+            <h3 id="reconstruction-passage">Reconstructing an entire passage</h3>
+            <p>
+Instead of reconstructing the text lemma-by-lemma, we can ask the software to reconstruct the entire text for us. First make sure you are using the normalized readings (<code>View -&gt; Normalized</code>). Then, simply click one node. Presumably, we will want to reconstruct the root — that is, what we hypothesize to be the oldest reachable state of the text, based solely on the manuscript evidence. However, you can also reconstruct the text at any later stage of its evolution; for example, if you wish to reconstruct the northern recension of the text, simply click on the node that groups all the northern witnesses together. Here, for the sake of an example, I have chosen the root.
+                <label class="margin-toggle" for="n-root1">&dagger;</label>
+                <input id="n-root1" class="margin-toggle" type="checkbox"/>
+                <span class="marginnote">
+                    <img src="img/reconstruct-dialog.png" style="border:1px solid black;" alt="image of the reconstruction dialog"/><br />
+                    The node reconstruction dialog box.
+                </span>
+            </p>
+            <p>
+Give the node a label; here I have labelled it <code>root</code>. Then click <code>Add to matrix</code>. This will add a new row to the bottom of the matrix, with the reconstructed text. It may take up to a few minutes to complete.
+            </p>
+            <figure>
+                <img src="img/matrix-editor-5.png" alt="the Matrix Editor">
+            </figure>
+            <p>
+Where the algorithm is able to come up with a definitive reading, it will be displayed in the cell. But if there is more than one possibility, it will give you all possible readings, like so: <em>{dhā,&nbsp;dhe}</em>. In this case, there are two, equally-weighted possibilities: <em>dhā</em> and <em>dhe</em>. Thus, the word here could equally be <em>abhidhāyakena</em> or <em>abhidheyakena</em>. Now, it is up to the philologist to decide the correct reading. But note that, up until this point, every step in the process has been reproducible. In a case such as this, where the reading cannot be determined stematically, it would be appropriate for the editor to include a note in their critical text, stating their choice, and, if, the reasoning behind it is not immediately obvious, a justification.
+            </p>
+            <figure>
+                <img src="img/matrix-editor-6.png" alt="the Matrix Editor">
+            </figure>
+            <h3 id="export-apparatus">Exporting a critical apparatus</h3>
+            <p>
+After reconstructing a passage, the text can be exported in TEI XML format, as a text with variant readings. If you have done the alignment as characters or akṣaras, you will probably want to group them into larger lemmata before exporting. You can do this by using the <code>Group all words</code> command in the <code>Edit</code> menu, if you haven't already. 
+            </p>
+            <figure>
+                <img src="img/matrix-editor-grouped-words.png" alt="Grouping words in the matrix editor">
+            </figure>
+            <p>
+<label class="margin-toggle" for="n-export-apparatus">&dagger;</label><input id="n-export-apparatus" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export-apparatus.png" style="border: 1px solid black" alt="the TEI apparatus export dialog box"/><br/>The TEI apparatus export dialog.</span>
+If you want to change the groups, you can select columns and use the <code>Column -&gt; Ungroup columns</code> and <code>Column -&gt; Group columns</code> commands to reform them. Once you are satisfied, you can export the text in TEI XML format, by choosing <code>TEI apparatus</code> from the <code>Export</code> menu.  There, you will be able to choose a base text (probably the reconstructed text). You will want to make sure that <code>Merge groups</code> is checked, so that the apparatus of variants is constructed based on the grouped "words" rather than on each individual character or akṣara.
+            </p>
+            <p>
+The resulting TEI XML file can then be edited — for example, you may wish to prune the apparatus so that only the most important variants are shown. Since all of the manuscript witnesses have been transcribed already and can be compared using tools like <a href="https://saktumiva.org/">saktumiva.org</a>, this <q>curated</q> apparatus can be a useful way to focus on certain textual issues, while still having a fully positive apparatus available to the reader.
+            </p>
+        </section>
+        <section>
+            <h2 id="further">Going further</h2>
+            <p>
+Both the software described in this document, as well as this document itself, are in development, and there is much more work to be done. The formal algorithms that we are using date from the 70's, and the techniques — considering Lachmann — from the 19<sup>th</sup> century. But the more data that we produce, in the form of diplomatic transcriptions of manuscripts and stemmatic studies of text traditions, the more we can start to create models of how texts evolve over time, and the better equipped we will be to devise better algorithms to explore them. In this document, I have mainly described the technical elements of textual reconstruction; I have only touched briefly on the philological considerations, and given mere hints of the kinds of research questions that we can address using these techniques.
+            </p>
+        </section>
+        <section>
+            <h2 id="bibliography">Bibliography</h2>
+            <p class="biblio" id="b-baldauf2003">Baldauf, Sandra L. 2003. <q>Phylogeny for the faint of heart: a tutorial.</q> <cite>Trends in Genetics</cite> 19(6): 345–351. <a href="https://www.researchgate.net/publication/10712132_Phylogeny_for_the_faint_of_heart_A_tutorial">researchgate.net/publication/10712132_Phylogeny_for_the_faint_of_heart_A_tutorial</a>.</p>
+            <p class="biblio" id="b-cartwright2006">Cartwright, Reed A. 2006. <q>Logarithmic gap costs decrease alignment accuracy.</q> <cite>BMC bioinformatics</cite> 7(527). <a href="https://doi.org/10.1186/1471-2105-7-527">doi:10.1186/1471-2105-7-527</a>.</p>
+            <p class="biblio" id="b-chin2003">Chin, Francis Y. L. et al. 2003. <q>Efficient Constrained Multiple Sequence Alignment with Performance Guarantee.</q> In <cite>Computational Systems Bioinformatics, Proceedings of the 2003 IEEE Bioinformatics Conferece</cite>. Stanford, CA: IEEE. <a href="https://ieeexplore.ieee.org/document/1227334">ieeexplore.ieee.org/document/1227334</a>.</p>
+            <p class="biblio" id="b-fitch1971">Fitch, Walter M. 1971. <q>Defining the course of Evolution: Minimum change for a specific tree topology.</q> <cite>Systematic Zoology</cite> 20: 406–416. <a href="https://www.jstor.org/stable/2412116">jstor.org/stable/2412116</a>.</p>
+            <p class="biblio" id="b-gusfield1997">Gusfield, Dan. 1997. <cite>Algorithms on Strings, Trees, and Sequences.</cite> Cambridge: Cambridge University Press. <a href="https://doi.org/10.1017/CBO9780511574931">doi:10.1017/CBO9780511574931</a>.</p>
+            <p class="biblio" id="b-huson2006">Huson, Daniel H. &amp; Bryant, David. 2006. <q>Application of Phylogenetic Networks in Evolutionary Studies.</q> <cite>Molecular Biology and Evolution</cite> 23(2): 254–267. <a href="https://academic.oup.com/mbe/article/23/2/254/1118872">academic.oup.com/mbe/article/23/2/254/1118872</a>.</p>
+            <p class="biblio" id="b-mafft2002">Katoh Kazutaka, Misawa K., Kuma K., &amp; Miyata T. 2002. <q>MAFFT: a novel method for rapid multiple sequence alignment based on fast Fourier transform.</q> <cite>Nucleic Acids Research</cite> 30(14): 3059–3066. <a href="https://doi.org/10.1093/nar/gkf436">doi:10.1093/nar/gkf436</a>.</p>
+            <p class="biblio" id="b-li2017">Li, Charles. 2017. <q>Critical diplomatic editing: Applying text-critical principles as algorithms.</q> In <cite>Advances in Digital Scholarly Editing,</cite> edited by P. Boot et al, 305–310. Leiden: Sidestone Press. <a href="https://hcommons.org/deposits/item/hc:18259/">hcommons.org/deposits/item/hc:18259</a>.</p>
+            <p class="biblio" id="b-li2018">Li, Charles. 2018. <q>Limits of the real: A hypertext critical edition and translation of Bhartṛhari’s Dravyasamuddeśa, with the commentary of Helārāja.</q> PhD thesis, University of Cambridge. <a href="https://www.repository.cam.ac.uk/handle/1810/284085">www.repository.cam.ac.uk/handle/1810/284085</a>.</p>
+            <p class="biblio">Li, Charles. 2022. <q>helayo: Reconstructing Sanskrit texts from manuscript witnesses.</q> <cite>Journal of Open Source Software</cite> 7(71), 4022. <a href="https://joss.theoj.org/papers/10.21105/joss.04022">doi:10.21105/joss.04022</a>.</p>
+            <p class="biblio">Li, Charles. 2023. <q>King Śibi in the <em>Vahnipurāṇa</em>.</q> <cite>Asian Literature &amp; Translation</cite> 10(1): 1–46. <a href="https://alt.cardiffuniversitypress.org/articles/10.18573/alt.58">doi:10.18573/alt.58</a>.</p>
+            <p class="biblio" id="b-maas1958">Maas, Paul. 1958. <cite>Textual Criticism</cite>. Translated by B. Flower. Oxford: Clarendon Press.</p>
+            <p class="biblio" id="b-rodriguez2007">Phillips-Rodriguez, Wendy J. 2007. <q>Electronic Techniques of Textual Analysis and Edition for Ancient Texts: an Exploration of the Phylogeny of the Dyūtaparvan.</q> PhD thesis, University of Cambridge.</p>
+            <p class="biblio" id="b-rodriguez2012">Phillips-Rodriguez, Wendy J. 2012. <q>Unrooted trees: A way around the dilemma of recension.</q> In <cite>Battle, Bards, Brahmins (Papers of the 13th World Sanskrit Conference)</cite> edited by J. Brockington, 217–230. Delhi: Motilal Banarsidass.</p>
+            <p class="biblio" id="b-sung2009">Sung Wing-Kin. 2009. <cite>Algorithms in Bioinformatics: A Practical Introduction.</cite> London: CRC Press.</p>
+            <p class="biblio" id="b-trovato2014">Trovato, Paolo. 2014. <cite>Everything You Always Wanted to Know about Lachmann’s Method.</cite> Translated by F. Poole. Padova: liberiauniversitaria.it.</p>
+        </section>
+    </article>
+</body>
+</html>
