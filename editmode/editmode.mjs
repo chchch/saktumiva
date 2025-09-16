@@ -314,6 +314,11 @@ const findAlignments = async opts => {
 };
 
 const collate = async () => {
+    const checked = _state.shadowRoot.querySelector('#blocklist input[value]:checked');
+    if(!checked) {
+        alert('No block selected.');
+        return;
+    }
     const button = _state.shadowRoot.getElementById('collatebutton');
     button.style.display = 'none';
     const spinner = _state.shadowRoot.getElementById('variants-popup').querySelector('.spinner');
