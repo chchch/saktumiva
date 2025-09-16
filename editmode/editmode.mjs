@@ -358,8 +358,8 @@ const collate = async () => {
         //newblock.style.border = '1px dashed red';
         newwide.classList.add('edited');
         newwide.id = `edited_${Date.now() + Math.random()}`;
-        window.postMessage({type: 'transliterator-refresh',id: newwide.id},'/');
-        window.postMessage({type: 'apparatus-refresh',id: newwide.id},'/');
+        (new BroadcastChannel('transliterator')).postMessage({id: newwide.id});
+        (new BroadcastChannel('apparatus')).postMessage({id: newwide.id});
     }
     document.getElementById('editblackout').style.display = 'none';
     document.getElementById(blocklist[0]).scrollIntoView({behavior: 'smooth',block: 'center'}); 
