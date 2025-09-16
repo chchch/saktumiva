@@ -58,6 +58,19 @@ fieldset {
 input:disabled+label {
     opacity: 0.5;
 }
+.spinner {
+    display: none;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid rgba(0,0,0,.3);
+    border-radius: 50%;
+    border-top-color: rgb(0,0,0);
+    animation: spin 1s linear infinite;
+    align-self: center;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
 </style>
 <div id="variants-popup" class="popup">
 <div class="popup-header">
@@ -72,7 +85,7 @@ input:disabled+label {
         <div id="blocklist"></div>
     </fieldset>
     <div>
-        <fieldset>
+        <fieldset style="margin-bottom: 1rem">
             <legend>Options</legend>
             <div id="variantsfileselect">
                 <div>
@@ -86,6 +99,7 @@ input:disabled+label {
             </div>
         </fieldset>
         <button id="collatebutton">Collate!</button>
+        <div class="spinner"></div>
     </div>
 </div>
 </div>

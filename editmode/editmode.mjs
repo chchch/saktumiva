@@ -133,7 +133,7 @@ const injectHTML = async () => {
     _state.shadowRoot = shadowRoot;
 
     document.body.appendChild(blackout);
-    const blocks = _state.curDoc.querySelectorAll('text lg[*|id],text p[*|id],text div[*|id]');
+    const blocks = _state.curDoc.querySelectorAll('text lg[*|id], text l[*|id], text p[*|id],text div[*|id]');
     fillBlocks(blocks);
     addEditButtons(blocks);
 
@@ -314,6 +314,10 @@ const findAlignments = async opts => {
 };
 
 const collate = async () => {
+    const button = _state.shadowRoot.getElementById('collatebutton');
+    button.style.display = 'none';
+    const spinner = _state.shadowRoot.getElementById('variants-popup').querySelector('.spinner');
+    spinner.style.display = 'inline-block';
     const cachedwitnesses = new Map();
     const cachedfiles = new Map();
     await cacheWitnesses(_state.curDoc,cachedwitnesses,cachedfiles);
@@ -364,6 +368,8 @@ const collate = async () => {
     if(document.querySelector('.apparatus-block.hidden'))  {
         appbutton.click();
     }
+    button.style.display = 'unset';
+    spinner.style.display = 'none';
 };
 
 const cacheWitnesses = async (doc, witmap, filemap) => {

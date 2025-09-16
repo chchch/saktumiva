@@ -11,6 +11,7 @@ const _state = {
     allblocks: new Set()
 };
 
+const natSort = (new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'})).compare;
 
 const parseString = (str,fname) => {
     const parser = new DOMParser();
@@ -110,10 +111,10 @@ const updatePreview = async () => {
                 alert(warning);
     }
     
-    const sigla = [..._state.alltexts.keys()].sort();
+    const sigla = [..._state.alltexts.keys()].sort(natSort);
     updateTargetEd(sigla);
     appendList(preview.querySelector('.checklist'), sigla);
-    appendList(idpreview.querySelector('.checklist'), [..._state.allblocks].sort());
+    appendList(idpreview.querySelector('.checklist'), [..._state.allblocks].sort(natSort));
         
     document.getElementById('alignsubmit').style.display = 'block';
     document.querySelector('.options').style.display = 'flex';
