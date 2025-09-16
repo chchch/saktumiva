@@ -357,6 +357,7 @@ const collate = async () => {
         oldwide.parentNode.replaceChild(newwide,oldwide);
         //newblock.style.border = '1px dashed red';
         newwide.classList.add('edited');
+        if(!newwide.id) newwide.id = `edited_${Date.now() + Math.random()}`;
         (new BroadcastChannel('apparatus')).postMessage({id: newwide.id});
         (new BroadcastChannel('transliterator')).postMessage({id: newwide.id});
     }
