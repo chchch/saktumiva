@@ -357,8 +357,8 @@ const collate = async () => {
         oldwide.parentNode.replaceChild(newwide,oldwide);
         //newblock.style.border = '1px dashed red';
         newwide.classList.add('edited');
-        (new BroadcastChannel('transliterator')).postMessage({id: newwide.id});
         (new BroadcastChannel('apparatus')).postMessage({id: newwide.id});
+        (new BroadcastChannel('transliterator')).postMessage({id: newwide.id});
     }
     document.getElementById('editblackout').style.display = 'none';
     document.getElementById(blocklist[0]).scrollIntoView({behavior: 'smooth',block: 'center'}); 
