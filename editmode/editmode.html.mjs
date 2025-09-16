@@ -46,6 +46,7 @@ fieldset {
 }
 #blocklist {
     overflow-y: scroll;
+    max-height: 85vh;
 }
 .popup button {
     width: max-content;
