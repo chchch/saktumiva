@@ -414,6 +414,7 @@ const updateBoxes = (e) => {
 };
 
 window.addEventListener('load', () => {
+    /*
     const date = new Date();
     if(date.getHours() > 17 || date.getHours() < 5 || date.getDay() > 5) {
         const dialog = document.createElement('dialog');
@@ -433,6 +434,7 @@ window.addEventListener('load', () => {
         blackout.appendChild(dialog);
         blackout.style.display = 'flex';
     }
+    */
     document.getElementById('teifiles').addEventListener('change',updatePreview);
     for(const box of document.querySelectorAll('.checklist'))
         box.addEventListener('click',updateCheckboxes);
