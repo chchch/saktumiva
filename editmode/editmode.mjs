@@ -190,6 +190,7 @@ const addEditButtons = blocks => {for(const block of blocks) addEditButton(block
 const addEditButton = blockel => {
     const xmlid = typeof blockel === 'string' ? blockel : blockel.getAttribute('xml:id');
     const block = document.getElementById(xmlid);
+	const wideblock = block.closest('.wide');
     const minieditbutton = document.createElement('button');
     minieditbutton.className = 'editbutton';
     const appsvg = document.getElementById('apparatussvg').cloneNode(true);
@@ -200,7 +201,7 @@ const addEditButton = blockel => {
     minieditbutton.addEventListener('click',editApp.bind(null,{block: xmlid}));
     block.prepend(minieditbutton);
 
-    const alignviewer = block.parentNode.querySelector('.alignment-pointer');
+    const alignviewer = (wideblock || block).querySelector('.alignment-pointer');
     const alignbutton = document.createElement('button');
     alignbutton.className = 'editbutton';
     alignbutton.dataset.anno = `Edit alignment for ${xmlid}`;
