@@ -213,7 +213,7 @@ const addEditButton = blockel => {
     alignviewer.after(alignbutton);
 };
 
-const editAlignment = async obj => {
+const editAlignment = /*async*/ obj => {
 	const url = encodeURIComponent(obj.href);
     window.open(`saktumiva/matrix-editor/?url=${url}`);
 	/*
