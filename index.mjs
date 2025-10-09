@@ -298,32 +298,65 @@ const align = () => {
             alignWorker.postMessage(todo[n].workerdata);
         }
         else {
-            document.getElementById('popupmessage').innerHTML = '<button>Save file</button>';
             document.getElementById('spinner').style.display = 'none';
-            document.getElementById('popupmessage').querySelector('button').addEventListener('click', saveAs.bind(null,alignedblocks));
+            if(alignedblocks.size === 1)
+                document.getElementById(`popupmessage`).innerHTML = `<div class="vertcentre"><button id="xmlopen">Open file</button><button id="xmlsave">Save file</button></div>`;
+            else {
+                document.getElementById('popupmessage').innerHTML = '<div class="vertcentre"><button id="xmlopen">Open files</button><button id="xmlsave">Save each file</button><button id="xmlsave2">Save ZIP</button>';
+				document.getElementById('xmlsave2').addEventListener('click', saveAsZip.bind(null,alignedblocks));
+            }
+
+			document.getElementById('xmlopen').addEventListener('click',openInEditor.bind(null,alignedblocks));
+            document.getElementById('xmlsave').addEventListener('click', saveAs.bind(null,alignedblocks));
         }
     };
 };
 
+const openInEditor = alignedblocks => {
+	const blocks = [...alignedblocks];
+    window.open('matrix-editor/index.html');
+    const bc = new BroadcastChannel('matrix-editor');
+    bc.onmessage = e => {
+        if(e.data === 'ready') {
+			const first = blocks.shift();
+			const ret = {
+				f: {name: first[0]}, 
+				e: {target: {result: first[1]}}
+			};
+			if(blocks.length > 0)
+				ret.fs = blocks.map(b => b[1]);
+			else 
+				ret.fs = [];
+            bc.postMessage(ret);
+            bc.close();
+        }
+    };
+};
 
-const saveAs = async (blocks) => {
+const saveAs = async blocks => {
+    document.getElementById('blackout').style.display = 'none';
+
+    const outtexts = [...blocks];
+
+	for(const outtext of outtexts) {
+		const fname = outtext[0] + '.xml';
+		const fileHandle = await showSaveFilePicker({
+			_preferPolyfill: false,
+			suggestedName: fname,
+			types: [ {description: 'TEI XML alignment', accept: {'application/xml': ['.xml']} } ],
+		});
+		const writer = await fileHandle.createWritable();
+		writer.write(outtext[1]);
+		writer.close();
+	}
+
+};
+
+const saveAsZip = async blocks => {
 
     document.getElementById('blackout').style.display = 'none';
 
     const outtexts = [...blocks];
-    if(outtexts.length === 1) {
-        const fname = outtexts[0][0] + '.xml';
-        const fileHandle = await showSaveFilePicker({
-            _preferPolyfill: false,
-            suggestedName: fname,
-            types: [ {description: 'TEI XML alignment', accept: {'application/xml': ['.xml']} } ],
-        });
-        const writer = await fileHandle.createWritable();
-        writer.write(outtexts[0][1]);
-        writer.close();
-        return;
-    }
-
     const zip = new JSZip();
     for(const outtext of outtexts) zip.file(`${outtext[0]}.xml`, outtext[1]);
     zip.generateAsync({type: "blob"})
@@ -413,6 +446,11 @@ const updateBoxes = (e) => {
     parbox.indeterminate = false;
 };
 
+const closeBlackout = e => {
+	if(e.target.closest('#popup')) return;
+	document.getElementById('blackout').style.display = 'none';
+};
+
 window.addEventListener('load', () => {
     /*
     const date = new Date();
@@ -440,6 +478,8 @@ window.addEventListener('load', () => {
         box.addEventListener('click',updateCheckboxes);
 
     document.getElementById('alignsubmit').addEventListener('click', align);
+	
+	document.getElementById('blackout').addEventListener('click',closeBlackout);
 
     const normies = document.getElementById('normalization');
     

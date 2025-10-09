@@ -448,7 +448,14 @@ const matrixLoadAdditional = function(fs) {
 				oldteis.set(parid + 'pc',pcrow);
 				oldteis.delete(parid);
 			}
-			// TODO: variant readings
+			// if _state.xml has XX and newxml has XX-A, XX-B, etc.
+			else if(!oldteis.has(siglum) && parid && oldteis.has(parid)) {
+				const oldrow = oldteis.get(parid);
+				const newrow = oldrow.cloneNode(true);
+				newrow.setAttribute('n',siglum);
+				oldrow.after(newrow);
+				oldteis.set(siglum,newrow);
+			}
 			newteis.set(siglum,tei);
 		}
 		const oldsigla = new Set(oldteis.keys());
@@ -525,10 +532,13 @@ const matrixLoadAdditional = function(fs) {
 		if(add.length > 0) matrixLoadAdditional(add);
 		else menuPopulate();
 	};
-
-	const reader = new FileReader();
-	reader.onload = go.bind(null,fss);
-	reader.readAsText(f);
+	if(typeof f === 'string')
+		go(fss,{target: {result: f}});
+	else {
+		const reader = new FileReader();
+		reader.onload = go.bind(null,fss);
+		reader.readAsText(f);
+	}
 	
 };
 
@@ -3471,6 +3481,31 @@ class MatrixBox extends Box {
 	}
 }
 
+const urlBasename = str => {
+	const start = str.lastIndexOf('/');
+	if(start === -1) return str;	
+	return str.slice(start+1);
+};
+
+const maybeLoadData = async () => {
+		const bc = new BroadcastChannel('matrix-editor');
+		bc.onmessage = e => {
+			csvOrXml(e.data.f,e.data.fs,e.data.e);
+			bc.close();
+		};
+		bc.postMessage('ready');
+
+		const url = (new URLSearchParams(window.location.search)).get('url');
+		if(url) {
+			const decoded = decodeURIComponent(url);
+			const res = await fetch(decoded);
+			const data = await res.text();
+			const f = {name: urlBasename(decoded)};
+			const ev = {target: {result: data}};
+			csvOrXml(f,[],ev);
+		}
+};
+
 window.comboView = {
 	branchinit: () => {
 		window.comboView.init();
@@ -3502,12 +3537,7 @@ window.comboView = {
 		document.addEventListener('contextmenu',events.rightClick);
 		document.addEventListener('mouseup',contextMenu.remove);
 		await Xslt.init();
-		const bc = new BroadcastChannel('matrix-editor');
-		bc.onmessage = e => {
-			const f = {name: e.filename};
-			const ev = {target: {result: e.data}};
-			csvOrXml(f,[],ev);
-		};
+		maybeLoadData();
 	},
 	getWindows: () => _state.windows,
 	addWindow: (win) => { _state.windows.push(win); },

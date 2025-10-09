@@ -199,6 +199,33 @@ const addEditButton = blockel => {
     minieditbutton.dataset.anno = `Edit apparatus for ${xmlid}`;
     minieditbutton.addEventListener('click',editApp.bind(null,{block: xmlid}));
     block.prepend(minieditbutton);
+
+    const alignviewer = block.parentNode.querySelector('.alignment-pointer');
+    const alignbutton = document.createElement('button');
+    alignbutton.className = 'editbutton';
+    alignbutton.dataset.anno = `Edit alignment for ${xmlid}`;
+    alignbutton.addEventListener('click',editAlignment.bind(null,{href: alignviewer.href}));
+    alignbutton.append('\u{1F589}');
+    alignbutton.style.fontSize = '0.8rem';
+    alignbutton.style.left = '0.1rem';
+    alignbutton.style.top = '0.1rem';
+    alignviewer.after(alignbutton);
+};
+
+const editAlignment = async obj => {
+	const url = encodeURIComponent(obj.href);
+    window.open(`saktumiva/matrix-editor/?url=${url}`);
+	/*
+	const res = await fetch(obj.href);
+	const data = await res.text();
+    const bc = new BroadcastChannel('matrix-editor');
+    bc.onmessage = e => {
+        if(e.data === 'ready') {
+            bc.postMessage({name: obj.href, data: data});
+            bc.close();
+        }
+    };
+	*/
 };
 
 const fillBlocks = (blocks) => {

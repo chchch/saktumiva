@@ -213,7 +213,8 @@ button:hover, label[for="teifiles"]:hover {
     top: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(50,50,50,0.5);
+    background: none;
+    backdrop-filter: blur(5px) brightness(60%) saturate(150%);
     display: none;
 }
 
@@ -234,6 +235,14 @@ button:hover, label[for="teifiles"]:hover {
     font-size: 1.2rem;
     max-width: 200px;
 }
+
+.vertcentre {
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    gap: 1rem;
+}
+
 /*
 #spinner {
     display: inline-block;
