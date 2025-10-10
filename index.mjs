@@ -24,7 +24,7 @@ const parseString = (str,fname) => {
 
 const serializeXML = doc => {
     const serializer = new XMLSerializer();
-    return '<?xml version="1.0" encoding="UTF-8"?>\n' + serializer.serializeToString(doc);
+    return serializer.serializeToString(doc);
 };
 
 const upload = async (arr) => {
