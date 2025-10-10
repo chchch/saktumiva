@@ -456,6 +456,8 @@ const matrixLoadAdditional = function(fs) {
 				oldrow.after(newrow);
 				oldteis.set(siglum,newrow);
 			}
+			// TODO: if _state.xml has XX-A, XX-B, etc. and newxml has only XX
+
 			newteis.set(siglum,tei);
 		}
 		const oldsigla = new Set(oldteis.keys());
