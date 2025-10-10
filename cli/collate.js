@@ -21,7 +21,7 @@ const parseString = (str,fname) => {
 };
 const serializeXML = doc => {
     const serializer = new DOM.window.XMLSerializer();
-    return serializer.serializeToString(doc);
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' + serializer.serializeToString(doc);
 };
 
 const getFiles = config => {
@@ -39,7 +39,6 @@ const getFiles = config => {
                 return [...acc,...glob.readdirSync(fullpath)];
             },[]);
     })(config);
-    
     const reference = {
         alltexts: new Map(),
         allblocks: new Set()
@@ -79,7 +78,7 @@ const getFilterIndices = (config) => {
 
 const saveFile = (data, path) => {
     try {
-        Fs.writeFileSync(path, data[1]);
+        Fs.writeFileSync(path, data);
         console.log(`saved to ${path}.`);
     } catch (err) {
         console.log(`failed to save ${path}: ${err}.`);
@@ -140,7 +139,6 @@ const main = () => {
                       lang: texts[0].lang
                      };
         let postaligned = postProcess(aligned, filtersmap, meta);
-
         if(!config.hasOwnProperty('lemmagroups') || config.lemmagroups === true) {
             const grouped = groupBySpace(parseString(postaligned,`${block}.xml`),config.edition?.siglum);
             postaligned = serializeXML(grouped);
