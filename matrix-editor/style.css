@@ -442,9 +442,9 @@ span.group::after {
     text-align: left;
     cursor: auto;
     font-weight: normal;
-    max-width: 0.5em;
-    font-size: 0.6em;
-    padding-left: 0;
+    /*max-width: 0.5em;*/
+    font-size: 0.5em;
+    padding: 0;
 }
 
 .matrix tr.header th .readings {
@@ -480,10 +480,12 @@ span.group::after {
 .matrix th {
     position: sticky;
     left: 0;
-    background: rgb(155,129,187);
+    /*background: rgb(104,59,160);*/
+    background: rgb(68,24,155,0.9);
     background-clip: padding-box;
     z-index: 2;
     cursor: grab;
+    color: white;
 }
 
 .matrix td {

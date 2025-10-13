@@ -68,6 +68,8 @@ const languageSpecificOptions = textel => {
 
     const normies = document.getElementById('normalization');
     normies.querySelector('input').checked = true; // ignore punctuation
+    if(lang === 'pali') 
+        normies.querySelector('input[value="1"').checked = true; // ignore case
     if(lang === 'sanskrit' || lang === 'tamil' || lang === 'pali')
         normies.querySelector('input[value="45"]').checked = true; // remove spaces
 
@@ -448,6 +450,7 @@ const updateBoxes = (e) => {
 
 const closeBlackout = e => {
 	if(e.target.closest('#popup')) return;
+    if(!document.querySelector('#popup button')) return;
 	document.getElementById('blackout').style.display = 'none';
 };
 
