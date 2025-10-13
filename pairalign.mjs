@@ -148,6 +148,7 @@ const showMatrix = (seqs,matrix,path) => {
             firsttd.append(seqs[0][x-1]);
         tr.append(firsttd);
         for(const [y,cell] of row.entries()) {
+            if(y > seqs[1].length) break; // GridMixin pads rows with 0's
             const td = document.createElement('td');
             td.append(parseFloat(cell.toFixed(2)));
             if(path.has(`${x},${y}`))
