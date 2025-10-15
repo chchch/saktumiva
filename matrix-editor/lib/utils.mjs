@@ -167,7 +167,7 @@ const Utils = function(_state) {
 
         highlit() {
             const firstrow = find.firsttr();
-            const lemmata = firstrow.querySelectorAll('.highlit');
+            const lemmata = firstrow.querySelectorAll('td.highlit');
             //if(lemmata.length === 0) return false;
             const nums = new Set();
             for(const lemma of lemmata) {

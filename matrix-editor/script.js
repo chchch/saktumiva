@@ -1,5 +1,5 @@
-import { CSV } from './lib/csv.mjs';
-import { Smits } from './lib/jsphylosvg-custom.mjs';
+import CSV from './lib/csv.mjs';
+import Smits from './lib/jsphylosvg-custom.mjs';
 
 import Normalizer from './lib/normalize.mjs';
 import { changeScript, to } from './lib/transliterate.mjs';
@@ -10,7 +10,7 @@ import { Exporter as _Exporter } from './lib/export.mjs';
 import { actions as _Actions } from './lib/actions.mjs';
 
 import _Hypher from './lib/hypher.mjs';
-import { hyphenation_sa } from './lib/hypher-sa.mjs';
+import hyphenation_sa from './lib/hypher-sa.mjs';
 
 const _state = {
 	teins: 'http://www.tei-c.org/ns/1.0',
@@ -25,12 +25,12 @@ const _state = {
 	descs: null,
 	maxlemma: null,
 	windows: [window],
-	dragged: null,
-	draganchor: null,
 	undo: [],
 	redo: [],
-	editing: false,
-	shifting: false
+	dragged: null, // th element, row dragging
+	highlightanchor: null, // td element, click-and-drag cell selection
+	editing: null, // td element, cell editing and new row naming
+	shifting: null // [low, high] cell shifting
 };
 
 const Hypher = new _Hypher(hyphenation_sa);
@@ -40,7 +40,7 @@ const Actions = new _Actions(Utils);
 const Exporter = new _Exporter(Utils, Xslt); // change to dynamic import?
 const { find: Find, check: Check, make: Make } = Utils;
 
-const removeBox = function() {
+const removeBox = () => {
 	const box = document.getElementById('tooltip');
 	if(box) box.remove();
 };
@@ -1052,7 +1052,7 @@ const events = {
 			multi.unHighlightAll();
 			multi.highlightLemma(lemma.dataset.n);
 			lemma.classList.add('highlitcell');
-			_state.draganchor = lemma;
+			_state.highlightanchor = lemma;
 			const tabl = _state.matrix.boxdiv.querySelector('table');
 			tabl.addEventListener('mouseover',events.matrixMouseover);
 			window.addEventListener('mouseup',events.matrixMouseup);
@@ -1073,7 +1073,7 @@ const events = {
 				if(!box.querySelector('.highlit'))
 					box.querySelector('[data-n="'+low+'"]').classList.add('highlit');      
 		}
-		_state.draganchor = null;
+		_state.highlightanchor = null;
 		const tabl = _state.matrix.boxdiv.querySelector('table');
 		tabl.removeEventListener('mouseover',events.matrixMouseover);
 		window.removeEventListener('mouseup',events.matrixMouseup);
@@ -1085,9 +1085,9 @@ const events = {
 		if(!lemma) return;
 
 		multi.unHighlightAll();
-		const sorted = Find.lowhigh([_state.draganchor.dataset.n,lemma.dataset.n]);
+		const sorted = Find.lowhigh([_state.highlightanchor.dataset.n,lemma.dataset.n]);
 		for(let n=sorted[0];n<=sorted[1];n++) multi.highlightLemma(n,true);
-		const starttr = _state.draganchor.closest('tr');
+		const starttr = _state.highlightanchor.closest('tr');
 		const endtr = lemma.closest('tr');
 		if(starttr === endtr) {
 			for(let n=sorted[0];n<=sorted[1];n++) 
@@ -1507,9 +1507,18 @@ const edit = {
 		edit.doMulti(dolist,'do');
 	},
 	startEditCell: function(el) {
-	//const cell = el || document.querySelector('.matrix td.highlitcell');
+        //const cell = el || document.querySelector('.matrix td.highlitcell');
 		const cell = el || Find.highlitcell();
 		if(!cell) return;
+
+        for(const el of _state.matrix.boxdiv.querySelectorAll('td.highlit'))
+            if(el !== cell) el.classList.remove('highlit');
+
+        const allhighlit = Find.highlitcells();
+        if(allhighlit.length > 1) {
+            for(const el of allhighlit)
+                if(el !== cell) el.classList.remove('highlitcell');
+        }
 		//cell.classList.add('highlitcell');
 		if(cell.dataset.hasOwnProperty('normal'))
 			cell.dataset.oldNormal = cell.dataset.normal;
@@ -1518,7 +1527,7 @@ const edit = {
 	
 		cell.contentEditable = 'true';
 		cell.focus();
-		_state.editing = true;
+		_state.editing = cell;
 		events.selectAll(cell);
 		cell.addEventListener('blur',edit.finishEditCell);
 		cell.addEventListener('keydown',edit.cellKeyDown);
@@ -1613,7 +1622,7 @@ const edit = {
 		}
 
 		edit.doStack([edit.doMulti,[dolist]],'do');
-		_state.shifting = false;
+		_state.shifting = null;
 		multi.clearTrees();
 	},
 
@@ -1681,7 +1690,7 @@ const edit = {
 		th.scrollIntoView();
 		th.focus();
 		document.execCommand('selectAll',false,null);
-		_state.editing = true;
+		_state.editing = th;
 	},
 
 	startRenameRow: function(/*n*/) {
@@ -1729,7 +1738,8 @@ const edit = {
 	},
 
 	finishNewRow: function(e) {
-		const th = e.target;
+		const th = _state.editing;
+		//const th = e.target;
 		const label = th.textContent;
 		th.closest('tr').dataset.n = label;
 	
@@ -1737,7 +1747,7 @@ const edit = {
 
 		_state.xml.documentElement.appendChild(tei);
 	
-		_state.editing = false;
+		_state.editing = null;
 		th.contentEditable = false;
 		th.removeEventListener('blur',edit.finishNewRow);
 		th.removeEventListener('keydown',edit.thKeyDown);
@@ -1746,9 +1756,10 @@ const edit = {
 	},
 
 	finishEditCell: function(e,cancel = false) {
-		const cell = e.target;
+		//const cell = e.target;
 		//cell.classList.remove('highlitcell');
-		_state.editing = false;
+		const cell = _state.editing;
+		_state.editing = null;
 		cell.contentEditable = 'false';
 		cell.removeEventListener('blur',edit.finishEditCell);
 		cell.removeEventListener('keydown',edit.cellKeyDown);
@@ -2862,7 +2873,7 @@ class Box {
 		if(this.script === 0)
 			scripter.innerHTML = 'A';
 		else
-			scripter.innerHTML = to[_state.scripts[this.script]]('a');
+			scripter.innerHTML = to(_state.scripts[this.script],'a');
 		scripter.classList.add(_state.scripts[this.script]);
 		scripter.classList.remove(oldscript);
 		/*if(_state.scripts[this.script] === 'grantha')

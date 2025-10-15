@@ -1,4 +1,4 @@
-import {Sanscript} from './sanscript.mjs';
+import Sanscript from '../../lib/sanscript.mjs';
 
 const nasals = new Map([
     ['c','ñ'],
