@@ -1171,8 +1171,8 @@ const events = {
 					{text: 'merge columns',
 						func: edit.startMerge.bind(null,nums)
 					},
-					{text: 'ungroup columns',
-						alt: 'group columns',
+					{text: 'group columns',
+						alt: 'ungroup columns',
 						toggle: Check.grouped,
 						func: edit.group.start.bind(null,false)
 					},
@@ -1189,8 +1189,8 @@ const events = {
 				}, */
 				] : 
 				[
-					{text: 'shift cells',
-						alt: 'shift cell',
+					{text: 'shift cell',
+						alt: 'shift cells',
 						toggle: Check.manyhighlitcells,
 						func: edit.startShiftCell
 					},
@@ -2626,7 +2626,7 @@ const contextMenu = {
 			}
 
 			if(item.hasOwnProperty('toggle')) {
-				const txt = item.toggle() ? item.text : item.alt;
+				const txt = item.toggle() ? item.alt : item.text;
 				const frag = document.createRange().createContextualFragment(
 					`<span>${txt}</span>`
 				);
@@ -2706,7 +2706,7 @@ class menuBox {
 				this.conditions.set(input,item.checkbox);
 			}
 			else {
-				const span = document.createElement('div');
+				const span = document.createElement('span');
 				span.appendChild(document.createTextNode(item.text));
 				if(item.hasOwnProperty('toggle')) {
 					span.dataset.text = item.text;
