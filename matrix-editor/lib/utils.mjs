@@ -124,7 +124,7 @@ const Utils = function(_state) {
             const el = row ? row : _state.xml;
             return el.querySelector(`w[n="${num}"]`);
         },
-		
+
         normal(el) {
             const par = el ? el : document.getElementById('views');
             //const par = el ? el : _state.matrix.boxdiv;

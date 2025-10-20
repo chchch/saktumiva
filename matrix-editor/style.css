@@ -439,7 +439,7 @@ span.group::after {
 }
 
 .matrix table {
-	background: white;
+    background: white;
     border-collapse: collapse; 
     table-layout: auto;
     user-select: none;

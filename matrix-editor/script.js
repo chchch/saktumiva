@@ -9,8 +9,14 @@ import { Fitch as _Fitch } from './lib/fitch.mjs';
 import { Exporter as _Exporter } from './lib/export.mjs';
 import { actions as _Actions } from './lib/actions.mjs';
 
+import { parseString } from '../lib/browserutils.mjs';
+import { showOpenFilePicker } from '../lib/native-file-system-adapter/es6.js';
+import { processFile } from '../lib/collate.mjs';
+
 import _Hypher from './lib/hypher.mjs';
 import hyphenation_sa from './lib/hypher-sa.mjs';
+
+import Realigner from './lib/realign.mjs';
 
 const _state = {
 	teins: 'http://www.tei-c.org/ns/1.0',
@@ -288,8 +294,7 @@ const csvOrXml = function(f,fs,e) {
 
 const treeFileLoad = function(f,fs,e) {
 	const treestr = e.target.result;
-	const parser = new DOMParser();
-	const nexml = parser.parseFromString(treestr,'text/xml');
+	const nexml = parseString(treestr);
 	const xenoData = _state.xml.querySelector('teiHeader > xenoData') || (function() {
 		const header = _state.xml.querySelector('teiHeader') || (function() {
 			const h = Make.xmlel('teiHeader');
@@ -375,8 +380,7 @@ const csvLoad = function(f,fs,e) {
 };
 
 const matrixLoad = (fs,str) => {
-	const xParser = new DOMParser();
-	_state.xml = xParser.parseFromString(str,'text/xml');
+	_state.xml = parseString(str);
 	
 	if(_state.xml.documentElement.getAttribute('xml:lang') === 'ta')
 		_state.scripts = ['iast','tamil'];
@@ -409,8 +413,7 @@ const matrixLoad = (fs,str) => {
 	};
 
 const loadAdditionalGo = (add,e) => {
-	const xParser = new DOMParser();
-	const newxml = xParser.parseFromString(e.target.result,'text/xml');
+  const newxml = parseString(e.target.result);
 	
 	const oldteis = new Map();
 	for(const tei of Find.teis()) {
@@ -612,8 +615,11 @@ const menuPopulate = function() {
 
 	const rowbox = new menuBox('Row');
 	rowbox.populate([
-		{text: 'Insert row',
+		{text: 'New row',
 			func: edit.startNewRow,
+		},
+		{text: 'Insert/Update row from file',
+			func: edit.startUpdateRow,
 		}
 	]);
 
@@ -1692,6 +1698,97 @@ const edit = {
 		document.execCommand('selectAll',false,null);
 		_state.editing = th;
 	},
+  
+  startUpdateRow: async () => {
+    const defaultblock = _state.xml.querySelector('editorialDecl > segmentation > ab[type="blockid"]')?.innerHTML;
+    const newthings = {
+      alltexts: new Map(),
+      allblocks: new Set()
+    };
+    const pickopts = {
+      types: [ {description: 'TEI XML', accept: {'text/xml': ['.xml']} } ],
+      multiple: true
+    };
+    let fs = await showOpenFilePicker();
+    for(const f of fs) {
+      const file = await f.getFile();
+      const text = await file.text();
+      const teixml = parseString(text,file.name);
+      const warnings = processFile(teixml,file.name,newthings);
+      if(warnings.length !== 0)
+        for(const warning of warnings) alert(warning);
+    }
+    const frag = document.createRange().createContextualFragment(
+`<div style="display: flex; flex-direction: column; gap: 1rem" class="popup">
+  <div style="display: flex; flex-direction: row; gap: 2rem">
+    <div id="add_selectedtexts">
+      ${[...newthings.alltexts.keys()].map(t => '<div><input type="checkbox" name="'+t+'" id="text_'+t+'"><label for="text_'+t+'">'+t+'</label></div>').join('')}
+    </div>
+    <div>
+      <select id="add_selectedblock">
+      ${[...newthings.allblocks].map(b => '<option'+( b===defaultblock ? ' selected' : '')+'>'+b+'</option>').join('')}
+      </select>
+    </div>
+  </div>
+  <div style="display: flex; justify-content: center">
+    <button type="submit">Add rows</button>
+  </div>
+</div>`
+    );
+    const submitfunction = e => {
+      const texts = new Set([...document.querySelectorAll('#add_selectedtexts input')].filter(i => i.checked).map(i => i.name));
+      const blockel = document.getElementById('add_selectedblock');
+      const block = blockel[blockel.selectedIndex].text;
+      Realigner.init(_state);
+      const {rows, tree, witnesses} = Realigner.realign(newthings.alltexts,texts,block);
+      const NS = _state.xml.documentElement.namespaceURI;
+      for(const row of rows) {
+        const existing = _state.xml.querySelector(`TEI[n="${row.siglum}"]`);
+        if(existing) {
+          while(existing.firstChild)
+            existing.removeChild(existing.firstChild);
+          existing.appendChild(row.text);
+        }
+        else {
+          const TEI = _state.xml.createElementNS(NS,'TEI');
+          TEI.setAttribute('n',row.siglum);
+          TEI.appendChild(row.text);
+          _state.xml.documentElement.appendChild(TEI);
+        }
+      }
+
+      const listWit = _state.xml.querySelector('listWit');
+      const tempel = _state.xml.createElementNS(NS,'TEI');
+      tempel.innerHTML = witnesses;
+      for(const witness of tempel.firstChild.childNodes) {
+        if(witness.nodeType !== 1) continue;
+        const xmlid = witness.getAttribute('xml:id');
+        if(!listWit.querySelector(`[*|id="${xmlid}"]`))
+          listWit.appendChild(witness.cloneNode(true));
+      }
+
+      while(_state.matrix.boxdiv.firstChild)
+        _state.matrix.boxdiv.removeChild(_state.matrix.boxdiv.firstChild);
+      _state.matrix.makeTable();
+      treeFileLoad(null,null,{target: {result: tree} });
+    };
+    Make.blackout(frag,submitfunction);
+    /*
+    const res = await fetch('http://localhost/dhammachai/B01.xml');
+    const text = await res.text();
+    const teixml = parseString(text,'B01.xml');
+    const newthings = {
+      alltexts: new Map(),
+      allblocks: new Set()
+    };
+    const warnings = processFile(teixml, 'B01.xml',newthings);
+    if(warnings.length !== 0)
+      for(const warning of warnings) alert(warning);
+    console.log(newthings);
+    Realigner.init(_state);
+    Realigner.realign();
+    */
+  },
 
 	startRenameRow: function(/*n*/) {
 	// TODO
@@ -1719,7 +1816,7 @@ const edit = {
 		//document.body.appendChild(blackout);
 		const submitfunction = function(e) {
 			e.preventDefault();
-			const input = blackout.querySelector('input');
+			const input = document.getElementById('#blackout').querySelector('input');
 			const label = input.value ? input.value : input.placeholder;
 			edit.doReconstruction(tree,key,label);
 			//document.body.removeChild(blackout);
@@ -2194,6 +2291,7 @@ const edit = {
 		edit.refresh();
 		view.updateAllHeaders(true);
 		events.textClick({target: cell});
+
 		if(doing === 'multido')
 			return [edit.doChangeCell,[cellnum,rownum,oldcelldata]];
 		else

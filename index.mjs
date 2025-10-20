@@ -1,11 +1,10 @@
 import { showSaveFilePicker } from './lib/native-file-system-adapter/es6.js';
 import { filters as allFilters } from './lib/normalize.mjs';
 import tagsToIgnore from './lib/tagfilters.mjs';
-import { aksaraSplit, charSplit, graphemeSplit } from './lib/split.mjs';
 import Sanscript from './lib/sanscript.mjs';
 import JSZip from './lib/jszip.mjs';
-import { processFile, preProcess, postProcess, groupBySpace } from './lib/collate.mjs';
-
+import { processFile, preProcess, postProcess, groupBySpace, findSplitfunc } from './lib/collate.mjs';
+import { parseString, readOne } from './lib/browserutils.mjs';
 const _state = {
     alltexts: new Map(),
     allblocks: new Set()
@@ -13,34 +12,19 @@ const _state = {
 
 const natSort = (new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'})).compare;
 
-const parseString = (str,fname) => {
-    const parser = new DOMParser();
-    const newd = parser.parseFromString(str,'text/xml');
-    if(newd.documentElement.nodeName === 'parsererror')
-        alert(`${fname} could not be loaded. Please contact your friendly local system administrator. Error: ${newd.documentElement.textContent}`);
-    else
-        return newd;
-};
-
 const serializeXML = doc => {
     const serializer = new XMLSerializer();
     return serializer.serializeToString(doc);
 };
 
+/*
 const upload = async (arr) => {
     const files = arr.map(file => {
         return readOne(file);
     });
     return await Promise.all(files);
 };
-
-const readOne = async (file) => {
-    const reader = new FileReader();
-    return new Promise(res => {
-        reader.onload = () => res(reader.result);
-        reader.readAsText(file,'utf-8');
-    });
-};
+*/
 
 const languageSpecificOptions = textel => {
     const langcode = textel.getAttribute('xml:lang') || textel.querySelector('[*|lang]')?.getAttribute('xml:lang');
@@ -223,16 +207,17 @@ const getScores = () => {
 const align = () => {
     const tok = document.querySelector('input[name="tokenization"]:checked').value;
 
-    const splitfunc = ((tok) => {
-        switch(tok) {
-            case 'whitespace': return (str) => str.split(/\s+/g).map((s,i,arr) => i > 0 ? ' ' + s : s);
-            case 'aksara': return aksaraSplit;
-            case 'grapheme': return graphemeSplit;
-            default: return charSplit;
-        }
-    })(tok);
+    const splitfunc = findSplitfunc(tok);
 
     const scores = getScores();
+    const scoring = {
+        match: scores.scores[0],
+        mismatch: scores.scores[1],
+        gap_open: scores.scores[2],
+        gap_extend: scores.scores[3],
+        recursive: scores.recursive,
+        realigndepth: scores.scores[4]
+    };
     const configfunc = tok === 'character' ? 'character' : 
         scores.recursive ? 'arr' : 'arr_simple';
 
@@ -265,8 +250,19 @@ const align = () => {
             continue;
         }
 
-        todo.push({workerdata: [texts,configfunc,scores.scores], block: block});
+        todo.push({workerdata: [texts,configfunc,scoring], block: block});
     }
+
+    const meta = {
+        alltexts: _state.alltexts,
+        filtersnames: filtersnames,
+        tagfilters: tagfilters,
+        lang: todo[0].workerdata[0][0].lang,
+        tokenization: tok,
+        scoring: scoring,
+        targetedition: targetedition
+    };
+
     const alignWorker = new Worker('./lib/multialignworker.mjs',{type: 'module'});
     let n = 0;
     document.getElementById('popupmessage').textContent = `Aligning ${todo[n].block}...`;
@@ -281,13 +277,9 @@ const align = () => {
             return;
         }
         const filtersmap = new Map(todo[n].workerdata[0].map(t => [t.siglum,t.filters]));
-        const meta = {
-            alltexts: _state.alltexts,
-            filtersnames: filtersnames,
-            tagfilters: tagfilters,
-            lang: todo[n].workerdata[0][0].lang
-            };
-        const finished = postProcess(e.data,filtersmap,meta);
+        const newmeta = {block: todo[n].block};
+        Object.assign(newmeta, meta);
+        const finished = postProcess(e.data,filtersmap,newmeta);
 
         // TODO: add option here
         const grouped = groupBySpace(parseString(finished,todo[n].block),targetedition);
@@ -295,6 +287,7 @@ const align = () => {
         alignedblocks.set(todo[n].block,serialized);
 
         n = n + 1;
+
         if(n < todo.length) {
             document.getElementById('popupmessage').textContent = `Aligning ${todo[n].block}...`;
             alignWorker.postMessage(todo[n].workerdata);
@@ -305,10 +298,10 @@ const align = () => {
                 document.getElementById(`popupmessage`).innerHTML = `<div class="vertcentre"><button id="xmlopen">Open file</button><button id="xmlsave">Save file</button></div>`;
             else {
                 document.getElementById('popupmessage').innerHTML = '<div class="vertcentre"><button id="xmlopen">Open files</button><button id="xmlsave">Save each file</button><button id="xmlsave2">Save ZIP</button>';
-				document.getElementById('xmlsave2').addEventListener('click', saveAsZip.bind(null,alignedblocks));
+                document.getElementById('xmlsave2').addEventListener('click', saveAsZip.bind(null,alignedblocks));
             }
 
-			document.getElementById('xmlopen').addEventListener('click',openInEditor.bind(null,alignedblocks));
+            document.getElementById('xmlopen').addEventListener('click',openInEditor.bind(null,alignedblocks));
             document.getElementById('xmlsave').addEventListener('click', saveAs.bind(null,alignedblocks));
         }
     };
