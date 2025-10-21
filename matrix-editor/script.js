@@ -799,7 +799,7 @@ const events = {
 
 	keyDown(e) {
 		if(_state.shifting) {
-			edit.doShiftCell(e.key);
+			edit.doShiftCell(e);
 			return;
 		}
 		if(!_state.editing) {
@@ -1549,7 +1549,9 @@ const edit = {
 		_state.shifting = Find.lowhigh(nums);
 		multi.unHighlightAll();
 	},
-	doShiftCell: key => {
+	doShiftCell: e => {
+        const key = e.key;
+
 		const switchCells = pair => {
 			pair[1].textContent = pair[0].textContent;
 			if(pair[0].hasOwnProperty('IAST')) {
@@ -1565,9 +1567,11 @@ const edit = {
 		};
 
 		if(key === 'Enter') {
+            e.preventDefault();
 			edit.finishShiftCell();
 		}
 		else if(key === 'ArrowRight' || key === 'ArrowLeft') {
+            e.preventDefault();
 			const trs = Find.trs();
 			const tomove = [];
 			for(const tr of trs) {
@@ -1735,12 +1739,15 @@ const edit = {
   </div>
 </div>`
     );
-    const submitfunction = e => {
+    Make.blackout(frag,() => edit.finishUpdateRow(newthings.alltexts));
+  },
+
+  finishUpdateRow: function(alltexts) {
       const texts = new Set([...document.querySelectorAll('#add_selectedtexts input')].filter(i => i.checked).map(i => i.name));
       const blockel = document.getElementById('add_selectedblock');
       const block = blockel[blockel.selectedIndex].text;
       Realigner.init(_state);
-      const {rows, tree, witnesses} = Realigner.realign(newthings.alltexts,texts,block);
+      const {rows, tree, witnesses} = Realigner.realign(alltexts,texts,block);
       const NS = _state.xml.documentElement.namespaceURI;
       for(const row of rows) {
         const existing = _state.xml.querySelector(`TEI[n="${row.siglum}"]`);
@@ -1771,25 +1778,9 @@ const edit = {
         _state.matrix.boxdiv.removeChild(_state.matrix.boxdiv.firstChild);
       _state.matrix.makeTable();
       treeFileLoad(null,null,{target: {result: tree} });
-    };
-    Make.blackout(frag,submitfunction);
-    /*
-    const res = await fetch('http://localhost/dhammachai/B01.xml');
-    const text = await res.text();
-    const teixml = parseString(text,'B01.xml');
-    const newthings = {
-      alltexts: new Map(),
-      allblocks: new Set()
-    };
-    const warnings = processFile(teixml, 'B01.xml',newthings);
-    if(warnings.length !== 0)
-      for(const warning of warnings) alert(warning);
-    console.log(newthings);
-    Realigner.init(_state);
-    Realigner.realign();
-    */
-  },
 
+    // TODO: worker, undo
+  },
 	startRenameRow: function(/*n*/) {
 	// TODO
 	},
