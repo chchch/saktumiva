@@ -1266,7 +1266,6 @@ const edit = {
 		edit.doStack([edit.doMulti,[undolist]],doing);
 	},
 
-
 	startMoveRow: function(targ,e) {
 		_state.dragged = targ;
 		_state.dragged.classList.add('dragging');
@@ -3278,6 +3277,9 @@ class TreeBox extends Box {
 				newEl.innerHTML =
 `<span class="witness inactive" data-key="${key}">${label}</span><span class="tree-lemma ${key}" data-id="${key}"></span>`;
 			}
+      else if(_state.xml.querySelector(`witness[*|id="${key}"]`)) {
+        newEl.innerHTML = `<span class="witness inactive greyedout" data-key="${key}">${key}</span><span class="tree-lemma ${key}" data-id="${key}"></span>`;
+      }
 			else if(key !== 'fakeroot') {
 				if(reconstructed.has(key))
 					newEl.innerHTML = `<span class="internal reconstructed" data-key="${key}" data-label="${reconstructed.get(key)}">${reconstructed.get(key)}</span><span class="tree-lemma invisible ${key}" data-id="${key}" data-label="${reconstructed.get(key)}"></span>`;
@@ -3301,6 +3303,10 @@ class TreeBox extends Box {
 		}
 	}
 
+  concatLemmata(arr) {
+    return arr.join('').replace(/\s+/g,' ').trim();
+  }
+
 	populate(n,m) {
 		/*        for(const [key,value] of _texts)
 		for(const el of this.boxdiv.getElementsByClassName(key)) {
@@ -3315,11 +3321,30 @@ class TreeBox extends Box {
 					proc));
 			el.IAST = el.cloneNode(true); // why was this commented out?
 		} */
-		const texts = Find.texts();
-		for(const text of texts) {
-			const key = text.parentNode.getAttribute('n');
-			const el = this.boxdiv.querySelector(`span.tree-lemma[data-id="${key}"]`) || this.boxdiv.querySelector(`span.tree-lemma[data-label="${key}"]`);
-			if(!el) continue;
+		//const texts = Find.texts();
+		//for(const text of texts) {
+    const maybeText = id => {
+      const text = Find.firsttext(id);
+      if(text) return text;
+      
+      const wit = _state.xml.querySelector(`witness[*|id="${id}"]`);
+      if(!wit) return null;
+      
+      let par = wit.parentNode.closest('witness[*|id]');
+      while(par) {
+        const newtext = Find.firsttext(par.getAttribute('xml:id'));
+        if(newtext) return newtext;
+        par = wit.parentNode.closest('witness[*|id]');
+      }
+      return null;
+    };
+
+    for(const el of this.boxdiv.querySelectorAll('span.tree-lemma[data-id],span.tree-lamma[data-label]')) {
+      const key = el.dataset.id || el.dataset.label;
+			//const key = text.parentNode.getAttribute('n');
+			//const el = this.boxdiv.querySelector(`span.tree-lemma[data-id="${key}"]`) || this.boxdiv.querySelector(`span.tree-lemma[data-label="${key}"]`);
+      const text = maybeText(key);
+			if(!text) continue;
 			if(!el.hasOwnProperty('IAST')) el.IAST = el.cloneNode(true);
 			el.IAST.innerHTML = '';
 			if(m) {
@@ -3328,12 +3353,24 @@ class TreeBox extends Box {
 				var emended = false;
 				for(let x=n;x<=m;x++) {
 					const word = Find.firstword(x,text);
-					arr.push(word.innerHTML);
-					if(word.hasAttribute('lemma'))
-						normarr[x-n] = word.getAttribute('lemma');
+          const ret = word.innerHTML;
+
+          const appendSpace = (multi && word.parentElement.nodeName === 'cl' && word.parentElement.lastElementChild === word) ?
+            true : false;
+
+          if(ret === '') arr.push(ret);
+          else
+            arr.push(appendSpace ? ret + ' ' : ret);
+
+					if(word.hasAttribute('lemma')) {
+            const lemma = word.getAttribute('lemma');
+            if(lemma === '') normarr[x-n] = '';
+            else
+              normarr[x-n] = appendSpace ? lemma + ' ' : lemma;
+          }
 					if(word.hasAttribute('emended')) emended = true;
 				}
-				el.IAST.appendChild(Xslt.transformString(arr.join(' ').replace(/\s+/g,' ').trim(),Xslt.sheets.tree));
+				el.IAST.appendChild(Xslt.transformString(this.concatLemmata(arr),Xslt.sheets.tree));
 				if(normarr.length !== 0) {
 					const newarr = arr.slice(0).map((e,i) =>
 						normarr.hasOwnProperty(i) ?
@@ -3341,7 +3378,7 @@ class TreeBox extends Box {
 							e
 					);
 					const temp = document.createElement('span');
-					temp.appendChild(Xslt.transformString(newarr.join(' ').replace(/\s+/g,' ').trim(),Xslt.sheets.tree));
+					temp.appendChild(Xslt.transformString(this.concatLemmata(newarr),Xslt.sheets.tree));
 					el.dataset.normal = temp.innerHTML;
 				}
 				if(emended) el.dataset.emended = true;
@@ -3429,7 +3466,7 @@ class TreeBox extends Box {
  */
 		const lemmata = [];
 		const aliases = [];
-
+    /*
 		const makeLgLemma = function(str) {
 			if(!str.startsWith('<lg')) return str;
 
@@ -3439,35 +3476,55 @@ class TreeBox extends Box {
 		const multiLemmaConcat = function(arr) {
 			return arr.map(lemma => {
 				return makeLgLemma(lemma);
-			}).join(' ')
+			}).join('')
 				.replace(/\s+/g,' ')
 				.trim();
 		};
-
-		const getReading = Check.normalizedView() ?
-			function(n,text) {
+    */
+    /*
+    const getReading = Check.normalizedView() ?
+			function(n,text,multi=false) {
 				const word = Find.firstword(n,text);
-				return word.hasAttribute('lemma') ?
+        const ret = word.hasAttribute('lemma') ?
 					word.getAttribute('lemma') :
 					word.textContent;
-			} :
-			function(n,text) {
-				return Find.firstword(n,text).textContent;
-			};
 
-		for(const text of Find.texts()) {
-			const key = text.parentNode.getAttribute('n');
-		
+        if(ret === '') return ret;
+
+        if(multi && word.parentElement.nodeName === 'cl' && word.parentElement.lastElementChild === word)
+          return ret + ' ';
+        else
+          return ret;
+			} :
+			function(n,text,multi=false) {
+				const word = Find.firstword(n,text);
+        const ret = word.textContent;
+
+        if(ret === '') return ret;
+
+        if(multi && word.parentElement.nodeName === 'cl' && word.parentElement.lastElementChild === word)
+          return ret + ' ';
+        else
+          return ret;
+			};
+    */
+		//for(const text of Find.texts()) {
+			//const key = text.parentNode.getAttribute('n');
+		for(const el of this.boxdiv.querySelectorAll('span.tree-lemma')) {
+	    const key = el.dataset.id;
 			// ignore reconstructions and texts not in current tree
 			if(!this.nexml.querySelector(`otu[label="${key}"]`))
 				continue;
-
+      /*
 			const lemma = m ?
-				multiLemmaConcat(
+				this.concatLemmata(
 				//Array.from(Array(parseInt(m)-n+1).keys(), p => p+n)
-					Find.range(n,m).map(x => getReading(x,text))
+					Find.range(n,m).map(x => getReading(x,text,true))
 				) :
-				makeLgLemma(getReading(n,text));
+				getReading(n,text);
+      */
+      const lemma = el.textContent;
+
 			if(lemma === '')
 				if(lemmata.hasOwnProperty(''))
 					lemmata[''].push(key);

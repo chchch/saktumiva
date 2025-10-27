@@ -279,7 +279,7 @@ hr {
     font-size: 80%;
 }
 
-#menu li.greyedout {
+#menu li.greyedout, .greyedout {
     color: grey;
 }
 
