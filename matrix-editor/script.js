@@ -18,6 +18,8 @@ import hyphenation_sa from './lib/hypher-sa.mjs';
 
 import Realigner from './lib/realign.mjs';
 
+Smits.PhyloCanvas.Render.Style.line.stroke = 'rgb(162,164,170)';
+
 const _state = {
 	teins: 'http://www.tei-c.org/ns/1.0',
 	scripts: ['iast','devanagari','telugu','grantha','malayalam'],
@@ -3225,7 +3227,6 @@ class TreeBox extends Box {
 			//else return 800;
 			else return maxheight;
 		})();
-		Smits.PhyloCanvas.Render.Style.line.stroke = 'rgb(162,164,170)';
 		this.phylocanvas = new Smits.PhyloCanvas(
 			{nexml: this.nexml, fileSource: true},
 			this.svgcontainer.id,
