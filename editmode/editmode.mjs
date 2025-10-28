@@ -202,15 +202,17 @@ const addEditButton = blockel => {
     block.prepend(minieditbutton);
 
     const alignviewer = (wideblock || block).querySelector('.alignment-pointer');
-    const alignbutton = document.createElement('button');
-    alignbutton.className = 'editbutton';
-    alignbutton.dataset.anno = `Edit alignment for ${xmlid}`;
-    alignbutton.addEventListener('click',editAlignment.bind(null,{href: alignviewer.href}));
-    alignbutton.append('\u{1F589}');
-    alignbutton.style.fontSize = '0.8rem';
-    alignbutton.style.left = '0.1rem';
-    alignbutton.style.top = '0.1rem';
-    alignviewer.after(alignbutton);
+    if(alignviewer) {
+        const alignbutton = document.createElement('button');
+        alignbutton.className = 'editbutton';
+        alignbutton.dataset.anno = `Edit alignment for ${xmlid}`;
+        alignbutton.addEventListener('click',editAlignment.bind(null,{href: alignviewer.href}));
+        alignbutton.append('\u{1F589}');
+        alignbutton.style.fontSize = '0.8rem';
+        alignbutton.style.left = '0.1rem';
+        alignbutton.style.top = '0.1rem';
+        alignviewer.after(alignbutton);
+    }
 };
 
 const editAlignment = /*async*/ obj => {
