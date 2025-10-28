@@ -784,6 +784,7 @@ Smits.PhyloCanvas.PhyloxmlParse.prototype = {
 
     return function(jsonString, inputFormat){
         /* Privileged Methods */
+        mLevel = 0;
         mNewickLen = 0; // bugfix; TODO: figure out what's actually wrong
         this.getRoot = function(){
             return root;

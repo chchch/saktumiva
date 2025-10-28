@@ -248,6 +248,7 @@ const multi = {
 			for(const tree of trees) {
 			//if(tree.closed) continue;
 				const targ = tree.boxdiv.querySelector('.tree-lemma[data-id="'+id+'"]');
+                if(!targ) continue; // TODO: if(!targ) find parent of targ, targ-ac, targ-pc, etc.
 				const lemmata = tree.boxdiv.querySelectorAll('.tree-lemma');
 				for(const lemma of lemmata) {
 					if(targ.dataset.nodes && lemma.dataset.nodes === targ.dataset.nodes)
