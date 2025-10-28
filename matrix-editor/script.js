@@ -1441,7 +1441,7 @@ const edit = {
 		},
 		go: function(nums,doing = 'do') {
 			const remove = function(rowfunc,cellfunc) {
-				const nummap = n => {
+				const nummap = (n,row) => {
 					const cell = cellfunc(n,row);
 					edit.unnormalize(cell);
 					return cell;
@@ -1449,7 +1449,7 @@ const edit = {
 				const rows = rowfunc();
 				const rowsclone = [];
 				for(const row of rows) {
-					const arr = [...nums].map(nummap);
+					const arr = [...nums].map(n => nummap(n,row));
 					const arrclone = arr.map(el => el.cloneNode(true));
 					rowsclone.push(arrclone);
 					for(const td of arr)
