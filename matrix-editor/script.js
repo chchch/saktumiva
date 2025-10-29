@@ -1728,13 +1728,16 @@ const edit = {
 `<div style="display: flex; flex-direction: column; gap: 1rem" class="popup">
   <div style="display: flex; flex-direction: row; gap: 2rem">
     <div id="add_selectedtexts">
-      ${[...newthings.alltexts.keys()].map(t => '<div><input type="checkbox" name="'+t+'" id="text_'+t+'"><label for="text_'+t+'">'+t+'</label></div>').join('')}
+      ${[...newthings.alltexts.keys()].map(t => '<div><input type="checkbox" name="'+t+'" id="text_'+t+'" checked><label for="text_'+t+'">'+t+'</label></div>').join('')}
     </div>
     <div>
       <select id="add_selectedblock">
       ${[...newthings.allblocks].map(b => '<option'+( b===defaultblock ? ' selected' : '')+'>'+b+'</option>').join('')}
       </select>
     </div>
+  </div>
+  <div>
+    <label for="realigndepth">Realignment depth</label><input type="number" id="realigndepth" value="0" step="1">
   </div>
   <div style="display: flex; justify-content: center">
     <button type="submit">Add rows</button>
@@ -1749,7 +1752,10 @@ const edit = {
       const blockel = document.getElementById('add_selectedblock');
       const block = blockel[blockel.selectedIndex].text;
       Realigner.init(_state);
-      const {rows, tree, witnesses} = Realigner.realign(alltexts,texts,block);
+      const opts = {
+        realigndepth: document.getElementById('realigndepth').value 
+      };
+      const {rows, tree, witnesses} = Realigner.realign(alltexts,texts,block,opts);
       const NS = _state.xml.documentElement.namespaceURI;
       for(const row of rows) {
         const existing = _state.xml.querySelector(`TEI[n="${row.siglum}"]`);

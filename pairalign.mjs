@@ -35,9 +35,16 @@ const align = () => {
     const split = filtered.map(f => splitfunc(f[0],charset));
 
     const scores = getScores();
+    const scoring = {
+        match: scores.scores[0],
+        mismatch: scores.scores[1],
+        gap_open: scores.scores[2],
+        gap_extend: scores.scores[3],
+        recursive: scores.recursive[4]
+    };
     const configfunc = tok === 'char' ? charConfig : 
         scores.recursive ? arrConfig : simpleArrConfig;
-    const res = affineAlign(...split,new configfunc(...scores.scores,false), {alignment: true, matrix: true});
+    const res = affineAlign(...split,new configfunc(scoring), {alignment: true, matrix: true});
 
     const path = res.pop();
     const matrix = res.pop();

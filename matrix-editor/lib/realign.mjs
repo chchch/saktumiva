@@ -16,7 +16,7 @@ const getFilterIndices = doc => {
   return ret;
 };
 
-const realign = (newtexts,selectedsigla,blockid) => {
+const realign = (newtexts,selectedsigla,blockid,opts) => {
   const eddecl = _state.xml.querySelector('editorialDecl');
   const targeted = eddecl.querySelector('segmentation > ab[type="targetedition"]')?.textContent;
   const tok = eddecl.querySelector('segmentation > ab[type="tokenization"]')?.innerHTML;
@@ -31,7 +31,8 @@ const realign = (newtexts,selectedsigla,blockid) => {
     gap_open: parseFloat(scoringel.querySelector('ab[type="gapopen"]').textContent),
     gap_extend: parseFloat(scoringel.querySelector('ab[type="gapextend"]').textContent),
     recursive: scoringel.querySelector('ab[type="recursive"]').textContent === 'true' ? true : false,
-    realigndepth: parseInt(scoringel.querySelector('ab[type="realigndepth"]').textContent),
+    //realigndepth: opts.hasOwnProperty('realigndepth') ? opts.realigndepth : parseInt(scoringel.querySelector('ab[type="realigndepth"]').textContent),
+    realigndepth: 0,
     prop: 'norm'
   };
   const selectedtexts = [...selectedsigla].map(s => {return {siglum: s, text: newtexts.get(s)};});
@@ -130,10 +131,10 @@ const restoreGroups = (alignment, ref) => {
   const ret = [];
   for(const row of alignment) {
     let cl = null;   
+    let forcecl = false;
     const text = _state.xml.createElementNS(NS,'text');
 
     for(const [index, entry] of ref.entries()) {
-
       const w = _state.xml.createElementNS(NS,'w');
       w.setAttribute('n',index);
 
@@ -145,13 +146,16 @@ const restoreGroups = (alignment, ref) => {
       else
         w.append(item);
 
-      if(entry.hasOwnProperty('clstart')) {
+      if(entry.hasOwnProperty('clstart') || forcecl) {
+        if(cl) text.appendChild(cl);
         cl = _state.xml.createElementNS(NS,'cl');
         cl.appendChild(w);
+        forcecl = false;
       }
       else if(entry.hasOwnProperty('clend')) {
           cl.appendChild(w);
           text.appendChild(cl);
+          forcecl = true;
           cl = null;
       }
       else if(cl)
