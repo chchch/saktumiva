@@ -217,7 +217,8 @@ const addEditButton = blockel => {
 
 const editAlignment = /*async*/ obj => {
 	const url = encodeURIComponent(obj.href);
-    window.open(`saktumiva/matrix-editor/?url=${url}`);
+  const libRoot = document.getElementById('injectedscript')?.dataset.root || 'saktumiva/';
+    window.open(`${libRoot}matrix-editor/?url=${url}`);
 	/*
 	const res = await fetch(obj.href);
 	const data = await res.text();
