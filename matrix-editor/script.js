@@ -2118,22 +2118,71 @@ const edit = {
 				const arr = [...nums].map(nummap);
 				const arrclone = arr.map(el => el.cloneNode(true));
 				rowsclone.push(arrclone);
-				for(const a of arr) edit.unnormalize(a);
+				//for(const a of arr) edit.unnormalize(a);
+				if(arr[0].dataset) {
+          if(arr[0].dataset.normal === undefined) {
+            for(const a of arr) {
+              if(a.dataset.normal !== undefined) {
+                arr[0].dataset.normal = arr[0].textContent;
+                arr[0].IAST.dataset.normal = arr[0].textContent;
+                break;
+              }
+            }
+          }
+				}
+				else {
+          if(!arr[0].hasAttribute('lemma')) {
+            for(const a of arr) {
+              if(a.hasAttribute('lemma')) {
+                arr[0].setAttribute('lemma',arr[0].textContent);
+                break;
+              }
+            }
+          }
+        }
 				const reduced = arr.reduce(function(acc,cur) {
+
+          if(cur.dataset) {
+            if(cur.dataset.normal !== undefined) {
+              acc.dataset.normal = acc.dataset.normal + cur.dataset.normal;
+              if(acc.IAST)
+                acc.IAST.dataset.normal = acc.IAST.dataset.normal + cur.IAST.dataset.normal;
+            }
+            else if(acc.dataset.normal) {
+              acc.dataset.normal = acc.dataset.normal + cur.textContent;
+              if(acc.IAST)
+                acc.IAST.dataset.normal = acc.IAST.dataset.normal + cur.IAST.textContent;
+            }
+          }
+          else {
+            if(cur.hasAttribute('lemma'))
+              acc.setAttribute('lemma',acc.getAttribute('lemma') + cur.getAttribute('lemma'));
+            else if(acc.hasAttribute('lemma'))
+              acc.setAttribute('lemma',acc.getAttribute('lemma') + cur.textContent);
+          }
+
 					if(cur.hasChildNodes()) {
 						while(cur.firstChild)
 							acc.appendChild(cur.firstChild);
+            if(acc.IAST)
+              while(cur.IAST.firstChild)
+                acc.IAST.appendChild(cur.IAST.firstChild);
 					}
+
 					cur.parentNode.removeChild(cur);
 					return acc;
 				});
 				reduced.normalize();
+        if(reduced.IAST)
+          reduced.IAST.normalize();
+        /*
 				if(reduced.dataset) {
 					delete reduced.dataset.normal;
 					reduced.IAST = reduced.cloneNode(true);
 				}
 				else 
 					reduced.removeAttribute('lemma');
+        */
 			}
 			return [rowfunc,cellfunc,rowsclone];
 		};
