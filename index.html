@@ -70,6 +70,15 @@ details {
     margin-right: 2rem;
 }
 
+details > details {
+    width: unset;
+    margin-right: 0;
+}
+
+details > details summary {
+    font-size: 1.3rem;
+}
+
 details > :not(summary) {
     margin-left: 1rem;
 }
@@ -109,6 +118,10 @@ input[name="language"]:not(:checked) ~ details {
 #scoring label {
     display: inline-block;
     width: 9.5rem;
+}
+
+#guidetree label {
+    width: fit-content;
 }
 
 #results {
@@ -309,12 +322,24 @@ button:hover, label[for="teifiles"]:hover {
                 <legend>Options</legend>
                 <details id="scoring" open>
                     <summary>Scoring</summary>
-                    <div><label for="input_match">Match score</label><input id="input_match" type="number" value="1"/></div>
-                    <div><label for="input_mismatch">Mismatch score</label><input id="input_mismatch" type="number" value="-1"/></div>
-                    <div><label for="input_gapopen">Gap opening score</label><input id="input_gapopen" type="number" value="-2"/></div>
-                    <div><label for="input_gapext">Gap extension score</label><input id="input_gapext" type="number" value="-0.25"/></div>
-                    <div><input type="checkbox" id="check_recursive" checked/><label style="text-decoration: 2px gray dotted underline" title="When scoring akṣaras or larger units, recursively score the consonants and vowels within them" for="check_recursive">Recursive scoring</label></div>
-                    <div><label for="input_realigndepth" style="text-decoration: 2px gray dotted underline" title="Number of iterative re-alignments to perform, starting from the leaves and moving up the guide tree">Re-alignment depth</label><input id="input_realigndepth" type="number" value="20"/></div>
+                    <details id="guidetree">
+                        <summary>Guide tree</summary>
+                        <div>
+                            <input type="radio" name="input_treetype" id="treetype_ncd" value="ncd" checked />
+                            <label for="treetype_ncd"><abbr title="Normalized compression distance">NCD</abbr></label>
+                        </div>
+                        <div>
+                            <input type="radio" name="input_treetype" id="treetype_ngrams" value="ngrams" />
+                            <label for="treetype_ngrams">Ngrams</label>
+                            <input type="number" id="tree_ngramsize" value="2"/>
+                        </div>
+                    </details>
+                    <div><label for="input_match">Match score</label><input class="score" id="input_match" type="number" value="1"/></div>
+                    <div><label for="input_mismatch">Mismatch score</label><input class="score" id="input_mismatch" type="number" value="-1"/></div>
+                    <div><label for="input_gapopen">Gap opening score</label><input class="score" id="input_gapopen" type="number" value="-2"/></div>
+                    <div><label for="input_gapext">Gap extension score</label><input class="score" id="input_gapext" type="number" value="-0.25"/></div>
+                    <div><input type="checkbox" id="check_recursive" checked /><label style="text-decoration: 2px gray dotted underline" title="When scoring akṣaras or larger units, recursively score the consonants and vowels within them" for="check_recursive">Recursive scoring</label></div>
+                    <div><label for="input_realigndepth" style="text-decoration: 2px gray dotted underline" title="Number of iterative re-alignments to perform, starting from the leaves and moving up the guide tree">Re-alignment depth</label><input class="score" id="input_realigndepth" type="number" value="20"/></div>
                 </details>
                 <details open>
                     <summary>Tokenization</summary>

@@ -198,10 +198,11 @@ const getSelected = (par) => {
 };
 
 const getScores = () => {
-    const par = document.getElementById('scoring');
-    const nums = [...document.querySelectorAll('#scoring input[type="number"]')].map(i => parseFloat(i.value));
-    const recursive = par.querySelector('input[type="checkbox"]').checked;
-    return {scores: nums, recursive: recursive};
+    const nums = [...document.querySelectorAll('#scoring input.score')].map(i => parseFloat(i.value));
+    const recursive = document.getElementById('check_recursive').checked;
+    const distancefunc = document.getElementById('treetype_ncd').checked ? 'ncd' : 'ngrams';
+    const ngramsize = document.getElementById('tree_ngramsize').value;
+    return {scores: nums, recursive: recursive, distancefunc: distancefunc, ngramsize: ngramsize};
 };
 
 const align = () => {
@@ -215,8 +216,12 @@ const align = () => {
         mismatch: scores.scores[1],
         gap_open: scores.scores[2],
         gap_extend: scores.scores[3],
+        gap_skip_initial: true,
+        scalegap: false,
         recursive: scores.recursive,
-        realigndepth: scores.scores[4]
+        realigndepth: scores.scores[4],
+        distancefunc: scores.distancefunc,
+        ngramsize: scores.ngramsize
     };
     const configfunc = tok === 'character' ? 'character' : 
         scores.recursive ? 'arr' : 'arr_simple';
