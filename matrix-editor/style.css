@@ -385,6 +385,9 @@ hr {
 .lemma:not(.dragging):hover > .space {
     background-color: rgb(216,219,63);
 }
+.nohover .lemma:not(.dragging):hover, .nohover .lemma:not(.dragging):hover > .space {
+  background-color: rgb(247,198,24);
+}
 
 span.group::after {
     content: ' ';

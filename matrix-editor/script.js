@@ -1063,11 +1063,13 @@ const events = {
 			lemma.classList.add('highlitcell');
 			_state.highlightanchor = lemma;
 			const tabl = _state.matrix.boxdiv.querySelector('table');
+      tabl.classList.add('nohover');
 			tabl.addEventListener('mouseover',events.matrixMouseover);
 			window.addEventListener('mouseup',events.matrixMouseup);
 		}
 	},
 	matrixMouseup(e) {
+    _state.matrix.boxdiv.querySelector('table').classList.remove('nohover');
 		const nums = Find.highlit();
 		if(nums.size === 1) {
 			const n = [...nums][0];
