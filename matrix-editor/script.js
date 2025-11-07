@@ -298,6 +298,20 @@ const csvOrXml = function(f,fs,e) {
 const treeFileLoad = function(f,fs,e) {
 	const treestr = e.target.result;
 	const nexml = parseString(treestr);
+  let n = 1;
+  for(const tree of nexml.querySelectorAll('tree')) {
+    const thisid = tree.getAttribute('id');
+    if(_state.xml.querySelector(`tree[id="${thisid}"]`)) {
+      let newid = `${thisid}(${n})`;
+      n = n + 1;
+      while(_state.xml.querySelector(`tree[id="${newid}"]`)) {
+        newid = `${thisid}(${n})`;
+        n = n + 1;
+      }
+      tree.setAttribute('id',newid);
+      tree.setAttribute('label',`${tree.getAttribute('label')}(${n-1})`);
+    }
+  }
 	const xenoData = _state.xml.querySelector('teiHeader > xenoData') || (function() {
 		const header = _state.xml.querySelector('teiHeader') || (function() {
 			const h = Make.xmlel('teiHeader');
@@ -322,7 +336,8 @@ const treeFileLoad = function(f,fs,e) {
 		if(label !== otu) otunode.setAttribute('label',otu);
 	}
 	*/
-	treeXMLLoad(nexml,stemmael.id);
+  const show = e.hasOwnProperty('noshow') ? false : true;
+	treeXMLLoad(nexml,stemmael.id,show);
 };
 
 const treeXMLLoad = function(nexml,stemmaid,show=true) {
@@ -1787,7 +1802,7 @@ const edit = {
       while(_state.matrix.boxdiv.firstChild)
         _state.matrix.boxdiv.removeChild(_state.matrix.boxdiv.firstChild);
       _state.matrix.makeTable();
-      treeFileLoad(null,null,{target: {result: tree} });
+      treeFileLoad(null,null,{target: {result: tree}, noshow: true });
 
     // TODO: worker, undo
   },
