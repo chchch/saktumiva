@@ -1,7 +1,6 @@
 import { showSaveFilePicker } from './lib/native-file-system-adapter/es6.js';
 import { filters as allFilters } from './lib/normalize.mjs';
 import tagsToIgnore from './lib/tagfilters.mjs';
-import Sanscript from './lib/sanscript.mjs';
 import JSZip from './lib/jszip.mjs';
 import { processFile, preProcess, postProcess, groupBySpace, findSplitfunc } from './lib/collate.mjs';
 import { parseString, readOne } from './lib/browserutils.mjs';

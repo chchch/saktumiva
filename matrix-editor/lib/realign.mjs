@@ -2,6 +2,7 @@ import { charSplit, aksaraSplit, graphemeSplit } from '../../lib/split.mjs';
 import { parseString, readOne } from '../../lib/browserutils.mjs';
 import { processFile, preProcess, findSplitfunc, semanticCleanup, makeWitList } from '../../lib/collate.mjs';
 import { filters, unfilterAll } from '../../lib/normalize.mjs';
+import Sanscript from '../../lib/sanscript.mjs';
 import MultiAligner from '../../lib/multialign.mjs';
 
 var _state = {};
@@ -91,6 +92,16 @@ const realign = (newtexts,selectedsigla,blockid,opts) => {
   return {rows: clean, tree: alignment.tree, witnesses: newwits};
 };
 
+const untransliterate = (str, lang='sa') => {
+  if(lang === 'bo') return str;
+  if(Array.isArray(str))
+    for(let m=0;m<str.length;m++)
+      str[m] = Sanscript.t(str[m],'slpish','iast');
+  else
+    str = Sanscript.t(str,'slpish','iast');
+  return str;
+};
+
 const postProcess = (alignment, filtersmap, targeted) => {
   const clean = alignment.alignment.map(arr => arr.map(obj => {
     const norm = Array.isArray(obj.norm) ?  obj.norm.join('') : obj.norm;
@@ -115,9 +126,9 @@ const postProcess = (alignment, filtersmap, targeted) => {
     const ret = new Array(unfiltered.length);
     for(let n=0;n<unfiltered.length;n++) {
       if(unfiltered[n] === row[n])
-        ret[n] = unfiltered[n];
+        ret[n] = untransliterate(unfiltered[n]);
       else
-        ret[n] = [unfiltered[n],row[n]];
+        ret[n] = [untransliterate(unfiltered[n]),untransliterate(row[n])];
     }
     newclean.push({siglum: id, text: ret});
   }
