@@ -406,7 +406,10 @@ const makeOption = (index,obj) => {
     box.setAttribute('type','checkbox');
     box.id = `checkbox_${Date.now() + Math.random()}`;
     box.value = index;
-    if(obj.checked) box.setAttribute('checked',true);
+    if(obj.hasOwnProperty('checked')) {
+      if(obj.checked === true) box.setAttribute('checked',true);
+      else box.dataset.default = 'off';
+    }
     const label = document.createElement('label');
     label.setAttribute('for',box.id);
     if(obj.search && obj.replace)
@@ -422,7 +425,10 @@ const checkAll = (e) => {
     details.open = true;
     const kids = details.querySelectorAll('input');
     for(const kid of kids) {
-        kid.checked = e.target.checked;
+        if(kid.dataset.default === 'off')
+          continue;
+        else
+          kid.checked = e.target.checked;
     }
 };
 
@@ -480,7 +486,7 @@ window.addEventListener('load', () => {
 
     document.getElementById('alignsubmit').addEventListener('click', align);
 	
-	document.getElementById('blackout').addEventListener('click',closeBlackout);
+    document.getElementById('blackout').addEventListener('click',closeBlackout);
 
     const normies = document.getElementById('normalization');
     
