@@ -319,7 +319,7 @@ const openInEditor = alignedblocks => {
         if(e.data === 'ready') {
 			const first = blocks.shift();
 			const ret = {
-				f: {name: first[0]}, 
+				f: {name: first[0] + '.xml'}, 
 				e: {target: {result: first[1]}}
 			};
 			if(blocks.length > 0)
