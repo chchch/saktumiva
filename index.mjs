@@ -337,7 +337,7 @@ const saveAs = async blocks => {
 
     const outtexts = [...blocks];
 
-	for await (const outtext of outtexts) {
+	for(const outtext of outtexts) {
 		const fname = outtext[0] + '.xml';
 		const fileHandle = await showSaveFilePicker({
 			_preferPolyfill: false,
