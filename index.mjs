@@ -1,7 +1,6 @@
 import { showSaveFilePicker } from './lib/native-file-system-adapter/es6.js';
 import { filters as allFilters } from './lib/normalize.mjs';
 import tagsToIgnore from './lib/tagfilters.mjs';
-import Sanscript from './lib/sanscript.mjs';
 import JSZip from './lib/jszip.mjs';
 import { processFile, preProcess, postProcess, groupBySpace, findSplitfunc } from './lib/collate.mjs';
 import { parseString, readOne } from './lib/browserutils.mjs';
@@ -55,7 +54,7 @@ const languageSpecificOptions = textel => {
     if(lang === 'pali') 
         normies.querySelector('input[value="1"').checked = true; // ignore case
     if(lang === 'sanskrit' || lang === 'tamil' || lang === 'pali')
-        normies.querySelector('input[value="45"]').checked = true; // remove spaces
+        normies.querySelector('input[value="49"]').checked = true; // remove spaces
 
     const filterhead = lang === 'sanskrit' ? normies.querySelector('.sanskrit') :
                     lang === 'tamil' ? normies.querySelector('.tamil') :
@@ -320,7 +319,7 @@ const openInEditor = alignedblocks => {
         if(e.data === 'ready') {
 			const first = blocks.shift();
 			const ret = {
-				f: {name: first[0]}, 
+				f: {name: first[0] + '.xml'}, 
 				e: {target: {result: first[1]}}
 			};
 			if(blocks.length > 0)
@@ -406,7 +405,10 @@ const makeOption = (index,obj) => {
     box.setAttribute('type','checkbox');
     box.id = `checkbox_${Date.now() + Math.random()}`;
     box.value = index;
-    if(obj.checked) box.setAttribute('checked',true);
+    if(obj.hasOwnProperty('checked')) {
+      if(obj.checked === true) box.setAttribute('checked',true);
+      else box.dataset.default = 'off';
+    }
     const label = document.createElement('label');
     label.setAttribute('for',box.id);
     if(obj.search && obj.replace)
@@ -422,7 +424,10 @@ const checkAll = (e) => {
     details.open = true;
     const kids = details.querySelectorAll('input');
     for(const kid of kids) {
-        kid.checked = e.target.checked;
+        if(kid.dataset.default === 'off')
+          continue;
+        else
+          kid.checked = e.target.checked;
     }
 };
 
@@ -480,7 +485,7 @@ window.addEventListener('load', () => {
 
     document.getElementById('alignsubmit').addEventListener('click', align);
 	
-	document.getElementById('blackout').addEventListener('click',closeBlackout);
+    document.getElementById('blackout').addEventListener('click',closeBlackout);
 
     const normies = document.getElementById('normalization');
     
