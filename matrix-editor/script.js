@@ -1562,9 +1562,11 @@ const edit = {
 		if(cells.length === 0) return;
 		const nums = new Set();
 		for(const cell of cells) {
-			cell.classList.add('dragging');
+      if(cell.textContent !== '' || cell.dataset.hasOwnProperty('normal'))
+        cell.classList.add('dragging');
 			nums.add(cell.dataset.n);
 		}
+    // TODO: just add the cells to _state.shifting
 		_state.shifting = Find.lowhigh(nums);
 		multi.unHighlightAll();
 	},
@@ -1625,17 +1627,21 @@ const edit = {
 	},
 	finishShiftCell: () => {
 		const dolist = [];
-		const firstcell = _state.matrix.boxdiv.querySelector('.dragging');
-		let lastcell = firstcell;
+
+		//const firstcell = _state.matrix.boxdiv.querySelector('.dragging');
+		//let lastcell = firstcell;
 		const nums = new Set();
-		while(lastcell && lastcell.classList.contains('dragging')) {
-			nums.add(parseInt(lastcell.dataset.n));
-			lastcell = lastcell.nextElementSibling;
-		}
+		//while(lastcell && lastcell.classList.contains('dragging')) {
+	  //	nums.add(parseInt(lastcell.dataset.n));
+		//	lastcell = lastcell.nextElementSibling;
+		//}
+    for(const d of _state.matrix.boxdiv.querySelectorAll('.dragging'))
+      nums.add(d.dataset.n);
 		for(const num of _state.shifting) if(Number.isInteger(num)) nums.add(num);
 		const [low,high] = Find.lowhigh(nums);
 		const trs = _state.matrix.boxdiv.querySelectorAll('tr:has(td.dragging)');
 		for(const tr of trs) {
+      //for(const cell of tr.querySelectorAll('.dragging')) {
 			for(let cellnum=low; cellnum<=(high||low); cellnum++) {
 				const rownum = tr.dataset.n;
 				const cell = tr.querySelector(`td[data-n="${cellnum}"]`);
@@ -1644,7 +1650,7 @@ const edit = {
 				
 				const stuff = { content: node.textContent };
 				if(node.dataset.hasOwnProperty('normal')) stuff.normal = node.dataset.normal;
-
+        //const cellnum = cell.dataset.n;
 				const oldcelldata = edit.xmlChangeCell(cellnum,rownum,stuff);
 				dolist.push([edit.doChangeCell,[cellnum,rownum,oldcelldata]]);
 			}

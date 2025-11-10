@@ -54,7 +54,7 @@ const languageSpecificOptions = textel => {
     if(lang === 'pali') 
         normies.querySelector('input[value="1"').checked = true; // ignore case
     if(lang === 'sanskrit' || lang === 'tamil' || lang === 'pali')
-        normies.querySelector('input[value="49"]').checked = true; // remove spaces
+        normies.querySelector(`label[title="Search: \\\\s Replace: () => ''"]`).previousElementSibling.checked = true; // remove spaces
 
     const filterhead = lang === 'sanskrit' ? normies.querySelector('.sanskrit') :
                     lang === 'tamil' ? normies.querySelector('.tamil') :
