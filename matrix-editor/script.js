@@ -1838,7 +1838,7 @@ const edit = {
 		//document.body.appendChild(blackout);
 		const submitfunction = function(e) {
 			e.preventDefault();
-			const input = document.getElementById('#blackout').querySelector('input');
+			const input = document.getElementById('blackout').querySelector('input');
 			const label = input.value ? input.value : input.placeholder;
 			edit.doReconstruction(tree,key,label);
 			//document.body.removeChild(blackout);
