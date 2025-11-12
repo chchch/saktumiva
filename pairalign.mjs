@@ -1,7 +1,7 @@
 import { affineAlign, charConfig, arrConfig, simpleArrConfig } from './lib/affine-align.mjs';
 import { filters, filterAll, unfilterAll } from './lib/normalize.mjs';
 import { detectScript } from './lib/collate.mjs';
-import { aksaraSplit, charSplit, graphemeSplit, iast, wylie } from './lib/split.mjs';
+import { aksaraSplit, charSplit, graphemeSplit, slpish, wylie } from './lib/split.mjs';
 import Sanscript from './lib/sanscript.mjs';
 import JSONCrush from './lib/JSONCrush.min.js';
 
@@ -12,7 +12,7 @@ const align = () => {
     
     const iasted = strs.map(s => {
         const script = detectScript(s);
-        return script !== 'iast' ? Sanscript.t(s,script,'iast') : s;
+        return Sanscript.t(s.toLowerCase(),script,'slpish');
     });
 
     const mainscript = detectScript(strs[0]);
@@ -30,7 +30,7 @@ const align = () => {
         }
     })(tok);
     
-    const charset = mainscript === 'tibetan' ? wylie : iast;
+    const charset = mainscript === 'tibetan' ? wylie : slpish;
 
     const split = filtered.map(f => splitfunc(f[0],charset));
 
@@ -55,12 +55,14 @@ const align = () => {
             r.map(b => Array.isArray(b) ? b.join('') : b),
             filtered[i][1]
         );
-        return mainscript !== 'iast' ? u.map(uu => Sanscript.t(uu,'iast',mainscript)) : u;
+        return mainscript !== 'iast' ? u.map(uu => Sanscript.t(uu,'slpish',mainscript)) : 
+                                       u.map(uu => Sanscript.t(uu,'slpish','iast'));
     });
 
     const filteredseqs = res.map(f => f.map(b => {
         const ret = Array.isArray(b) ? b.join('') : b;
-        return mainscript !== 'iast' ? Sanscript.t(ret,'iast',mainscript) : ret;
+        return mainscript !== 'iast' ? Sanscript.t(ret,'slpish',mainscript) : 
+                                       Sanscript.t(ret,'slpish','iast');
     }));
 
     const longest = Math.max(split[0].length,split[1].length);
@@ -121,9 +123,9 @@ const showResults = (arr,arr2,score,scaled) => {
         trs.push(tr);
     }
     for(const [i,td0] of [...trs[0].childNodes].entries()) {
-        const val0 = td0.querySelector('rt')?.textContent || td0.textContent; 
+        const val0 = td0.querySelector('rt')?.textContent || td0.textContent.trim(); 
         const td1 = trs[1].children[i];
-        const val1 = td1.querySelector('rt')?.textContent || td1.textContent;
+        const val1 = td1.querySelector('rt')?.textContent || td1.textContent.trim();
         if(val0 !== '' && val1 !== '' && val0 !== val1) {
             td0.style.background = 'lightgray';
             td1.style.background = 'lightgray';
@@ -256,13 +258,19 @@ window.addEventListener('load',() => {
 
     const sanskrit = normies.querySelector('details.sanskrit');
     sanskrit.addEventListener('click',updateBoxes);
+
+    const pali = normies.querySelector('details.pali');
+    pali.addEventListener('click',updateBoxes);
+
     for(const [i, filter] of filters.entries()) {
-        if(filter.group === 'other')
+        if(filter.group === 'general')
             normies.insertBefore(makeOption(i,filter),tamil.parentNode);
         else if(filter.group === 'tamil')
             tamil.appendChild(makeOption(i,filter));
-        else
+        else if(filter.group === 'sanskrit')
             sanskrit.appendChild(makeOption(i,filter));
+        else if(filter.group === 'pali')
+            pali.appendChild(makeOption(i,filter));
     }
 
     fillFromQueryString();

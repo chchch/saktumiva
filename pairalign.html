@@ -159,47 +159,53 @@ rt {
                 <legend>Options</legend>
                 <details id="scoring" open>
                     <summary>Scoring</summary>
-                    <div><label>Match score</label><input type="number" value="1"/></div>
-                    <div><label>Mismatch score</label><input type="number" value="-1"/></div>
-                    <div><label>Gap opening score</label><input type="number" value="-2"/></div>
-                    <div><label>Gap extension score</label><input type="number" value="-0.25"/></div>
-                    <div><input type="checkbox" checked/><label style="text-decoration: 2px gray dotted underline" title="When scoring akṣaras or larger units, recursively score the consonants and vowels within them">Recursive scoring</label></div>
+                    <div><label>Match score</label><input type="number" value="1" /></div>
+                    <div><label>Mismatch score</label><input type="number" value="-1" /></div>
+                    <div><label>Gap opening score</label><input type="number" value="-2" /></div>
+                    <div><label>Gap extension score</label><input type="number" value="-0.25" /></div>
+                    <div><input type="checkbox" checked /><label style="text-decoration: 2px gray dotted underline" title="When scoring akṣaras or larger units, recursively score the consonants and vowels within them">Recursive scoring</label></div>
                 </details>
                 <details open>
                     <summary>Tokenization</summary>
                     <div>
-                        <input type="radio" name="tokenization" value="whitespace"/><label>Whitespace-delimited</label>
+                        <input type="radio" name="tokenization" value="whitespace" /><label>Whitespace-delimited</label>
                     </div>
                     <div>
-                        <input type="radio" name="tokenization" value="aksara"/><label>Akṣaras (conjuncts and vowels together)</label>
+                        <input type="radio" name="tokenization" value="aksara" /><label>Akṣaras (conjuncts and vowels together)</label>
                     </div>
                     <div>
-                        <input type="radio" name="tokenization" value="grapheme" checked/><label>Eḻuttu (without conjuncts)</label>
+                        <input type="radio" name="tokenization" value="grapheme" checked /><label>Eḻuttu (without conjuncts)</label>
                     </div>
                     <div>
-                        <input type="radio" name="tokenization" value="char"/><label>Consonants and vowels separate</label>
+                        <input type="radio" name="tokenization" value="char" /><label>Consonants and vowels separate</label>
                     </div>
                 </details>
                 <details id="normalization" open>
                     <summary>Normalization</summary>
                     <!--div><input type="checkbox"><label>Remove whitespace</label></div-->
                     <div class="horizontal">
-                        <input type="checkbox" name="language" autocomplete="off"/><label>Tamil</label>
+                        <input type="checkbox" name="language" id="check_tamil" autocomplete="off" /><label for="check_tamil">Tamil</label>
                         <details class="tamil">
                             <summary></summary>
                         </details>
                     </div>
                     <div class="horizontal">
-                    <input type="checkbox" name="language" autocomplete="off"/><label>Sanskrit</label>
-                    <details class="sanskrit">
-                        <summary></summary>
-                    </details>
+                        <input type="checkbox" name="language" id="check_sanskrit" autocomplete="off" /><label for="check_sanskrit">Sanskrit</label>
+                        <details class="sanskrit">
+                            <summary></summary>
+                        </details>
+                    </div>
+                    <div class="horizontal">
+                        <input type="checkbox" name="language" id="check_pali" autocomplete="off" /><label for="check_pali">Pali</label>
+                        <details class="pali">
+                            <summary></summary>
+                        </details>
                     </div>
                 </details>
             </fieldset>
         </section>
         <section>
-            <hr>
+            <hr />
             <div>
                 <p id="score"></p>
                 <table id="results">

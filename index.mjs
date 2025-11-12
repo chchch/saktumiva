@@ -199,9 +199,10 @@ const getSelected = (par) => {
 const getScores = () => {
     const nums = [...document.querySelectorAll('#scoring input.score')].map(i => parseFloat(i.value));
     const recursive = document.getElementById('check_recursive').checked;
+    const scalegap = document.getElementById('input_scalegap').checked;
     const distancefunc = document.getElementById('treetype_ncd').checked ? 'ncd' : 'ngrams';
     const ngramsize = document.getElementById('tree_ngramsize').value;
-    return {scores: nums, recursive: recursive, distancefunc: distancefunc, ngramsize: ngramsize};
+    return {scores: nums, recursive: recursive, distancefunc: distancefunc, ngramsize: ngramsize, scalegap: scalegap};
 };
 
 const align = () => {
@@ -216,7 +217,7 @@ const align = () => {
         gap_open: scores.scores[2],
         gap_extend: scores.scores[3],
         gap_skip_initial: true,
-        scalegap: false,
+        scalegap: scores.scalegap,
         recursive: scores.recursive,
         realigndepth: scores.scores[4],
         distancefunc: scores.distancefunc,
