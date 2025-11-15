@@ -1771,6 +1771,12 @@ const edit = {
   },
 
   finishUpdateRow: function(alltexts) {
+      const blackout = document.createElement('div');
+      blackout.id = 'blackout';
+      const spinner = document.createElement('div');
+      spinner.id = 'spinner';
+      blackout.appendChild(spinner);
+      document.body.appendChild(blackout);
       const texts = new Set([...document.querySelectorAll('#add_selectedtexts input')].filter(i => i.checked).map(i => i.name));
       const blockel = document.getElementById('add_selectedblock');
       const block = blockel[blockel.selectedIndex].text;
@@ -1778,39 +1784,46 @@ const edit = {
       const opts = {
         realigndepth: document.getElementById('realigndepth').value 
       };
-      const {rows, tree, witnesses} = Realigner.realign(alltexts,texts,block,opts);
-      const NS = _state.xml.documentElement.namespaceURI;
-      for(const row of rows) {
-        const existing = _state.xml.querySelector(`TEI[n="${row.siglum}"]`);
-        if(existing) {
-          while(existing.firstChild)
-            existing.removeChild(existing.firstChild);
-          existing.appendChild(row.text);
+      const bc = new BroadcastChannel('realigner');
+
+      const ret = Realigner.realign(alltexts,texts,block,opts);
+
+      bc.onmessage = e => {
+        const {rows, tree, witnesses} = ret;
+        const NS = _state.xml.documentElement.namespaceURI;
+        for(const row of rows) {
+          const existing = _state.xml.querySelector(`TEI[n="${row.siglum}"]`);
+          if(existing) {
+            while(existing.firstChild)
+              existing.removeChild(existing.firstChild);
+            existing.appendChild(row.text);
+          }
+          else {
+            const TEI = _state.xml.createElementNS(NS,'TEI');
+            TEI.setAttribute('n',row.siglum);
+            TEI.appendChild(row.text);
+            _state.xml.documentElement.appendChild(TEI);
+          }
         }
-        else {
-          const TEI = _state.xml.createElementNS(NS,'TEI');
-          TEI.setAttribute('n',row.siglum);
-          TEI.appendChild(row.text);
-          _state.xml.documentElement.appendChild(TEI);
+
+        const listWit = _state.xml.querySelector('listWit');
+        const tempel = _state.xml.createElementNS(NS,'TEI');
+        tempel.innerHTML = witnesses;
+        for(const witness of tempel.firstChild.childNodes) {
+          if(witness.nodeType !== 1) continue;
+          const xmlid = witness.getAttribute('xml:id');
+          if(!listWit.querySelector(`[*|id="${xmlid}"]`))
+            listWit.appendChild(witness.cloneNode(true));
         }
-      }
 
-      const listWit = _state.xml.querySelector('listWit');
-      const tempel = _state.xml.createElementNS(NS,'TEI');
-      tempel.innerHTML = witnesses;
-      for(const witness of tempel.firstChild.childNodes) {
-        if(witness.nodeType !== 1) continue;
-        const xmlid = witness.getAttribute('xml:id');
-        if(!listWit.querySelector(`[*|id="${xmlid}"]`))
-          listWit.appendChild(witness.cloneNode(true));
-      }
-
-      while(_state.matrix.boxdiv.firstChild)
-        _state.matrix.boxdiv.removeChild(_state.matrix.boxdiv.firstChild);
-      _state.matrix.makeTable();
-      treeFileLoad(null,null,{target: {result: tree}, noshow: true });
-
-    // TODO: worker, undo
+        while(_state.matrix.boxdiv.firstChild)
+          _state.matrix.boxdiv.removeChild(_state.matrix.boxdiv.firstChild);
+        _state.matrix.makeTable();
+        treeFileLoad(null,null,{target: {result: tree}, noshow: true });
+        bc.close();
+        document.getElementById('blackout').remove();
+      };
+    // TODO: undo
   },
 	startRenameRow: function(/*n*/) {
 	// TODO

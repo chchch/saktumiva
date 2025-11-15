@@ -287,9 +287,10 @@ const align = () => {
         const finished = postProcess(e.data,filtersmap,newmeta);
 
         // TODO: add option here
-        const grouped = groupBySpace(parseString(finished,todo[n].block),targetedition);
-        const serialized = serializeXML(grouped);
-        alignedblocks.set(todo[n].block,serialized);
+        // const grouped = groupBySpace(parseString(finished,todo[n].block),targetedition);
+        //const serialized = serializeXML(grouped);
+        //alignedblocks.set(todo[n].block,serialized);
+        alignedblocks.set(todo[n].block,finished);
 
         n = n + 1;
 

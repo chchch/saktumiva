@@ -3,7 +3,7 @@ import { parseString, readOne } from '../../lib/browserutils.mjs';
 import { processFile, preProcess, findSplitfunc, semanticCleanup, makeWitList } from '../../lib/collate.mjs';
 import { filters, unfilterAll } from '../../lib/normalize.mjs';
 import Sanscript from '../../lib/sanscript.mjs';
-import MultiAligner from '../../lib/multialign.mjs';
+//import MultiAligner from '../../lib/multialign.mjs';
 
 var _state = {};
 
@@ -71,25 +71,32 @@ const realign = (newtexts,selectedsigla,blockid,opts) => {
     });
     return {siglum: siglum, textobj: textobj};
   }).filter(e => e);
-  /*
   const alignWorker = new Worker('./lib/realignworker.mjs',{type: 'module'});
-  alignWorker.postMessage([oldtexts,newtexts,configfunc,scores]);
+  alignWorker.postMessage([JSON.stringify(oldtexts),JSON.stringify(toaddobjs),configfunc,scores]);
+  const ret = {};
   alignWorker.onmessage = e => {
     if(e.data.hasOwnProperty('progress')) {
-      console.log(e.data.message);
+      console.log(e.data.progress);
       return;
     }
-    console.log(e.data);
+    const alignment = JSON.parse(e.data);
+    const clean = postProcess(alignment, 
+                              filtersmap, 
+                              revisedsigla.has(targeted) ? oldtexts[0].siglum : targeted);
+    const newwits = makeWitList(newtexts);
+    
+    ret.rows = clean;
+    ret.tree = alignment.tree;
+    ret.witnesses = newwits;
+    const bc = new BroadcastChannel('realigner');
+    bc.postMessage('done');
+    bc.close();
   };
-  */
+  return ret;
+  /*
   const ma = new MultiAligner(configfunc,scores);
   const alignment = ma.alignAppend(oldtexts,toaddobjs);
-  const clean = postProcess(alignment, 
-                            filtersmap, 
-                            revisedsigla.has(targeted) ? oldtexts[0].siglum : targeted);
-  const newwits = makeWitList(newtexts);
-
-  return {rows: clean, tree: alignment.tree, witnesses: newwits};
+  */
 };
 
 const untransliterate = (str, lang='sa') => {
