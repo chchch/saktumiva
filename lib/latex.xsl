@@ -110,6 +110,7 @@
 \setmainfont{Brill}
 \setotherlanguage{sanskrit}
 \newfontfamily\sanskritfont{Brill}
+    % \newfontfamily\sanskritfont{Brill-Roman.ttf}[BoldFont={Brill-Bold.ttf}]
 \newICUfeature{AllAlternates}{1}{+aalt}
 % \newcommand{\vowelsign}{\tamilfont\addfontfeature{AllAlternates=1}}
 \setlength{\parskip}{12pt}

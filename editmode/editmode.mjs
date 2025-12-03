@@ -376,7 +376,7 @@ const collate = async () => {
             witnesses: cachedwitnesses
         });
         addWitnesses(_state.curDoc,app.listwit);
-        addApparatus(_state.curDoc,app.listapp,alignobj.doc,block.value,alignobj.filename);
+        addApparatus(_state.curDoc,app.listapp,app.warnings,alignobj.doc,block.value,alignobj.filename);
         
     }
 

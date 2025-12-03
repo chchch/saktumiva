@@ -77,7 +77,7 @@ const main = () => {
             console.log(`Error creating apparatus for ${block}!`);
         else {
             addWitnesses(newdoc, app.listwit, 'xml:id');
-            addApparatus(newdoc, app.listapp, alignxml, block, Path.join(config.alignmentdir,`${block}.xml`));
+            addApparatus(newdoc, app.listapp, app.warnings, alignxml, block, Path.join(config.alignmentdir,`${block}.xml`));
             console.log(`Created apparatus for ${block}.`);
         }
 
