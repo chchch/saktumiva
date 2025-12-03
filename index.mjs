@@ -237,26 +237,27 @@ const align = () => {
     const tagfilters = getTagFilters();
     const targetedition = document.getElementById('targetedition').value;
 
-    document.getElementById('blackout').style.display = 'flex';
-    document.getElementById('popupmessage').innerHTML = '';
-    document.getElementById('spinner').style.display = 'flex';
-
-    
     const alignedblocks = new Map();
     const todo = [];
-    const selectedtexts = selectedsigla.map(s => 
-        { 
-            return {siglum: s,text:_state.alltexts.get(s)};
-        });
+    const selectedtexts = selectedsigla.map(s => {return {siglum: s, text:_state.alltexts.get(s)};});
+    const notdone = [];
     for(const block of selectedblocks) {
         const texts = preProcess(block, selectedtexts, {splitfunc: splitfunc, selectedfilters: filtersindices, ignoretags: tagfilters}); 
         if(texts.length === 1) {
+            notdone.push(block);
             alert(`Nothing to align in ${block}.`);
             continue;
         }
 
         todo.push({workerdata: [texts,configfunc,scoring], block: block});
     }
+
+    if(todo.length === 0) return;
+
+    document.getElementById('blackout').style.display = 'flex';
+    const popupmessage = document.getElementById('popupmessage');
+    popupmessage.innerHTML = '';
+    document.getElementById('spinner').style.display = 'flex';
 
     const meta = {
         alltexts: _state.alltexts,
@@ -270,7 +271,7 @@ const align = () => {
 
     const alignWorker = new Worker('./lib/multialignworker.mjs',{type: 'module'});
     let n = 0;
-    document.getElementById('popupmessage').textContent = `Aligning ${todo[n].block}...`;
+    popupmessage.textContent = `Aligning ${todo[n].block}...`;
     alignWorker.postMessage(todo[n].workerdata);
     alignWorker.onmessage = e => {
         if(e.data.hasOwnProperty('progress')) {
@@ -278,7 +279,7 @@ const align = () => {
             document.getElementById('spinner').style.background = 
                 `linear-gradient(0deg, rgb(240,202,121) ${p-5}%, rgb(50,50,50,0.3) ${p}%`;
             if(e.data.hasOwnProperty('message'))
-                document.getElementById('popupmessage').textContent = e.data.message;
+                popupmessage.textContent = e.data.message;
             return;
         }
         const filtersmap = new Map(todo[n].workerdata[0].map(t => [t.siglum,t.filters]));
@@ -295,18 +296,22 @@ const align = () => {
         n = n + 1;
 
         if(n < todo.length) {
-            document.getElementById('popupmessage').textContent = `Aligning ${todo[n].block}...`;
+            popupmessage.textContent = `Aligning ${todo[n].block}...`;
             alignWorker.postMessage(todo[n].workerdata);
         }
         else {
             document.getElementById('spinner').style.display = 'none';
             if(alignedblocks.size === 1)
-                document.getElementById(`popupmessage`).innerHTML = `<div class="vertcentre"><button id="xmlopen">Open file</button><button id="xmlsave">Save file</button></div>`;
+                popupmessage.innerHTML = `<div class="vertcentre"><button id="xmlopen">Open file</button><button id="xmlsave">Save file</button></div>`;
             else {
-                document.getElementById('popupmessage').innerHTML = '<div class="vertcentre"><button id="xmlopen">Open files</button><button id="xmlsave">Save each file</button><button id="xmlsave2">Save ZIP</button>';
+                popupmessage.innerHTML = '<div class="vertcentre"><button id="xmlopen">Open files</button><button id="xmlsave">Save each file</button><button id="xmlsave2">Save ZIP</button>';
                 document.getElementById('xmlsave2').addEventListener('click', saveAsZip.bind(null,alignedblocks));
             }
-
+            if(notdone.length > 0) {
+              const warnings = document.createElement('div');
+              warnings.textContent = `Not aligned: ${notdone.join(', ')}.`;
+              popupmessage.firstElementChild.appendChild(warnings);
+            }
             document.getElementById('xmlopen').addEventListener('click',openInEditor.bind(null,alignedblocks));
             document.getElementById('xmlsave').addEventListener('click', saveAs.bind(null,alignedblocks));
         }
