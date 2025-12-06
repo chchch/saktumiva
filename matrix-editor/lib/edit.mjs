@@ -460,7 +460,7 @@ const edit = {
 		//view.renormalize(cellnum-1,cellnum+1,rownum);    
 		edit.refresh();
 		view.updateAllHeaders(true);
-		events.textClick({target: cell});
+		//events.textClick({target: cell});
 
 		if(doing === 'multido')
 			return [edit.doChangeCell,[cellnum,rownum,oldcelldata]];
@@ -480,6 +480,8 @@ const edit = {
       cell.textContent = celldata.content;
     }
     if(celldata.hasOwnProperty('normal')) {
+      if(celldata.normal === null)
+        delete cell.dataset.normal;
 		  cell.dataset.normal = celldata.normal;
     }
 		if(cell.IAST) cell.IAST = cell.cloneNode(true);
@@ -1441,14 +1443,15 @@ edit.editCell = {
 		//cell.classList.add('highlitcell');
     
 		const normalized = Check.normalizedView();
+    const realcell = cell.hasOwnProperty('IAST') ? cell.IAST : cell;
 		if(normalized) {
       if(cell.dataset.hasOwnProperty('normal'))
         cell.dataset.oldnormal = cell.dataset.normal;
       else
-        cell.dataset.oldnormal = cell.IAST.textContent;
+        cell.dataset.oldnormal = realcell.textContent;
     }
     else {
-      cell.dataset.olddata = cell.IAST.textContent;
+      cell.dataset.olddata = realcell.textContent;
     }
 	
 		cell.contentEditable = 'true';
@@ -1631,6 +1634,85 @@ edit.shiftCell = {
 		_state.shifting = null;
 		multi.clearTrees();
 	},
+};
+
+const slideOne = (rows,direction) => {
+  const newrows = [];
+  for(const row of rows) {
+    const origcell = direction === 'left' ? row[0] : row[row.length-1];
+    const newcell = direction === 'left' ? 
+      Find.adjacentLeft(origcell) : Find.adjacentRight(origcell);
+
+    if(!newcell || newcell.textContent !== '' || newcell.dataset.hasOwnProperty('normal'))
+      return;
+    
+    const newrow = row.map(c => direction === 'left' ? Find.adjacentLeft(c) : Find.adjacentRight(c));
+    newrows.push(newrow);
+  }
+  return newrows;
+};
+
+edit.slideCellLeft = () => edit.slideCell('left');
+edit.slideCellRight = () => edit.slideCell('right');
+edit.slideCell = (direction = 'left') => {
+  const trs = Find.trs();
+  const starts = [];
+  const rownums = [];
+  for(const tr of trs) {
+    const highlit = tr.querySelectorAll('td.highlitcell');
+    if(highlit.length === 0) continue;
+    rownums.push(tr.dataset.n);
+    const row = [];
+    for(const cell of highlit) {
+      if(cell.textContent !== '' || cell.dataset.hasOwnProperty('normal'))
+        row.push(cell);
+    }
+    starts.push(row);
+  }
+  let cur = [...starts];
+  let changed = false;
+  while(true) {
+    const newcur = slideOne(cur,direction);
+    if(!newcur) break;
+    changed = true;
+    cur = newcur;
+  }
+
+  if(!changed) return;
+
+  const tochange = new Map();
+  for(let n=0;n<starts.length;n++) {
+    const cellnums = new Set();
+    for(let m=0;m<starts[n].length;m++) {
+			edit.shiftCell.switchCells([starts[n][m],cur[n][m]]);
+      cur[n][m].classList.remove('dragging');
+      cellnums.add(starts[n][m].dataset.n);
+      cellnums.add(cur[n][m].dataset.n);
+    }
+    tochange.set(rownums[n],cellnums);
+  }
+
+  const dolist = [];
+  for(const [rownum, cellnums] of tochange.entries()) {
+    const htmlrow = Find.tr(rownum);
+    for(const cellnum of cellnums) {
+      const cell = htmlrow.querySelector(`td[data-n="${cellnum}"]`);
+      const node = cell.hasOwnProperty('IAST') ? cell.IAST : cell;
+    
+      const stuff = { content: node.textContent };
+
+      if(node.dataset.hasOwnProperty('normal')) 
+        stuff.normal = node.dataset.normal;
+      else
+        stuff.normal = null;
+
+      const oldcelldata = edit.xmlChangeCell(cellnum,rownum,stuff);
+      dolist.push([edit.doChangeCell,[cellnum,rownum,oldcelldata]]);
+    }
+  }
+  edit.doStack([edit.doMulti,[dolist]],'do');
+  multi.clearTrees();
+  multi.unHighlightAll(); 
 };
 
 const events = {
