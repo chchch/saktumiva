@@ -1305,16 +1305,23 @@ events.keyDown = e => {
         edit.editCell.start(td);
       }
     }
-    else if(!_state.dragging && !_state.shifting && Check.highlitcell() && e.key === 's') {
-      edit.shiftCell.start();
+    else if(!_state.dragging && !_state.shifting && Check.highlitcell()) {
+      if(e.key === 's')
+        edit.shiftCell.start();
+      else if(e.key === 'l')
+        edit.slideCellLeft();
+      else if(e.key === 'r')
+        edit.slideCellRight();
     }
   }
+  /*
   else if(e.ctrlKey || e.metaKey) {
     if(e.key === 'Z')
       edit.redo();
     else if(e.key === 'z')
       edit.undo();
   }
+  */
 };
 
 events.cycleVariant = e => {
