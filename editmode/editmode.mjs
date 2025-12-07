@@ -295,10 +295,24 @@ const getAlignmentFile = async e => {
     checkbox.parentNode.querySelector('.foundlabel')?.remove();
 };
 
+const parseScript = el => {
+  const lang = el.getAttribute('xml:lang');
+  if(lang === 'ta') return 'tamil';
+  else if(lang.endsWith('-Deva'))
+      return 'devanagari';
+  return null;
+};
+
 const showExportOptions = () => {
     const blackout = document.getElementById('editblackout');
     blackout.style.display = 'flex';
     _state.shadowRoot.getElementById('export-popup').style.display = 'flex';
+    const script = parseScript(_state.curDoc.querySelector('text'));
+    if(script) {
+      const div = document.createElement('div');
+      div.innerHTML = `<input id="export-script" value="${script}"><label for="export-script">${script.chartAt(0).toUppercase() + script.slice(1)}</label>`;
+      _state.shadowRoot.getElementById('export-options').appendChild(div);
+    }
 };
 
 const editApp = (opts,e) => {

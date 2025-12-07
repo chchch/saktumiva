@@ -19,6 +19,11 @@ const popupHTML =
     display: flex;
     justify-content: flex-end;
 }
+
+#export-popup {
+  max-width: 60ch;
+}
+
 .closeicon {
     cursor: pointer;
 }
@@ -113,19 +118,19 @@ input:disabled+label {
     </span>
 </div>
 <div class="boxen">
-  <div>
-  <div>
-    <input type="checkbox" id="export-underline" checked="true"/>
-    <label for="export-underline">Underline lemmata</label>
-  </div>
-  <div>
-    <input type="checkbox" id="export-line-breaks"/>
-    <label for="export-line-breaks">Include <code>lb</code> line breaks</label>
-  </div>
-  <div>
-    <input type="checkbox" id="export-page-breaks"/>
-    <label for="export-page-breaks">Include <code>pb</code> page breaks</label>
-  </div>
+  <div id="export-options">
+    <div>
+      <input type="checkbox" id="export-underline" checked="true"/>
+      <label for="export-underline">Underline lemmata</label>
+    </div>
+    <div>
+      <input type="checkbox" id="export-line-breaks"/>
+      <label for="export-line-breaks">Include <code>lb</code> line breaks</label>
+    </div>
+    <div>
+      <input type="checkbox" id="export-page-breaks"/>
+      <label for="export-page-breaks">Include <code>pb</code> page breaks</label>
+    </div>
   </div>
   <div>
     <button id="exportbutton">Export LaTeX</button>

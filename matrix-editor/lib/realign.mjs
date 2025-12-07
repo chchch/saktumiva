@@ -29,6 +29,7 @@ const getFilterIndices = doc => {
   const tagnames = markupel ? 
     [...markupel.querySelectorAll('ab')].map(ab => ab.textContent) : 
     undefined;  
+  
   for(const [i, filter] of filters.entries()) {
     if(groups.includes(filter.group)) {
       if(!tagnames)
