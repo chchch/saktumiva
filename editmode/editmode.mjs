@@ -297,9 +297,9 @@ const getAlignmentFile = async e => {
 
 const parseScript = el => {
   const lang = el.getAttribute('xml:lang');
-  if(lang === 'ta') return 'tamil';
+  if(lang === 'ta') return ['Tamil','ta','tamil'];
   else if(lang.endsWith('-Deva'))
-      return 'devanagari';
+      return ['Devanagari','sa','devanagari']; // TODO: other languages
   return null;
 };
 
@@ -310,7 +310,7 @@ const showExportOptions = () => {
     const script = parseScript(_state.curDoc.querySelector('text'));
     if(script) {
       const div = document.createElement('div');
-      div.innerHTML = `<input id="export-script" value="${script}"><label for="export-script">${script.chartAt(0).toUppercase() + script.slice(1)}</label>`;
+      div.innerHTML = `<input id="export-script" type="checkbox" data-lang="${script[1]}" data-script="${script[2]}" checked><label for="export-script">Use ${script[0]} script</label>`;
       _state.shadowRoot.getElementById('export-options').appendChild(div);
     }
 };
