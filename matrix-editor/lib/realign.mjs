@@ -2,6 +2,7 @@ import { charSplit, aksaraSplit, graphemeSplit } from '../../lib/split.mjs';
 import { parseString, readOne } from '../../lib/browserutils.mjs';
 import { processFile, preProcess, findSplitfunc, semanticCleanup, makeWitList } from '../../lib/collate.mjs';
 import { filters, unfilterAll } from '../../lib/normalize.mjs';
+import tagstoignore from '../../lib/tagfilters.mjs';
 import Sanscript from '../../lib/sanscript.mjs';
 //import MultiAligner from '../../lib/multialign.mjs';
 
@@ -9,36 +10,117 @@ var _state = {};
 
 const getFilterIndices = doc => {
   const ret = [];
-  const els = doc.querySelectorAll('normalization[method="markup"] ab');
-  for(const el of els) {
-    const i = filters.findIndex(e => e.name === el.textContent);
-    if(i > -1) ret.push(i);
+  const groups = ['general'];
+
+  const langmap = new Map([
+    ['ta','tamil'],
+    ['ta-Latn','tamil'],
+    ['ta-Taml','tamil'],
+    ['sa','sanskrit'],
+    ['sa-Latn','sanskrit'],
+    ['pi','pali'],
+    ['bo','tibetan']
+    ]);
+
+  const lang = langmap.get(doc.documentElement.getAttribute('xml:lang'));
+  if(lang) groups.push(lang);
+
+  const markupel = doc.querySelector('normalization[method="markup"]');
+  const tagnames = markupel ? 
+    [...markupel.querySelectorAll('ab')].map(ab => ab.textContent) : 
+    undefined;  
+  
+  for(const [i, filter] of filters.entries()) {
+    if(groups.includes(filter.group)) {
+      if(!tagnames)
+        ret.push(i);
+      else if(tagnames.includes(filter.name))
+          ret.push(i);
+    }
   }
+
   return ret;
 };
 
-const realign = (newtexts,selectedsigla,blockid,opts) => {
-  const eddecl = _state.xml.querySelector('editorialDecl');
-  const targeted = eddecl.querySelector('segmentation > ab[type="targetedition"]')?.textContent;
-  const tok = eddecl.querySelector('segmentation > ab[type="tokenization"]')?.innerHTML;
-  const tagfilters = [...eddecl.querySelectorAll('ab[type="tagfilters"] tag[subtype="ignore"]')].map(t => t.textContent);
-  const recursive = eddecl.querySelector('segmentation > ab[type="scoring"] > ab[type="recursive"]')?.innerHTML;
-  const configfunc = tok === 'character' ? 'character' :
-      recursive ? 'arr' : 'arr_simple';
-  const scoringel = eddecl.querySelector('segmentation > ab[type="scoring"]');
-  const scores = {
-    match: parseFloat(scoringel.querySelector('ab[type="match"]').textContent),
-    mismatch: parseFloat(scoringel.querySelector('ab[type="mismatch"]').textContent),
-    gap_open: parseFloat(scoringel.querySelector('ab[type="gapopen"]').textContent),
-    gap_extend: parseFloat(scoringel.querySelector('ab[type="gapextend"]').textContent),
-    recursive: scoringel.querySelector('ab[type="recursive"]').textContent === 'true' ? true : false,
-    //realigndepth: opts.hasOwnProperty('realigndepth') ? opts.realigndepth : parseInt(scoringel.querySelector('ab[type="realigndepth"]').textContent),
+const getTagFilters = eddecl => {
+  if(eddecl) {
+    return [...eddecl.querySelectorAll('ab[type="tagfilters"] tag[subtype="ignore"]')].map(t => t.textContent);
+  }
+  else return tagstoignore;
+};
+
+const getScores = eddecl => {
+  const scoringel = eddecl?.querySelector('segmentation > ab[type="scoring"]');
+  if(scoringel) {
+    return {
+      match: parseFloat(scoringel.querySelector('ab[type="match"]').textContent),
+      mismatch: parseFloat(scoringel.querySelector('ab[type="mismatch"]').textContent),
+      gap_open: parseFloat(scoringel.querySelector('ab[type="gapopen"]').textContent),
+      gap_extend: parseFloat(scoringel.querySelector('ab[type="gapextend"]').textContent),
+      recursive: scoringel.querySelector('ab[type="recursive"]').textContent === 'true' ? true : false,
+      //realigndepth: opts.hasOwnProperty('realigndepth') ? opts.realigndepth : parseInt(scoringel.querySelector('ab[type="realigndepth"]').textContent),
+      realigndepth: 0,
+      prop: 'norm'
+    };
+  }
+  else return {
+    match: 1,
+    mismatch: -1,
+    gap_open: -2,
+    gap_extend: -0.25,
+    recursive: false,
     realigndepth: 0,
     prop: 'norm'
-  };
+  }
+};
+
+const arrayEqual = (a1, a2) => {
+  if(a1.length !== a2.length) return false;
+  for(let n=0;n<a1.length;n++)
+    if(a1[n] !== a2[n]) return false;
+  return true;
+};
+
+const detectTokenization = eddecl => {
+  const specified = eddecl?.querySelector('segmentation > ab[type="tokenization"]')?.innerHTML;
+  if(specified) return specified;
+
+  const line = _state.xml.querySelector('text');
+  const tokenized = [...line.querySelectorAll('w')].map(w => {
+    const lem = w.getAttribute('lemma');
+    if(lem) return Sanscript.t(lem,'iast','slpish');
+    return Sanscript.t(w.textContent,'iast','slpish');
+  },'').filter(w => w);
+
+  const smushed = tokenized.join('');
+  
+  const char = charSplit(smushed);
+  if(arrayEqual(char,tokenized)) return 'character';
+
+  const aksara = aksaraSplit(smushed).map(c => c.join(''));
+  if(arrayEqual(aksara,tokenized)) return 'aksara';
+
+  const grapheme = graphemeSplit(smushed).map(c => c.join(''));
+  if(arrayEqual(grapheme,tokenized)) return 'grapheme';
+  
+  return 'whitespace';
+};
+
+const realign = (newtexts,selectedsigla,blockid/*,opts*/) => {
+  const eddecl = _state.xml.querySelector('editorialDecl');
+
+  const targeted = eddecl?.querySelector('segmentation > ab[type="targetedition"]')?.textContent || _state.xml.querySelector('TEI').getAttribute('n');
+  const tok = detectTokenization(eddecl);
+              'character';
+  const tagfilters = getTagFilters(eddecl);
+  const recursive = eddecl?.querySelector('segmentation > ab[type="scoring"] > ab[type="recursive"]')?.innerHTML || false;
+  const configfunc = tok === 'character' ? 'character' :
+      recursive ? 'arr' : 'arr_simple';
+  const scores = getScores(eddecl);
+
   const selectedtexts = [...selectedsigla].map(s => {return {siglum: s, text: newtexts.get(s)};});
   const toadd = preProcess(blockid, selectedtexts,
-      {splitfunc: findSplitfunc(tok), selectedfilters: getFilterIndices(eddecl), ignoretags: tagfilters}
+      {splitfunc: findSplitfunc(tok), selectedfilters: getFilterIndices(_state.xml), ignoretags: tagfilters}
   )
   const toaddobjs = toadd.map(t => {
     return {siglum: t.siglum, textobj: 
@@ -65,8 +147,10 @@ const realign = (newtexts,selectedsigla,blockid,opts) => {
       ret.unnorm = w.innerHTML;
       const lemma = w.getAttribute('lemma');
       ret.norm = lemma === null ? ret.unnorm : lemma; 
+      ret.norm = Sanscript.t(ret.norm,'iast','slpish');
+      // TODO: deal with Tibetan 
       if(tok !== 'character' && recursive === 'true')
-        ret.norm = charSplit(ret.norm); //TODO: specify transliteration scheme
+        ret.norm = charSplit(ret.norm,'slpish');
       return ret;
     });
     return {siglum: siglum, textobj: textobj};
@@ -76,7 +160,7 @@ const realign = (newtexts,selectedsigla,blockid,opts) => {
   const ret = {};
   alignWorker.onmessage = e => {
     if(e.data.hasOwnProperty('progress')) {
-      console.log(e.data.progress);
+      //console.log(e.data.progress);
       return;
     }
     const alignment = JSON.parse(e.data);
@@ -100,6 +184,7 @@ const realign = (newtexts,selectedsigla,blockid,opts) => {
 };
 
 const untransliterate = (str, lang='sa') => {
+  // TODO: deal with Tibetan
   if(lang === 'bo') return str;
   if(Array.isArray(str))
     for(let m=0;m<str.length;m++)

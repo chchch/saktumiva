@@ -2,6 +2,7 @@ import { actions as _Actions } from './actions.mjs';
 import Normalizer from './normalize.mjs';
 import { processFile } from '../../lib/collate.mjs';
 import { parseString } from '../../lib/browserutils.mjs';
+import { showOpenFilePicker } from '../../lib/native-file-system-adapter/es6.js';
 import Realigner from './realign.mjs';
 
 var _state, Actions, Find, Check, Make, multi, view, treeFileLoad;
@@ -121,7 +122,7 @@ const edit = {
 	},
   
   startUpdateRow: async () => {
-    const defaultblock = _state.xml.querySelector('editorialDecl > segmentation > ab[type="blockid"]')?.innerHTML;
+    const defaultblock = _state.xml.querySelector('editorialDecl > segmentation > ab[type="blockid"]')?.innerHTML || _state.filename.split('.')[0];
     const newthings = {
       alltexts: new Map(),
       allblocks: new Set()
@@ -151,9 +152,9 @@ const edit = {
       </select>
     </div>
   </div>
-  <div>
+  <!--div>
     <label for="realigndepth">Realignment depth</label><input type="number" id="realigndepth" value="0" step="1">
-  </div>
+  </div-->
   <div style="display: flex; justify-content: center">
     <button type="submit">Add rows</button>
   </div>
@@ -173,12 +174,14 @@ const edit = {
       const blockel = document.getElementById('add_selectedblock');
       const block = blockel[blockel.selectedIndex].text;
       Realigner.init(_state);
+      /*
       const opts = {
         realigndepth: document.getElementById('realigndepth').value 
       };
+      */
       const bc = new BroadcastChannel('realigner');
 
-      const ret = Realigner.realign(alltexts,texts,block,opts);
+      const ret = Realigner.realign(alltexts,texts,block/*,opts*/);
 
       bc.onmessage = e => {
         const {rows, tree, witnesses} = ret;
@@ -1545,20 +1548,6 @@ edit.shiftCell = {
 		multi.unHighlightAll();
 	},
 	
-  switchCells: pair => {
-    pair[1].textContent = pair[0].textContent;
-    if(pair[0].hasOwnProperty('IAST')) {
-      pair[1].IAST = pair[0].IAST;
-      delete pair[0].IAST;
-    }
-    pair[1].classList.add('dragging');
-    if(pair[0].dataset.hasOwnProperty('normal'))
-      pair[1].dataset.normal = pair[0].dataset.normal;
-    pair[0].textContent = '';
-    delete pair[0].dataset.normal;
-    pair[0].classList.remove('dragging');
-	},
-
 	do: e => {
     const key = e.key;
 
@@ -1579,15 +1568,9 @@ edit.shiftCell = {
 					Find.adjacentRight(origcell) : Find.adjacentLeft(origcell);
 
 				if(!newcell || newcell.textContent !== '' || newcell.dataset.hasOwnProperty('normal')) {
-					const flasher = key === 'ArrowRight' ?
-						[{ filter: 'drop-shadow(4px 0 4px rgb(198,158,19))'}, { filter: 'none' }] :
-						[{ filter: 'drop-shadow(-4px 0 4px rgb(198,158,19))'}, { filter: 'none' }];
-					const timer = {
-						duration: 300,
-						iterations: 1
-					};
+          const dir = key === 'ArrowRight' ? 'right' : 'left';
 					for(const cell of _state.matrix.boxdiv.querySelectorAll('.dragging'))
-						cell.animate(flasher,timer);
+            warningFlash(cell,dir);
 					return;
 				}
 				for(const cell of highlit) {
@@ -1597,7 +1580,11 @@ edit.shiftCell = {
 						tomove.push([cell,Find.adjacentLeft(cell)]);
 				}
 			}
-			for(const pair of tomove) edit.shiftCell.switchCells(pair);
+			for(const pair of tomove) {
+        switchCells(...pair);
+        pair[0].classList.remove('dragging');
+        pair[1].classList.add('dragging');
+      }
 		}
 	},
 
@@ -1636,6 +1623,30 @@ edit.shiftCell = {
 	},
 };
 
+const switchCells = (a,b) => {
+  const hasIAST = a.hasOwnProperty('IAST');
+
+  b.textContent = a.textContent;
+  if(hasIAST) {
+    if(!b.hasOwnProperty('IAST'))
+      b.IAST = b.cloneNode(true);
+    b.IAST.textContent = a.IAST.textContent;
+  }
+  else {
+    if(b.hasOwnProperty('IAST'))
+      delete b.IAST;
+  }
+  a.textContent = '';
+
+  if(a.dataset.hasOwnProperty('normal')) {
+    b.dataset.normal = a.dataset.normal;
+    if(hasIAST)
+      b.IAST.dataset.normal = a.IAST.dataset.normal;
+    delete a.dataset.normal;
+  }
+  if(hasIAST) a.IAST = a.cloneNode(true);
+};
+
 const slideOne = (rows,direction) => {
   const newrows = [];
   for(const row of rows) {
@@ -1652,6 +1663,17 @@ const slideOne = (rows,direction) => {
   return newrows;
 };
 
+const warningFlash = (cell, direction = 'left') => {
+  const flasher = direction === 'left' ?
+    [{ filter: 'drop-shadow(-4px 0 4px rgb(198,158,19))'}, { filter: 'none' }] :
+    [{ filter: 'drop-shadow(4px 0 4px rgb(198,158,19))'}, { filter: 'none' }];
+  const timer = {
+    duration: 300,
+    iterations: 1
+  };
+  cell.animate(flasher,timer);
+};
+
 edit.slideCellLeft = () => edit.slideCell('left');
 edit.slideCellRight = () => edit.slideCell('right');
 edit.slideCell = (direction = 'left') => {
@@ -1661,13 +1683,16 @@ edit.slideCell = (direction = 'left') => {
   for(const tr of trs) {
     const highlit = tr.querySelectorAll('td.highlitcell');
     if(highlit.length === 0) continue;
-    rownums.push(tr.dataset.n);
+
     const row = [];
     for(const cell of highlit) {
       if(cell.textContent !== '' || cell.dataset.hasOwnProperty('normal'))
         row.push(cell);
     }
-    starts.push(row);
+    if(row.length !== 0) {
+      rownums.push(tr.dataset.n);
+      starts.push(row);
+    }
   }
   let cur = [...starts];
   let changed = false;
@@ -1678,13 +1703,17 @@ edit.slideCell = (direction = 'left') => {
     cur = newcur;
   }
 
-  if(!changed) return;
+  if(!changed) {
+    for(const row of starts)
+      for(const cell of row) warningFlash(cell,direction);
+    return;
+  }
 
   const tochange = new Map();
   for(let n=0;n<starts.length;n++) {
     const cellnums = new Set();
     for(let m=0;m<starts[n].length;m++) {
-			edit.shiftCell.switchCells([starts[n][m],cur[n][m]]);
+			switchCells(starts[n][m],cur[n][m]);
       cur[n][m].classList.remove('dragging');
       cellnums.add(starts[n][m].dataset.n);
       cellnums.add(cur[n][m].dataset.n);

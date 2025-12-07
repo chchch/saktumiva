@@ -6,7 +6,6 @@ import { Exporter as _Exporter } from './lib/export.mjs';
 //import { actions as _Actions } from './lib/actions.mjs';
 
 import { parseString } from '../lib/browserutils.mjs';
-import { showOpenFilePicker } from '../lib/native-file-system-adapter/es6.js';
 
 import { edit, init as editorInit } from './lib/edit.mjs';
 import { newBox, init as boxerInit } from './lib/box.mjs';
@@ -707,14 +706,14 @@ const menuPopulate = function() {
 		 func: edit.shiftCell.start,
 		},
 		{text: 'Slide cell left',
-		 alt: 'Shift cells left',
+		 alt: 'Slide cells left',
 		 shortcut: 'l',
 		 greyout: Check.highlitcell,
 	     toggle: Check.manyhighlitcells,
 		 func: edit.slideCellLeft,
 		},
-		{text: 'Slide cell left',
-		 alt: 'Shift cells left',
+		{text: 'Slide cell right',
+		 alt: 'Slide cells right',
 		 shortcut: 'r',
 		 greyout: Check.highlitcell,
 	     toggle: Check.manyhighlitcells,
