@@ -426,31 +426,31 @@ const collate = async () => {
 };
 
 const cacheWitnesses = async (doc, witmap, filemap) => {
-    for(const wit of getWits(doc)) {
-		if(!wit.filename) continue;
-        if(!witmap.get(wit.name)) {
-            let file = filemap.get(wit.filename);
-			let newfilename;
-            if(!file) {
-                file = await loadDoc(wit.filename);
-                if(!file) {
-					newfilename = `${_opts.witnessDir}/${wit.filename}`;
-                    file = await loadDoc(newfilename);
-                }
-                if(file) filemap.set(wit.filename,file);
-            }
-            if(file) {
-                witmap.set(wit.name, {
-                    name: wit.name,
-                    type: wit.type,
-                    select: wit.select,
-                    xml: file
-                });
-		if(newfilename)
-		    witmap.get(wit.name).updatedfilename = newfilename;
-            }
+  for(const wit of getWits(doc)) {
+    if(!wit.filename) continue;
+    if(!witmap.get(wit.name)) {
+      let file = filemap.get(wit.filename);
+      let newfilename;
+      if(!file) {
+        file = await loadDoc(wit.filename);
+        if(!file) {
+          newfilename = `${_opts.witnessDir}/${wit.filename}`;
+          file = await loadDoc(newfilename);
         }
+        if(file) filemap.set(wit.filename,file);
+      }
+      if(file) {
+        witmap.set(wit.name, {
+            name: wit.name,
+            type: wit.type,
+            select: wit.select,
+            xml: file
+        });
+      if(newfilename)
+        witmap.get(wit.name).updatedfilename = newfilename;
+      }
     }
+  }
 };
 
 const exportFile = async () => {
