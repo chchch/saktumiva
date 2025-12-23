@@ -1,8 +1,7 @@
 //import { Fitch as _Fitch } from './lib.fitch.mjs';
-import { Fitch } from './fitch.mjs';
+//import { Fitch } from './fitch.mjs';
 
 var mss,levels,num,id;
-/*
 const Fitch = function(mss,levels) {
 
     const set = {
@@ -114,7 +113,7 @@ const Fitch = function(mss,levels) {
         run: fitch
     };
 };
-*/
+
 onmessage = function(e) {
     mss = e.data.readings;
     levels = e.data.levels;
