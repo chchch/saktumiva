@@ -519,30 +519,34 @@
 </xsl:template>
 <xsl:template match="x:anchor">
     <xsl:variable name="noteid" select="concat('#',@xml:id)"/>
-    <xsl:variable name="note" select="//x:note[@target=$noteid]"/>
-    <xsl:variable name="type" select="$note/ancestor::x:standOff/@type"/>
-    <xsl:choose>
-        <xsl:when test="$type = 'notes1'">
-            <xsl:text>\footnoteA{</xsl:text>
-            <xsl:apply-templates select="$note"/>
-            <xsl:text>}</xsl:text>
-        </xsl:when>
-        <xsl:when test="$type = 'notes2'">
-            <xsl:text>\footnoteB{</xsl:text>
-            <xsl:apply-templates select="$note"/>
-            <xsl:text>}</xsl:text>
-        </xsl:when>
-        <xsl:when test="$type = 'notes3'">
-            <xsl:text>\footnoteC{</xsl:text>
-            <xsl:apply-templates select="$note"/>
-            <xsl:text>}</xsl:text>
-        </xsl:when>
-        <xsl:when test="$type = 'notes4'">
-            <xsl:text>\footnoteD{</xsl:text>
-            <xsl:apply-templates select="$note"/>
-            <xsl:text>}</xsl:text>
-        </xsl:when>
-    </xsl:choose>
+    <xsl:variable name="notenum" select="@n"/>
+    <xsl:variable name="blockid" select="ancestor::*[@xml:id]/@xml:id"/>
+    <xsl:variable name="note" select="//x:note[@target=$noteid] || //x:standOff[@corresp=$blockid]/x:note[@n=$notenum]"/>
+    <xsl:for-each select="$note">
+      <xsl:variable name="type" select="./ancestor::x:standOff/@type"/>
+      <xsl:choose>
+          <xsl:when test="$type = 'notes1'">
+              <xsl:text>\footnoteA{</xsl:text>
+              <xsl:apply-templates select="$note"/>
+              <xsl:text>}</xsl:text>
+          </xsl:when>
+          <xsl:when test="$type = 'notes2'">
+              <xsl:text>\footnoteB{</xsl:text>
+              <xsl:apply-templates select="$note"/>
+              <xsl:text>}</xsl:text>
+          </xsl:when>
+          <xsl:when test="$type = 'notes3'">
+              <xsl:text>\footnoteC{</xsl:text>
+              <xsl:apply-templates select="$note"/>
+              <xsl:text>}</xsl:text>
+          </xsl:when>
+          <xsl:when test="$type = 'notes4'">
+              <xsl:text>\footnoteD{</xsl:text>
+              <xsl:apply-templates select="$note"/>
+              <xsl:text>}</xsl:text>
+          </xsl:when>
+      </xsl:choose>
+    </xsl:for-each>
 </xsl:template>
 
 <xsl:template match="x:app[x:rdg or x:rdgGrp]">
