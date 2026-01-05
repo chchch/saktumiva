@@ -508,8 +508,12 @@
     <xsl:apply-templates/>
 </xsl:template>
 
-<xsl:template match="x:item/x:title">
-    <xsl:text>\emph{</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>
+<xsl:template match="x:title">
+    <xsl:text>\emph{</xsl:text>
+    <xsl:call-template name="langstart"/>
+    <xsl:apply-templates/>
+    <xsl:call-template name="langend"/>
+    <xsl:text>}</xsl:text>
 </xsl:template>
 
 <xsl:template match="x:anchor[@type='lemma']">
@@ -521,28 +525,29 @@
     <xsl:variable name="noteid" select="concat('#',@xml:id)"/>
     <xsl:variable name="notenum" select="@n"/>
     <xsl:variable name="blockid" select="ancestor::*[@xml:id]/@xml:id"/>
-    <xsl:variable name="note" select="//x:note[@target=$noteid] || //x:standOff[@corresp=$blockid]/x:note[@n=$notenum]"/>
+    <xsl:variable name="note" select="//x:note[@target=$noteid] | //x:standOff[@corresp=concat('#',$blockid)]/x:note[@n=$notenum]"/>
+    <!--xsl:variable name="note" select="//x:note[@target=$noteid]"/-->
     <xsl:for-each select="$note">
       <xsl:variable name="type" select="./ancestor::x:standOff/@type"/>
       <xsl:choose>
           <xsl:when test="$type = 'notes1'">
               <xsl:text>\footnoteA{</xsl:text>
-              <xsl:apply-templates select="$note"/>
+              <xsl:apply-templates select="."/>
               <xsl:text>}</xsl:text>
           </xsl:when>
           <xsl:when test="$type = 'notes2'">
               <xsl:text>\footnoteB{</xsl:text>
-              <xsl:apply-templates select="$note"/>
+              <xsl:apply-templates select="."/>
               <xsl:text>}</xsl:text>
           </xsl:when>
           <xsl:when test="$type = 'notes3'">
               <xsl:text>\footnoteC{</xsl:text>
-              <xsl:apply-templates select="$note"/>
+              <xsl:apply-templates select="."/>
               <xsl:text>}</xsl:text>
           </xsl:when>
           <xsl:when test="$type = 'notes4'">
               <xsl:text>\footnoteD{</xsl:text>
-              <xsl:apply-templates select="$note"/>
+              <xsl:apply-templates select="."/>
               <xsl:text>}</xsl:text>
           </xsl:when>
       </xsl:choose>
