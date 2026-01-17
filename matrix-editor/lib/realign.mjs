@@ -1,4 +1,4 @@
-import { charSplit, aksaraSplit, graphemeSplit } from '../../lib/split.mjs';
+import { charSplit, aksaraSplit, graphemeSplit, slpish } from '../../lib/split.mjs';
 import { parseString, readOne } from '../../lib/browserutils.mjs';
 import { processFile, preProcess, findSplitfunc, cleanup1, cleanup2, makeWitList } from '../../lib/collate.mjs';
 import { filters, unfilterAll } from '../../lib/normalize.mjs';
@@ -150,7 +150,7 @@ const realign = (newtexts,selectedsigla,blockid/*,opts*/) => {
       ret.norm = Sanscript.t(ret.norm,'iast','slpish');
       // TODO: deal with Tibetan 
       if(tok !== 'character' && recursive === 'true')
-        ret.norm = charSplit(ret.norm,'slpish');
+        ret.norm = charSplit(ret.norm,slpish);
       return ret;
     });
     return {siglum: siglum, textobj: textobj};
