@@ -1,7 +1,7 @@
 const loadDoc = async (fn,cache='no-cache') => {
     const res = await fetch(fn, {cache: cache});
     if(!res.ok) {
-        console.log(res.statusText);
+        console.log(fn + ': ' + res.statusText);
         return null;
     }
     const xmltext = await res.text();
