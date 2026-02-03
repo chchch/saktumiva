@@ -22,8 +22,8 @@ const compileImports = async (xsltsheet,prefix='') => {
         const i = await loadDoc(href,'default');
         const attrs = i.documentElement.getAttributeNames();
         for(const attr of attrs) {
-          if(!xsltsheet.getAttribute(attr))
-            xsltsheet.setAttribute(i.documentElement.getAttribute(attr));
+          if(!xsltsheet.documentElement.getAttribute(attr))
+            xsltsheet.documentElement.setAttribute(attr,i.documentElement.getAttribute(attr));
         }
         while(i.documentElement.firstChild) {
 
