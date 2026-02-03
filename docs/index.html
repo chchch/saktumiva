@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reconstructing a Pali Sanskrit, Tamil, or Tibetan text using computers</title>
+    <title>Reconstructing a Pali, Sanskrit, Tamil, or Tibetan text using computers</title>
     <link rel="stylesheet" href="tufte.css">
     <style>
         table {font-size: 1.4rem;}
@@ -120,7 +120,8 @@ window.addEventListener('load',latestCommits);
                         <li>create a directory for your project. Create two empty subdirectories: <code>witnesses/</code> and <code>alignments/</code>.</li>
                         <li>clone the <a href="https://github.com/TST-Project/lib">TST libs</a> into a subdirectory called <code>lib/</code>.</li>
                         <li>clone the <a href="https://github.com/chchch/saktumiva">saktumiva project</a> into a subdirectory called <code>saktumiva/</code>.</li>
-                        <li>download the <code><a href="./edition.xsl">edition.xsl</a></code> &amp; <code><a href="./tei-to-html.xsl">tei-to-html.xsl</a></code> files, and place them in the root directory.</li>
+                        <li>download the <code><a href="./edition.xsl">edition.xsl</a></code> and place it in the root directory.</li>
+                        <li>download the <code><a href="./tei-to-html.xsl">tei-to-html.xsl</a></code> file and place it in the <code>witnesses/</code> directory.</li>
                     </ul>
                 </li>
                 <li>Transcription
@@ -153,8 +154,8 @@ window.addEventListener('load',latestCommits);
                     <ul>
                         <li>create an XML file in your root directory for your critical edition (e.g., <code>Ed.xml</code>).</li>
                         <li>input the critically edited text, using the stemmatic reconstruction as a guide.</li>
-                        <li>re-align all of your witnesses along with the critical text.</li>
-                        <li>preview the edition file in a local webserver (e.g., using VSCodium).</li>
+                        <li>add the critical text to your alignment.</li>
+                        <li>preview the edition file in a local webserver (e.g., using VSCodium or Python).</li>
                         <li>use the <q>Add/Edit apparatus...</q> button to create an apparatus.</li>
                         <li>the file can also be exported to LaTeX and complied with XeLaTeX.</li>
                     </ul>
@@ -178,7 +179,7 @@ There are six main steps in this tutorial:
                     <li>Creating an edition, in which a critical text with an apparatus of variants is produced.</li>
                 </ol>
                 <p>
-Each step in the process — as with all meaning-making — is inherently reductive. From the very moment when we read a manuscript, interpreting marks on a leaf as a sequence of characters from a fixed character set, we are reducing and generalizing its complex material reality in order to extract some meaning from it. As we proceed in the process of transcribing manuscripts, aligning their readings, and editing the text, it is worth keeping in mind the information that is discarded in each step. This tutorial is designed so that the intermediate results of each step are saved, so that, firstly, they can be examined with a critical eye, and secondly, one can easily trace your steps backwards from the edited text all the way to the manuscript images (if available).
+Each step in the process — as with all meaning-making — is inherently reductive. From the very moment when we read a manuscript, interpreting marks on a leaf as a sequence of characters from a fixed character set, we are reducing and generalizing its complex material reality in order to extract some meaning from it. As we proceed in the process of transcribing manuscripts, aligning their readings, and editing the text, it is worth keeping in mind the information that is discarded in each step. This tutorial is designed so that the intermediate results of each step are saved, so that, firstly, they can be examined with a critical eye, and secondly, each decision can easily be traced backwards from the edited text all the way to the manuscript images (if available).
                 </p>
         </section>
         <section>
@@ -192,16 +193,17 @@ This tutorial will describe the typical setup for a critial edition project. How
             <span class="marginnote">
 Some knowledge of git is required. For help with cloning, see <a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository">Cloning a repository</a>. if your directory is also a git repository, you can optionally create submodules for the TST libs and for saktumiva.
             </span>
-Create a directory for your project, and then create two empty subdirectories, <code>witnesses/</code> and <code>alignments/</code>. Then, download or clone the <a href="https://github.com/TST-Project/lib">TST libs</a> into a subdirectory called <code>lib/</code>. Download or clone the <a href="https://github.com/chchch/saktumiva">saktumiva project</a> into a subdirectory called <code>saktumiva/</code>. Finally, download the <code><a href="./edition.xsl">edition.xsl</a></code> &amp; <code><a href="./tei-to-html.xsl">tei-to-html.xsl</a></code> files, and place them in the root directory.
+          Create a directory for your project, and then create two empty subdirectories, <code>witnesses/</code> and <code>alignments/</code>. Download the <code><a href="./tei-to-html.xsl">tei-to-html.xsl</a></code> file, and place them in the <code>witnesses/</code> directory. Then, download or clone the <a href="https://github.com/TST-Project/lib">TST libs</a> into a subdirectory called <code>lib/</code>. Download or clone the <a href="https://github.com/chchch/saktumiva">saktumiva project</a> into a subdirectory called <code>saktumiva/</code>. Finally, download the <code><a href="./edition.xsl">edition.xsl</a></code>, and place it in the root directory; 
             </p>
             <p>Your project directory should look like this:</p>
             <ul>
                 <li><code>alignments/</code></li>
                 <li><code>lib/</code></li>
                 <li><code>saktumiva/</code></li>
-                <li><code>witnesses/</code></li>
+                <li><code>witnesses/</code>
+                  <ul><li><code>witnesses/tei-to-html.xsl</code></li></ul>
+                </li>
                 <li><code>edition.xsl</code></li>
-                <li><code>tei-to-html.xsl</code></li>
             </ul>
             <p>
 You should not modify anything in the <code>lib/</code> and <code>saktumiva/</code> directories, nor should you change the two <code>.xsl</code> files. These directories and files are used to display the transcriptions and edition in a web browser.
@@ -222,9 +224,28 @@ The most arduous task in this process is the collection of witnesses and their t
             <p>
             <span class="marginnote">
                 <img src="img/iiif-manifest.png" alt="IIIF manifest" style="box-shadow: -2px 1px 6px darkgray"/>
-                A IIIF manifest for the <a href="https://tst-project.github.io/siberupakhyana/S_Sabdakalpadruma_6.xml?corresp=Vp%C5%9A&corresp=VP65.59">1849 edition of the Śabdakalpadruma</a> from the Münchener DigitalsierungsZentrum Digitale Bibliothek.
+            A IIIF manifest for the <a href="https://tst-project.github.io/siberupakhyana/S_Sabdakalpadruma_6.xml?corresp=Vp%C5%9A&corresp=VP65.59">1849 edition of the <em>Śabdakalpadruma</em></a> from the Münchener DigitalsierungsZentrum Digitale Bibliothek.
             </span>
-In recent years, there have been a number of manuscript digitization initiatives that have revolutionized the field of philology. Many manuscripts and old books can be found online at websites such as the <a href="https://eap.bl.uk">Endangered Archives Project</a>, the <a href="https://tst-project.github.io">TST Project</a>, <a href="https://gallica.bnf.fr">Gallica</a>, the <a href="https://www.digitale-sammlungen.de">Münchener DigitalisierungsZentrum Digitale Bibliothek</a>, the <a href="https://www.bdrc.io">Buddhist Digital Resource Center</a>, the <a href="https://tamildigitallibrary.in">Tamil Digital Library</a>, the <a href="www.splrarebooks.com">SP Lohia Foundation</a>, or digitized by projects such as eGangotri or institutions like the Universty of Toronto and hosted by <a href="https://archive.org">Archive.org</a>. If these websites provide a IIIF manifest, then you can link your transcriptions to your images. Alternatively, you can upload your images to a service like <a href="https://archive.org">Archive.org</a> or <a href="https://zenodo.org">Zenodo</a>, which provide IIIF manifests, depending on the copyright status of your images.
+In recent years, there have been a number of manuscript digitization initiatives that have revolutionized the field of philology. Many manuscripts and old books can be found online at websites such as:
+        </p>
+          <ul>
+          <li>the <a href="https://eap.bl.uk">Endangered Archives Project</a>,</li>
+          <li>the <a href="https://tst-project.github.io">TST Project</a>,</li>
+          <li><a href="https://gallica.bnf.fr">Gallica</a>,</li>
+          <li>the <a href="https://www.digitale-sammlungen.de">Münchener DigitalisierungsZentrum Digitale Bibliothek</a>,</li>
+          <li>the <a href="https://cudl.lib.cam.ac.uk/">Cambridge Digital Library</a>,</li>
+          <li>the <a href="https://www.bdrc.io">Buddhist Digital Resource Center</a>,</li>
+          <li>the <a href="https://tamildigitallibrary.in">Tamil Digital Library</a>,</li>
+          <li>the <a href="https://www.splrarebooks.com">SP Lohia Foundation</a>,</li>
+          <li>the <a href="https://digitalcollections.ifpindia.org/s/manuscripts">Institut français de Pondichéry</a>,</li>
+          <li>the <a href="https://opac.vatlib.it/mss/">Digital Vatian Library</a>,</li>
+        </ul>
+        <p>
+          or digitized by projects such as eGangotri or institutions like the Universty of Toronto and hosted by <a href="https://archive.org">Archive.org</a>. If these websites provide a IIIF manifest, then you can link your transcriptions to your images. Alternatively, you can upload your images to a service like <a href="https://archive.org">Archive.org</a> or <a href="https://zenodo.org">Zenodo</a>, which provide IIIF manifests, depending on the copyright status of your images.
+            </p>
+            <h3>Is there an OCR model for your script?</h3>
+            <p>
+          Optical Character Recognition (OCR) or Handwritten Text Recognition (HTR) has become increasingly accurate and useful, although it is, at present, not quite viable for Indic scripts and languages. However, if you are working with many manuscripts in the same script and style, you may consider training an OCR model; for more information, see <a href="https://escriptorium.rich.ru.nl/">eScriptorium</a>. Many large language models are also able to extract text from images; this is a quickly evolving field. 
             </p>
             <h3>Transcription conventions</h3>
             <p>
@@ -255,6 +276,7 @@ Although the TST editor was created to produce manuscript catalogue entries for 
                 <li>click on <q>new file.</q></li>
                 <li>fill in, at a minumum, the fields that are marked in red.</li>
                 <li>if your images are online, you can put the URL of the IIIF manifest in the <q>IIIF manifest</q> field.</li>
+                <li>Under <q>Scribal hands</q> or <q>Typography</q>, depending on if you are working with a manuscript or printed text, cllick the <code>+</code> sign to make a new entry, and select the script of your document.</li>
                 <li>in the <q>Text <span style="font-variant-caps: small-caps">id</span></q> field of the <q>Contents</q> section, put the siglum of your witness (e.g., <q>A</q>).</li>
                 <li>At the bottom of the editor window, under <q>Text transcription</q>, click the <code>+</code> button to start a new transcription.</li>
                 <li>In the <q>Textual unit(s)</q> dropdown box, select the siglum that you gave for this witness (e.g., <q>A</q>).</li>
@@ -323,7 +345,7 @@ va s tu s va la k ṣa mā na ma r tha k ri yā kā ri d ra v yaṃ<br/>
             </blockquote>
             <blockquote>
                 <pre style="font-size: 0.7em">
-va stu sva rū -  -  pa  ma rtha kri yā kā ri dra vyaṃ<br/>
+va stu sva rū -   -  pa ma rtha kri yā kā ri dra vyaṃ<br/>
 va sta sva la kṣa -  ṇa -  -    kri yā kā ri dra vyaṃ<br/>
 va stu sva la kṣa mā na ma rtha kri yā kā ri dra vyaṃ<br/>
                 </pre>
@@ -597,7 +619,7 @@ Both the software described in this document, as well as this document itself, a
             <p class="biblio" id="b-huson2006">Huson, Daniel H. &amp; Bryant, David. 2006. <q>Application of Phylogenetic Networks in Evolutionary Studies.</q> <cite>Molecular Biology and Evolution</cite> 23(2): 254–267. <a href="https://academic.oup.com/mbe/article/23/2/254/1118872">academic.oup.com/mbe/article/23/2/254/1118872</a>.</p>
             <p class="biblio" id="b-mafft2002">Katoh Kazutaka, Misawa K., Kuma K., &amp; Miyata T. 2002. <q>MAFFT: a novel method for rapid multiple sequence alignment based on fast Fourier transform.</q> <cite>Nucleic Acids Research</cite> 30(14): 3059–3066. <a href="https://doi.org/10.1093/nar/gkf436">doi:10.1093/nar/gkf436</a>.</p>
             <p class="biblio" id="b-li2017">Li, Charles. 2017. <q>Critical diplomatic editing: Applying text-critical principles as algorithms.</q> In <cite>Advances in Digital Scholarly Editing,</cite> edited by P. Boot et al, 305–310. Leiden: Sidestone Press. <a href="https://hcommons.org/deposits/item/hc:18259/">hcommons.org/deposits/item/hc:18259</a>.</p>
-            <p class="biblio" id="b-li2018">Li, Charles. 2018. <q>Limits of the real: A hypertext critical edition and translation of Bhartṛhari’s Dravyasamuddeśa, with the commentary of Helārāja.</q> PhD thesis, University of Cambridge. <a href="https://www.repository.cam.ac.uk/handle/1810/284085">www.repository.cam.ac.uk/handle/1810/284085</a>.</p>
+            <p class="biblio" id="b-li2018">Li, Charles. 2018. <q>Limits of the real: A hypertext critical edition and translation of Bhartṛhari’s <em>Dravyasamuddeśa,</em> with the commentary of Helārāja.</q> PhD thesis, University of Cambridge. <a href="https://www.repository.cam.ac.uk/handle/1810/284085">www.repository.cam.ac.uk/handle/1810/284085</a>.</p>
             <p class="biblio">Li, Charles. 2022. <q>helayo: Reconstructing Sanskrit texts from manuscript witnesses.</q> <cite>Journal of Open Source Software</cite> 7(71), 4022. <a href="https://joss.theoj.org/papers/10.21105/joss.04022">doi:10.21105/joss.04022</a>.</p>
             <p class="biblio">Li, Charles. 2023. <q>King Śibi in the <em>Vahnipurāṇa</em>.</q> <cite>Asian Literature &amp; Translation</cite> 10(1): 1–46. <a href="https://alt.cardiffuniversitypress.org/articles/10.18573/alt.58">doi:10.18573/alt.58</a>.</p>
             <p class="biblio" id="b-maas1958">Maas, Paul. 1958. <cite>Textual Criticism</cite>. Translated by B. Flower. Oxford: Clarendon Press.</p>
