@@ -20,10 +20,10 @@ const compileImports = async (xsltsheet,prefix='') => {
         split.pop();
         const newprefix = split.join('/') + '/';
         const i = await loadDoc(href,'default');
-        const attrs = i.documentElement.getAttributeNames();
+        const attrs = i.documentElement.attributes;
         for(const attr of attrs) {
-          if(!xsltsheet.documentElement.getAttribute(attr))
-            xsltsheet.documentElement.setAttribute(attr,i.documentElement.getAttribute(attr));
+          if(!xsltsheet.documentElement.getAttributeNS(attr.namespaceURI,attr.localName))
+            xsltsheet.documentElement.setAttributeNS(attr.namespaceURI,attr.name,attr.value);
         }
         while(i.documentElement.firstChild) {
 
