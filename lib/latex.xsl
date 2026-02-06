@@ -568,9 +568,9 @@
         </xsl:otherwise>
     </xsl:choose>
     <xsl:text>}</xsl:text>
-    <xsl:text>; \text</xsl:text>
+    <xsl:text>; \foreignlanguage{</xsl:text>
     <xsl:value-of select="$export-lang"/>
-    <xsl:text>{</xsl:text>
+    <xsl:text>}{</xsl:text>
     <xsl:apply-templates select="./x:rdg | ./x:rdgGrp"/>
     <xsl:text>}}}</xsl:text>
 </xsl:template>
