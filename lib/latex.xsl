@@ -23,9 +23,9 @@
 
 <xsl:template name="langstart">
     <xsl:choose>
-        <xsl:when test="./@xml:lang='ta'"><xsl:text>\texttamil{</xsl:text></xsl:when>
-        <xsl:when test="./@xml:lang='sa'"><xsl:text>\textsanskrit{</xsl:text></xsl:when>
-        <xsl:when test="./@xml:lang='en'"><xsl:text>\textenglish{</xsl:text></xsl:when>
+      <xsl:when test="./@xml:lang='ta'"><xsl:text>\foreignlanguage{tamil}{</xsl:text></xsl:when>
+      <xsl:when test="./@xml:lang='sa'"><xsl:text>\foreignlanguage{sanskrit}{</xsl:text></xsl:when>
+      <xsl:when test="./@xml:lang='en'"><xsl:text>\foreignlanguage{english}{</xsl:text></xsl:when>
         <xsl:otherwise/>
     </xsl:choose>
 </xsl:template>
@@ -81,7 +81,7 @@
 
 <xsl:template match="x:TEI">
     <xsl:text>\documentclass[12pt]{extarticle}
-\usepackage{polyglossia,fontspec,xunicode}
+\usepackage{fontspec,xunicode}
 \usepackage[normalem]{ulem}
 \usepackage[noend,noeledsec,noledgroup]{reledmac}
 \usepackage{reledpar}
@@ -112,41 +112,33 @@
 \Xnotenumfont[A]{\bfseries}
 \Xlemmafont[A]{\bfseries}
 
-\setdefaultlanguage{english}
+\usepackage[sanskrit]{babel}
 \setmainfont{Brill}
     </xsl:text>
     <xsl:choose>
       <xsl:when test="$export-lang = 'tamil'">
-      <xsl:text>
-  \setotherlanguage{tamil}
-      </xsl:text>
       <xsl:choose>
         <xsl:when test="$export-script = 'tamil'">
 % Download the TST Tamil font here: https://github.com/UHH-Tamilex/lib/blob/main/fonts/TSTTamil.otf
-\newfontfamily\tamilfont{TSTTamil.otf}[Script=Tamil,Ligatures=Historic,BoldFont={NotoSerifTamil-Bold.ttf}]
+\babelfont[tamil]{rm}{TSTTamil.otf}[Script=Tamil,Ligatures=Historic,BoldFont={NotoSerifTamil-Bold.ttf}]
 \newICUfeature{AllAlternates}{1}{+aalt}
-\newcommand{\vowelsign}{\tamilfont\addfontfeature{AllAlternates=1}}
-\tamilfont\fontdimen2\font=0.8em
-\tamilfont\large\fontdimen2\font=0.5em
+\newcommand{\vowelsign}{\foreignlanguage{tamil}\addfontfeature{AllAlternates=1}}
         </xsl:when>
         <xsl:otherwise>
           <xsl:text>
-\newfontfamily\tamilfont{Brill-Roman.ttf}[BoldFont={Brill-Bold.ttf}]
+\babelfont[tamil]{rm}{Brill-Roman.ttf}[BoldFont={Brill-Bold.ttf}]
           </xsl:text>
         </xsl:otherwise>
         </xsl:choose>
     </xsl:when>
     <xsl:when test="$export-lang = 'sanskrit'">
-        <xsl:text>
-\setotherlanguage{sanskrit}
-      </xsl:text>
       <xsl:choose>
         <xsl:when test="$export-script = 'devanagari'">
 % Download Pedantic Devangari here: https://github.com/chchch/PedanticIndic/tree/master/PedanticDevanagari
-\newfontfamily\sanskritfont{PedanticDevangari.otf}
-\newfontfamily\sanskritfont{PedanticDevanagariLight.otf}[Script=Devanagari,BoldFont={PedanticDevanagariBold.otf}]
+\babelfont[sanskrit]{rm}{PedanticDevangari.otf}
+\babelfont[sanskrit]{rm}{PedanticDevanagariLight.otf}[Script=Devanagari,BoldFont={PedanticDevanagariBold.otf}]
 \newICUfeature{AllAlternates}{1}{+aalt}
- \newcommand{\vowelsign}{\sanskritfont\addfontfeature{AllAlternates=1}}
+  \newcommand{\vowelsign}{\foreignlanguage{sanskrit}\addfontfeature{AllAlternates=1}}
         </xsl:when>
         <xsl:otherwise>
         <xsl:text>
