@@ -100,13 +100,13 @@
 \renewcommand{\headrulewidth}{0pt}
 
 \arrangementX[A]{paragraph}
-\renewcommand*{\thefootnoteA}{\textenglish{\arabic{footnoteA}}}
+\renewcommand*{\thefootnoteA}{\foreignlanguage{english}{\arabic{footnoteA}}}
 \arrangementX[B]{paragraph}
-\renewcommand*{\thefootnoteB}{\textenglish{\Roman{footnoteB}}}
+\renewcommand*{\thefootnoteB}{\foreignlanguage{english}{\Roman{footnoteB}}}
 \arrangementX[C]{paragraph}
-\renewcommand*{\thefootnoteC}{\textenglish{\alph{footnoteC}}}
+\renewcommand*{\thefootnoteC}{\foreignlanguage{english}{\alph{footnoteC}}}
 \arrangementX[D]{paragraph}
-\renewcommand*{\thefootnoteD}{\textenglish{\roman{footnoteD}}}
+\renewcommand*{\thefootnoteD}{\foreignlanguage{english}{\roman{footnoteD}}}
 
 \Xarrangement[A]{paragraph}
 \Xnotenumfont[A]{\bfseries}
@@ -315,7 +315,7 @@
 </xsl:template>
 
 <xsl:template match="x:unclear">
-<xsl:text>\textenglish{\color{gray}(}</xsl:text><xsl:apply-templates/><xsl:text>\textenglish{\color{gray})}</xsl:text>
+<xsl:text>\foreignlanguage{english}{\color{gray}(}</xsl:text><xsl:apply-templates/><xsl:text>\foreignlanguage{english}{\color{gray})}</xsl:text>
 </xsl:template>
 
 <xsl:template match="x:subst">
@@ -342,7 +342,7 @@
 </xsl:template>
 
 <xsl:template match="x:sic">
-    <xsl:text>\textenglish{\color{gray}¿}</xsl:text><xsl:apply-templates/><xsl:text>\textenglish{\color{gray}?}</xsl:text>
+    <xsl:text>\foreignlanguage{english}{\color{gray}¿}</xsl:text><xsl:apply-templates/><xsl:text>\foreignlanguage{english}{\color{gray}?}</xsl:text>
 </xsl:template>
 
 <xsl:template match="x:surplus">
@@ -363,7 +363,7 @@
 </xsl:template>
 
 <xsl:template match="x:lb">
-    <xsl:text>\textenglish{\color{gray}⸤}</xsl:text>
+    <xsl:text>\foreignlanguage{english}{\color{gray}⸤}</xsl:text>
     <!--
         <xsl:text>\textsc{(</xsl:text>
         <xsl:choose>
@@ -379,7 +379,7 @@
 </xsl:template>
 
 <!--xsl:template match="x:pb">
-    <xsl:text>\textenglish{\color{gray}⎡}</xsl:text>
+    <xsl:text>\foreignlanguage{english}{\color{gray}⎡}</xsl:text>
 </xsl:template-->
 <xsl:template match="x:pb"/>
 
@@ -408,7 +408,7 @@
 </xsl:template>
 
 <xsl:template match="x:gap">
-    <xsl:text>\textenglish{{\color{gray}[}</xsl:text>
+    <xsl:text>\foreignlanguage{english}{{\color{gray}[}</xsl:text>
     <xsl:variable name="quantity">
         <xsl:choose>
             <xsl:when test="@quantity"><xsl:value-of select="@quantity"/></xsl:when>
@@ -429,7 +429,7 @@
 </xsl:template>
 
 <xsl:template match="x:space">
-    <xsl:text>\textenglish{{\color{gray}[}</xsl:text>
+    <xsl:text>\foreignlanguage{english}{{\color{gray}[}</xsl:text>
     <xsl:variable name="quantity">
         <xsl:choose>
             <xsl:when test="@quantity"><xsl:value-of select="@quantity"/></xsl:when>
@@ -553,7 +553,7 @@
     <xsl:text>\lemma{</xsl:text>
     <xsl:apply-templates select=".//x:lem/node()"/>
     <xsl:text>}\Afootnote{</xsl:text>
-    <xsl:text>\textenglish{</xsl:text>
+    <xsl:text>\foreignlanguage{english}{</xsl:text>
     <xsl:variable name="mss" select="./x:lem/@wit | ./x:rdgGrp[@type='lemma']/@select"/>
     <xsl:choose>
         <xsl:when test="$mss">
@@ -581,10 +581,10 @@
         <xsl:when test="./node()">
             <xsl:apply-templates select="./node()"/>
         </xsl:when>
-        <xsl:otherwise><xsl:text>\textenglish{\textsc{om.}}</xsl:text></xsl:otherwise>
+        <xsl:otherwise><xsl:text>\foreignlanguage{english}{\textsc{om.}}</xsl:text></xsl:otherwise>
     </xsl:choose>
     <xsl:text> </xsl:text>
-    <xsl:text>\textenglish{</xsl:text>
+    <xsl:text>\foreignlanguage{english}{</xsl:text>
     <xsl:call-template name="splitwit"/>
     <xsl:text>}</xsl:text>
     <xsl:choose>
@@ -601,10 +601,10 @@
         <xsl:when test="x:rdg[@type='main']/node()">
             <xsl:apply-templates select="x:rdg[@type='main']/node()"/>
         </xsl:when>
-        <xsl:otherwise><xsl:text>\textenglish{\textsc{om.}}</xsl:text></xsl:otherwise>
+        <xsl:otherwise><xsl:text>\foreignlanguage{english}{\textsc{om.}}</xsl:text></xsl:otherwise>
     </xsl:choose>
     <xsl:text> </xsl:text>
-    <xsl:text>\textenglish{</xsl:text>
+    <xsl:text>\foreignlanguage{english}{</xsl:text>
     <xsl:call-template name="splitwit"/>
     <xsl:text>}</xsl:text>
 
