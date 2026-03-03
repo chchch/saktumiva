@@ -79,7 +79,6 @@
         </xsl:when>
         <xsl:otherwise>
             <xsl:value-of select="substring-after($msstring,'#')"/>
-            <xsl:value-of select="$cleanstr"/>
         </xsl:otherwise>
     </xsl:choose>
     <xsl:variable name="nextstr" select="substring-after($mss, ' ')"/>
