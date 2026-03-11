@@ -193,7 +193,7 @@ This tutorial will describe the typical setup for a critial edition project. How
             <span class="marginnote">
 Some knowledge of git is required. For help with cloning, see <a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository">Cloning a repository</a>. if your directory is also a git repository, you can optionally create submodules for the TST libs and for saktumiva.
             </span>
-          Create a directory for your project, and then create two empty subdirectories, <code>witnesses/</code> and <code>alignments/</code>. Download the <code><a href="./tei-to-html.xsl">tei-to-html.xsl</a></code> file, and place them in the <code>witnesses/</code> directory. Then, download or clone the <a href="https://github.com/TST-Project/lib">TST libs</a> into a subdirectory called <code>lib/</code>. Download or clone the <a href="https://github.com/chchch/saktumiva">saktumiva project</a> into a subdirectory called <code>saktumiva/</code>. Finally, download the <code><a href="./edition.xsl">edition.xsl</a></code>, and place it in the root directory; 
+          Create a directory for your project, and then create two empty subdirectories, <code>witnesses/</code> and <code>alignments/</code>. Download the <code><a href="./tei-to-html.xsl">tei-to-html.xsl</a></code> file, and place it in the <code>witnesses/</code> directory. Then, download or clone the <a href="https://github.com/TST-Project/lib">TST libs</a> into a subdirectory called <code>lib/</code>. Download or clone the <a href="https://github.com/chchch/saktumiva">saktumiva project</a> into a subdirectory called <code>saktumiva/</code>. Finally, download the <code><a href="./edition.xsl">edition.xsl</a></code>, and place it in the root directory:
             </p>
             <p>Your project directory should look like this:</p>
             <ul>
@@ -205,6 +205,15 @@ Some knowledge of git is required. For help with cloning, see <a href="https://d
                 </li>
                 <li><code>edition.xsl</code></li>
             </ul>
+            <p>
+If you are using a git repository and want to use git submodules, use the following commands to clone <code>lib/</code> and <code>saktumiva/</code>:
+            </p>
+            <p>
+          <code>git submodule add https://github.com/TST-Project/lib.git lib/</code>
+            </p>
+            <p>
+          <code>git submodule add https://github.com/chchch/saktumiva.git saktumiva/</code>
+            </p>
             <p>
 You should not modify anything in the <code>lib/</code> and <code>saktumiva/</code> directories, nor should you change the two <code>.xsl</code> files. These directories and files are used to display the transcriptions and edition in a web browser.
             </p>
