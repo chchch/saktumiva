@@ -307,11 +307,13 @@ const showExportOptions = () => {
     const blackout = document.getElementById('editblackout');
     blackout.style.display = 'flex';
     _state.shadowRoot.getElementById('export-popup').style.display = 'flex';
-    const script = parseScript(_state.curDoc.querySelector('text'));
-    if(script) {
-      const div = document.createElement('div');
-      div.innerHTML = `<input id="export-script" type="checkbox" data-lang="${script[1]}" data-script="${script[2]}" checked="true" /><label for="export-script">Use ${script[0]} script</label>`;
-      _state.shadowRoot.getElementById('export-options').appendChild(div);
+    if(!_state.shadowRoot.getElementById('export-script')) {
+      const script = parseScript(_state.curDoc.querySelector('text'));
+      if(script) {
+        const div = document.createElement('div');
+        div.innerHTML = `<input id="export-script" type="checkbox" data-lang="${script[1]}" data-script="${script[2]}" checked="true" /><label for="export-script">Use ${script[0]} script</label>`;
+        _state.shadowRoot.getElementById('export-options').appendChild(div);
+      }
     }
 };
 
