@@ -321,12 +321,18 @@ const editApp = (opts,e) => {
     const blackout = document.getElementById('editblackout');
     blackout.style.display = 'flex';
     _state.shadowRoot.querySelector('.popup').style.display = 'flex';
+    if(opts.block) {
+      const input = _state.shadowRoot.querySelector(`#blocklist input[type="checkbox"][value="${opts.block}"]`);
+      findAlignment(input,opts);
+      return;
+    }
     for(const foundlabel of _state.shadowRoot.querySelectorAll('.foundlabel'))
         foundlabel.remove();
     //if(!_state.doneFindAlignments) {
         findAlignments(opts);
     //    return;
     //}
+    /*
     if(!opts.block)
         return;
     // else clear other checkboxes 
@@ -336,28 +342,34 @@ const editApp = (opts,e) => {
         else 
             input.checked = false;
     }
+    */
+};
+
+const findAlignment = async (input, opts) => {
+    const blockid = input.value;
+    const srcname = `${_opts.alignmentDir}/${blockid}.xml`;
+    const res = await fetch(srcname,{method: 'HEAD', cache: 'no-cache'});
+    if(!res.ok) 
+      return;
+
+      _state.alignments.set(blockid,{filename: srcname});
+      const span = document.createElement('span');
+      span.className = 'foundlabel';
+      span.innerHTML = `Found <strong>${srcname}.</strong>`;
+      input.parentNode.appendChild(span);
+      input.disabled = false;
+      if(opts?.block === blockid)
+         input.checked = true;
 };
 
 const findAlignments = async opts => {
-    for(const input of _state.shadowRoot.querySelectorAll('#blocklist input[type="checkbox"][value]')) {
-        const blockid = input.value;
-        const srcname = `${_opts.alignmentDir}/${blockid}.xml`;
-        const res = await fetch(srcname,{method: 'HEAD', cache: 'no-cache'});
-        if(!res.ok)  {
-            continue;
-        }
-        else {
-            _state.alignments.set(blockid,{filename: srcname});
-            const span = document.createElement('span');
-            span.className = 'foundlabel';
-            span.innerHTML = `Found <strong>${srcname}.</strong>`;
-            input.parentNode.appendChild(span);
-            input.disabled = false;
-            if(opts?.block === blockid)
-               input.checked = true;
-        }
-    }
-    //_state.doneFindAlignments = true;
+  for(const input of _state.shadowRoot.querySelectorAll('#blocklist input[type="checkbox"][value]')) {
+    await findAlignment(input,opts);
+    // clear other checkboxes if block is selected
+    if(opts.block !== input.value)
+      input.checked = false;
+  }
+  //_state.doneFindAlignments = true;
 };
 
 const collate = async () => {
