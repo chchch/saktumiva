@@ -672,7 +672,11 @@ const menuPopulate = function() {
 		},
 		{text: 'Insert column',
 			greyout: Check.anyhighlit,
-			func: edit.insertCol.start
+			func: edit.addCol.insert
+		},
+		{text: 'Append column',
+			greyout: Check.anyhighlit,
+			func: edit.addCol.append
 		},
 		{text: 'Mark insignificant',
 			checkbox: Check.checkbox.bind(null,'insignificant'),
