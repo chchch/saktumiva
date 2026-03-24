@@ -508,7 +508,7 @@ const loadAdditionalGo = (add,e) => {
 		}
 
 		const wit = newxml.querySelector(`witness[*|id="${siglum}"]`);
-    
+
 		// if _state.xml has XXac/XXpc and newxml has XX
 		const oldac = _state.xml.querySelector(`witness[*|id="${siglum}"] [n="ac"]`);
 		if(oldac && oldteis.has(oldac.getAttribute('xml:id'))) {

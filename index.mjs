@@ -32,9 +32,8 @@ const languageSpecificOptions = textel => {
     const lang = langcode === 'ta' || langcode.startsWith('ta-Taml') ? 'tamil' :
                  langcode === 'sa' || langcode.startsWith('sa-Latn') ? 'sanskrit' :
                  langcode === 'pi' || langcode.startsWith('pi-Latn') ? 'pali' :
-                 langcode === 'bo' || langcode.startsWith('bo-Tibt') ? 'tibetan' :
+                 langcode === 'bo' || langcode.startsWith('bo-') ? 'tibetan' :
                  null;
-
     if(!lang) return;
 
     const toks = document.querySelectorAll('input[name="tokenization"]');
