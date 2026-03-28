@@ -324,9 +324,18 @@ const editApp = (opts,e) => {
     for(const foundlabel of _state.shadowRoot.querySelectorAll('.foundlabel'))
         foundlabel.remove();
     if(opts.block) {
+      for(const input of _state.shadowRoot.querySelectorAll('#blocklist input[type="checkbox"][value]')) {
+        input.checked = false;
+        if(input.value === opts.block) {
+          findAlignment(input,opts);
+          input.scrollIntoView({block: 'center'});
+        }
+      }
+      /*
       const input = _state.shadowRoot.querySelector(`#blocklist input[type="checkbox"][value="${opts.block}"]`);
       findAlignment(input,opts);
       input.scrollIntoView({block: 'center'});
+      */
       return;
     }
     //if(!_state.doneFindAlignments) {
