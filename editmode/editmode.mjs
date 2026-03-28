@@ -410,6 +410,8 @@ const collate = async () => {
             base: base,
             normlem: _state.shadowRoot.getElementById('normlem').checked,
             mergerdgs: _state.shadowRoot.getElementById('mergerdgs').checked,
+            maxomlength: _state.shadowRoot.getElementById('maxom').checked ?
+              _state.shadowRoot.getElementById('maxomlen').value : null,
             blockid: block.value,
             witnesses: cachedwitnesses
         });

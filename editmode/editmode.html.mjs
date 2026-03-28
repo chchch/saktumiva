@@ -102,6 +102,10 @@ input:disabled+label {
                     <input type="checkbox" id="mergerdgs" checked="true"/>
                     <label>Merge groups</label>
                 </div>
+                <div>
+                    <input type="checkbox" id="maxom" checked="true"/>
+                    <label>Separate note for omissions over <input type="number" id="maxomlen" value="20" style="width: 6ch"/> characters</label>
+                </div>
             </div>
         </fieldset>
         <button id="collatebutton">Collate!</button>
