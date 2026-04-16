@@ -133,7 +133,7 @@
 % Download the TST Tamil font here: https://github.com/UHH-Tamilex/lib/blob/main/fonts/TSTTamil.otf
 \babelfont[tamil]{rm}{TSTTamil.otf}[Script=Tamil,Ligatures=Historic,BoldFont={NotoSerifTamil-Bold.ttf}]
 \newICUfeature{AllAlternates}{1}{+aalt}
-\newcommand{\vowelsign}{\foreignlanguage{tamil}\addfontfeature{AllAlternates=1}}
+\newcommand{\vowelsign}[1]{\foreignlanguage{tamil}{\addfontfeature{AllAlternates=1}#1}}
         </xsl:when>
         <xsl:otherwise>
           <xsl:text>
@@ -148,7 +148,7 @@
 % Download Pedantic Devangari here: https://github.com/chchch/PedanticIndic/tree/master/PedanticDevanagari
 \babelfont[sanskrit]{rm}{PedanticDevanagariLight.otf}[Script=Devanagari,BoldFont={PedanticDevanagariBold.otf}]
 \newICUfeature{AllAlternates}{1}{+aalt}
-  \newcommand{\vowelsign}{\foreignlanguage{sanskrit}\addfontfeature{AllAlternates=1}}
+\newcommand{\vowelsign}[1]{\foreignlanguage{sanskrit}{\addfontfeature{AllAlternates=1}#1}}
         </xsl:when>
         <xsl:otherwise>
         <xsl:text>
@@ -397,7 +397,7 @@
     <xsl:text>\uwave{</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>           
 </xsl:template>
 <xsl:template match="x:g[@rend='vowel-sign']">
-    <xsl:text>{\vowelsign{}</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>           
+    <xsl:text>{\vowelsign{</xsl:text><xsl:apply-templates/><xsl:text>}</xsl:text>           
 </xsl:template>
 
 <xsl:template match="x:supplied">
