@@ -73,14 +73,16 @@
                  </xsl:otherwise>
              </xsl:choose>
              -->
+    <text>\textsc{</text>
     <xsl:choose>
         <xsl:when test="$siglum">
-            <xsl:apply-templates select="$siglum"/>
+          <xsl:apply-templates select="$siglum"/>
         </xsl:when>
         <xsl:otherwise>
             <xsl:value-of select="substring-after($msstring,'#')"/>
         </xsl:otherwise>
     </xsl:choose>
+    <text>}</text>
     <xsl:variable name="nextstr" select="substring-after($mss, ' ')"/>
     <xsl:if test="$nextstr != ''">
         <xsl:text> </xsl:text>
@@ -190,6 +192,16 @@
 
 <xsl:template match="x:text">
     <xsl:apply-templates/>
+</xsl:template>
+
+<xsl:template match="x:body/x:p | x:body/x:lg">
+ <xsl:text>
+\beginnumbering
+ </xsl:text>
+ <xsl:apply-templates/>
+  <xsl:text>
+\endnumbering
+  </xsl:text>
 </xsl:template>
 
 <xsl:template match="x:div[@rend='parallel']">
@@ -570,15 +582,15 @@
             <xsl:call-template name="splitwit">
                 <xsl:with-param name="mss" select="$mss"/>
             </xsl:call-template>
+          <xsl:text>;</xsl:text>
         </xsl:when>
         <xsl:otherwise>
             <xsl:if test="//x:text[@type='edition']">
-                <xsl:text>\textsc{em.}</xsl:text>
+          <xsl:text>\textsc{em.};</xsl:text>
             </xsl:if>
         </xsl:otherwise>
     </xsl:choose>
-    <xsl:text>}</xsl:text>
-    <xsl:text>; \foreignlanguage{</xsl:text>
+    <xsl:text>} \foreignlanguage{</xsl:text>
     <xsl:value-of select="$export-lang"/>
     <xsl:text>}{</xsl:text>
     <xsl:apply-templates select="./x:rdg | ./x:rdgGrp"/>
@@ -635,4 +647,21 @@
     <xsl:apply-templates/>
     <xsl:text>}</xsl:text>
 </xsl:template>
+
+<xsl:template match="x:abbr[@corresp]">
+  <xsl:variable name="cleanstr" select="substring-after(@corresp,'#')"/>
+   <xsl:variable name="witness" select="$witlist/x:witness[@id=$cleanstr]"/>
+   <xsl:variable name="siglum" select="$witness/x:abbr/node()"/>
+   <text>\textsc{</text>
+    <xsl:choose>
+        <xsl:when test="$siglum">
+          <xsl:apply-templates select="$siglum"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$cleanstr"/>
+        </xsl:otherwise>
+    </xsl:choose>
+   <text>}</text>
+</xsl:template>
+
 </xsl:stylesheet>
