@@ -194,16 +194,6 @@
     <xsl:apply-templates/>
 </xsl:template>
 
-<xsl:template match="x:body/x:p | x:body/x:lg">
- <xsl:text>
-\beginnumbering
- </xsl:text>
- <xsl:apply-templates/>
-  <xsl:text>
-\endnumbering
-  </xsl:text>
-</xsl:template>
-
 <xsl:template match="x:div[@rend='parallel']">
     <xsl:text>
 \begin{pages}
@@ -450,6 +440,10 @@
     <xsl:text>{\color{gray}]}}</xsl:text>
 </xsl:template>
 
+<xsl:template match="x:gap[@reason='ellipsis']">
+    <xsl:text>\foreignlanguage{english}{…}</xsl:text>
+</xsl:template>
+
 <xsl:template match="x:space">
     <xsl:text>\foreignlanguage{english}{{\color{gray}[}</xsl:text>
     <xsl:variable name="quantity">
@@ -578,9 +572,9 @@
     <xsl:text>\foreignlanguage{english}{</xsl:text>
     <xsl:variable name="mss" select="./x:lem/@wit | ./x:rdgGrp[@type='lemma']/@select"/>
     <xsl:choose>
-        <xsl:when test="$mss">
+      <xsl:when test="$mss">
             <xsl:call-template name="splitwit">
-                <xsl:with-param name="mss" select="$mss"/>
+                <xsl:with-param name="mss" select="concat($mss,' ')"/>
             </xsl:call-template>
           <xsl:text>;</xsl:text>
         </xsl:when>
@@ -649,8 +643,9 @@
 </xsl:template>
 
 <xsl:template match="x:abbr[@corresp]">
+  <xsl:variable name="corresp" select="@corresp"/>
   <xsl:variable name="cleanstr" select="substring-after(@corresp,'#')"/>
-   <xsl:variable name="witness" select="$witlist/x:witness[@id=$cleanstr]"/>
+   <xsl:variable name="witness" select="$witlist/x:witness[@hashid=$corresp]"/>
    <xsl:variable name="siglum" select="$witness/x:abbr/node()"/>
    <text>\textsc{</text>
     <xsl:choose>
