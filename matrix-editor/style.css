@@ -450,6 +450,7 @@ span.group::after {
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
+    border-right: 1ch solid white;
 }
 
 .matrix .scroller {
