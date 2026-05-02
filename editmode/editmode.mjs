@@ -249,11 +249,13 @@ const fillBlocks = (blocks) => {
     blocklist.appendChild(div1);
     for(const block of blocks) {
         const xmlid = block.getAttribute('xml:id');
+        const corresp = block.getAttribute('corresp');
         const div = document.createElement('div');
         const input = document.createElement('input');
         input.setAttribute('type','checkbox');
         input.id = `checkbox_${Date.now() + Math.random()}`;
         input.value = xmlid;
+        if(corresp) input.dataset.corresp = corresp.replaceAll(/#/g,'');
         input.disabled = true;
         const label = document.createElement('label');
         label.setAttribute('for',input.id);
@@ -357,19 +359,27 @@ const editApp = (opts,e) => {
 
 const findAlignment = async (input, opts) => {
     const blockid = input.value;
-    const srcname = `${_opts.alignmentDir}/${blockid}.xml`;
-    const res = await fetch(srcname,{method: 'HEAD', cache: 'no-cache'});
-    if(!res.ok) 
-      return;
+    let srcname = `${_opts.alignmentDir}/${blockid}.xml`;
+    let res = await fetch(srcname,{method: 'HEAD', cache: 'no-cache'});
+    if(!res.ok) {
+      for(const corresp of input.dataset.corresp.split(' ')) {
+        srcname = `${_opts.alignmentDir}/${corresp}.xml`;
+        res = await fetch(srcname,{method: 'HEAD', cache: 'no-cache'});
+        if(res.ok) break;
+      }
 
-      _state.alignments.set(blockid,{filename: srcname});
-      const span = document.createElement('span');
-      span.className = 'foundlabel';
-      span.innerHTML = `Found <strong>${srcname}.</strong>`;
-      input.parentNode.appendChild(span);
-      input.disabled = false;
-      if(opts?.block === blockid)
-         input.checked = true;
+      if(!res.ok)
+        return;
+    }
+
+    _state.alignments.set(blockid,{filename: srcname});
+    const span = document.createElement('span');
+    span.className = 'foundlabel';
+    span.innerHTML = `Found <strong>${srcname}.</strong>`;
+    input.parentNode.appendChild(span);
+    input.disabled = false;
+    if(opts?.block === blockid)
+       input.checked = true;
 };
 
 const findAlignments = async opts => {
