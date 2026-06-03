@@ -426,6 +426,12 @@ const collate = async () => {
             blockid: block.value,
             witnesses: cachedwitnesses
         });
+        if(app.error) {
+          alert(app.error);
+          button.style.display = 'unset';
+          spinner.style.display = 'none';
+          return;
+        }
         addWitnesses(_state.curDoc,app.listwit);
         addApparatus(_state.curDoc,app.listapp,app.warnings,alignobj.doc,block.value,alignobj.filename);
         
