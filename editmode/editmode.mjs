@@ -18,8 +18,8 @@ const _opts = {
 
 const init = async () => {
     const searchparams = new URLSearchParams(window.location.search);
-    //const islocal = ['localhost','[::1]','127.0.0.1','0.0.0.0'].includes(window.location.hostname);
-    const islocal = window.isSecureContext && !['https:','wss:'].includes(location.protocol);
+    const islocal = ['localhost','[::1]','127.0.0.1','0.0.0.0'].includes(window.location.hostname) ||
+                    window.isSecureContext && !['https:','wss:'].includes(location.protocol);
     if(searchparams.get('noedit') !== null) return;
     if(searchparams.get('edit') === null && !islocal) return;
 
