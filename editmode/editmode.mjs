@@ -18,7 +18,8 @@ const _opts = {
 
 const init = async () => {
     const searchparams = new URLSearchParams(window.location.search);
-    const islocal = ['localhost','[::1]','127.0.0.1'].includes(window.location.hostname);
+    //const islocal = ['localhost','[::1]','127.0.0.1','0.0.0.0'].includes(window.location.hostname);
+    const islocal = window.isSecureContext && !['https:','wss:'].includes(location.protocol);
     if(searchparams.get('noedit') !== null) return;
     if(searchparams.get('edit') === null && !islocal) return;
 
@@ -188,31 +189,31 @@ const updateChecklist = e => {
 const addEditButtons = blocks => {for(const block of blocks) addEditButton(block);};
 
 const addEditButton = blockel => {
-    const xmlid = typeof blockel === 'string' ? blockel : blockel.getAttribute('xml:id');
-    const block = document.getElementById(xmlid);
-	const wideblock = block.closest('.wide');
-    const minieditbutton = document.createElement('button');
-    minieditbutton.className = 'editbutton';
-    const appsvg = document.getElementById('apparatussvg').cloneNode(true);
-    appsvg.style.display = 'block';
-    delete appsvg.dataset.anno;
-    minieditbutton.appendChild(appsvg);
-    minieditbutton.dataset.anno = `Edit apparatus for ${xmlid}`;
-    minieditbutton.addEventListener('click',editApp.bind(null,{block: xmlid}));
-    block.prepend(minieditbutton);
+  const xmlid = typeof blockel === 'string' ? blockel : blockel.getAttribute('xml:id');
+  const block = document.getElementById(xmlid);
+  const wideblock = block.closest('.wide');
+  const minieditbutton = document.createElement('button');
+  minieditbutton.className = 'editbutton';
+  const appsvg = document.getElementById('apparatussvg').cloneNode(true);
+  appsvg.style.display = 'block';
+  delete appsvg.dataset.anno;
+  minieditbutton.appendChild(appsvg);
+  minieditbutton.dataset.anno = `Edit apparatus for ${xmlid}`;
+  minieditbutton.addEventListener('click',editApp.bind(null,{block: xmlid}));
+  block.prepend(minieditbutton);
 
-    const alignviewer = (wideblock || block).querySelector('.alignment-pointer');
-    if(alignviewer) {
-        const alignbutton = document.createElement('button');
-        alignbutton.className = 'editbutton';
-        alignbutton.dataset.anno = `Edit alignment for ${xmlid}`;
-        alignbutton.addEventListener('click',editAlignment.bind(null,{href: alignviewer.href}));
-        alignbutton.append('\u{1F589}');
-        alignbutton.style.fontSize = '0.8rem';
-        alignbutton.style.left = '0.1rem';
-        alignbutton.style.top = '0.1rem';
-        alignviewer.after(alignbutton);
-    }
+  const alignviewer = (wideblock || block).querySelector('.alignment-pointer');
+  if(alignviewer) {
+      const alignbutton = document.createElement('button');
+      alignbutton.className = 'editbutton';
+      alignbutton.dataset.anno = `Edit alignment for ${xmlid}`;
+      alignbutton.addEventListener('click',editAlignment.bind(null,{href: alignviewer.href}));
+      alignbutton.append('\u{1F589}');
+      alignbutton.style.fontSize = '0.8rem';
+      alignbutton.style.left = '0.1rem';
+      alignbutton.style.top = '0.1rem';
+      alignviewer.after(alignbutton);
+  }
 };
 
 const editAlignment = /*async*/ obj => {
