@@ -1,6 +1,6 @@
 import popupHTML from './editmode.html.mjs';
 import { makeApp, addWitnesses, addApparatus, getWits } from '../lib/apparatus.mjs';
-import { showSaveFilePicker } from './native-file-system-adapter/es6.js';
+import { showSaveFilePicker } from '../lib/native-file-system-adapter/es6.js';
 import { loadDoc } from './utils.mjs';
 import previewDoc from './preview.mjs';
 import { exportLaTeX } from '../lib/export.mjs';
