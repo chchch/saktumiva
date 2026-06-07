@@ -10,6 +10,8 @@ const _state = {
     shadowRoot: null,
     alignments: new Map(),
     //doneFindAlignments: false
+    appid: null,
+    transid: null
 };
 const _opts = {
     alignmentDir: 'alignments',
@@ -27,7 +29,18 @@ const init = async () => {
 
     injectCSS();
     injectHTML();
+    
+    const appchannel = new BroadcastChannel('apparatus');
+    appchannel.addEventListener('message',e => {
+      if(e.data.uuid) _state.appid = e.data.uuid;
+    });
+    appchannel.postMessage({uuid: null});
 
+    const transchannel = new BroadcastChannel('transliterator');
+    transchannel.addEventListener('message',e => {
+      if(e.data.uuid) _state.transid = e.data.uuid;
+    });
+    transchannel.postMessage({uuid: null});
 };
 
 const injectCSS = () => {
@@ -451,8 +464,8 @@ const collate = async () => {
         //newblock.style.border = '1px dashed red';
         newwide.classList.add('edited');
         if(!newwide.id) newwide.id = `edited_${Date.now() + Math.random()}`;
-        (new BroadcastChannel('apparatus')).postMessage({id: newwide.id});
-        (new BroadcastChannel('transliterator')).postMessage({id: newwide.id});
+        (new BroadcastChannel('apparatus')).postMessage({id: newwide.id, uuid: _state.appid});
+        (new BroadcastChannel('transliterator')).postMessage({id: newwide.id, uuid: _state.transid});
     }
     document.getElementById('editblackout').style.display = 'none';
     document.getElementById(blocklist[0]).scrollIntoView({behavior: 'smooth',block: 'center'}); 
