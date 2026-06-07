@@ -13,16 +13,14 @@ const getFilterIndices = doc => {
   const groups = ['general'];
 
   const langmap = new Map([
-    ['ta','tamil'],
-    ['ta-Latn','tamil'],
-    ['ta-Taml','tamil'],
     ['sa','sanskrit'],
-    ['sa-Latn','sanskrit'],
+    ['ta','tamil'],
+    ['bo','tibetan'],
     ['pi','pali'],
-    ['bo','tibetan']
-    ]);
+  ]);
 
-  const lang = langmap.get(doc.documentElement.getAttribute('xml:lang'));
+  const doclang = doc.documentElement.getAttribute('xml:lang')?.split('-')[0];
+  const lang = langmap.get(doclang);
   if(lang) groups.push(lang);
 
   const markupel = doc.querySelector('normalization[method="markup"]');
@@ -119,6 +117,7 @@ const realign = (newtexts,selectedsigla,blockid/*,opts*/) => {
   const scores = getScores(eddecl);
 
   const selectedtexts = [...selectedsigla].map(s => {return {siglum: s, text: newtexts.get(s)};});
+  console.log(getFilterIndices(_state.xml));
   const toadd = preProcess(blockid, selectedtexts,
       {splitfunc: findSplitfunc(tok), selectedfilters: getFilterIndices(_state.xml), ignoretags: tagfilters}
   )
