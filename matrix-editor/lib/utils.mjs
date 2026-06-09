@@ -3,6 +3,9 @@ const Utils = function(_state) {
         curxml() {
             return _state.xml;
         },
+        filehandle() {
+            return _state.filehandle;
+        },
         teins() {
             return _state.teins;
         },
@@ -573,11 +576,20 @@ const Utils = function(_state) {
         },
 
     }; // end make
+    const message = {
+      write(msg) {
+        const anim = [ {opacity: 0}, {opacity: 1} ];
+        _state.messagebox.textContent = msg;
+        _state.messagebox.animate(anim, { duration: 100, iterations: 1});
+        window.setTimeout(() => _state.messagebox.textContent = '',2000);
+      }
+    };
 
     return {
         find: find,
         check: check,
-        make: make
+        make: make,
+        message: message
     };
 };
 

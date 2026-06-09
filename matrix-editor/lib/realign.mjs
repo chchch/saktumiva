@@ -89,7 +89,6 @@ const detectTokenization = eddecl => {
     if(lem) return Sanscript.t(lem,'iast','slpish');
     return Sanscript.t(w.textContent,'iast','slpish');
   },'').filter(w => w);
-
   const smushed = tokenized.join('');
   
   const char = charSplit(smushed);
@@ -170,7 +169,7 @@ const realign = (newtexts,selectedsigla,blockid/*,opts*/) => {
                               meta,
                               revisedsigla.has(targeted) ? oldtexts[0].siglum : targeted);
     const newwits = makeWitList(newtexts);
-    
+
     ret.rows = clean;
     ret.tree = alignment.tree;
     ret.witnesses = newwits;

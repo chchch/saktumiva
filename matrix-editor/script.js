@@ -14,10 +14,12 @@ const _state = {
 	teins: 'http://www.tei-c.org/ns/1.0',
 	scripts: ['iast','devanagari','telugu','grantha','malayalam'],
 	filename: null,
+  filehandle: null,
 	xml: null,
 	treelist: new Map(),
 	trees: [],
 	textboxes: [],
+  messagebox: null,
 	matrix: null,
 	viewdiv: null,
 	descs: null,
@@ -609,10 +611,17 @@ const matrixLoadAdditional = function(fs) {
 };
 
 const menuPopulate = function() {
-	const savebox = new menuItem('Save As...');
-	savebox.setFunction(Exporter.saveAs);
-	savebox.setStyle({fontWeight: 'bold'});
-
+  let savebox;
+  if(_state.filehandle !== null) {
+    savebox = new menuItem('Save');
+    savebox.setFunction(Exporter.saveHandle);
+    savebox.setStyle({fontWeight: 'bold'});
+  }
+  else {
+    savebox = new menuItem('Save As...');
+    savebox.setFunction(Exporter.saveAs);
+    savebox.setStyle({fontWeight: 'bold'});
+  }
 	const expbox = new menuBox('Export');
 	expbox.populate([
 		{text: 'TEI corpus', func: Exporter.showOptions.bind(null,Exporter.xml,Exporter.options)},
@@ -763,6 +772,10 @@ const menuPopulate = function() {
 	left_menu.appendChild(cellbox.box);
 	left_menu.appendChild(expbox.box);
 	left_menu.appendChild(savebox.box);
+  
+  const right_menu = document.getElementById('right_menu');
+  _state.messagebox = document.createElement('span');
+  right_menu.appendChild(_state.messagebox);
 
 	const views = document.getElementById('views');
 	views.style.justifyContent = 'flex-start';
@@ -1840,13 +1853,29 @@ const urlBasename = str => {
 	return str.slice(start+1);
 };
 
+const loadFileHandle = async handle => {
+  const file = await handle.getFile();
+  if(!file) return false;
+  _state.filehandle = handle;
+  const data = await file.text();
+  const ev = {target: {result: data}};
+  csvOrXml(file,[],ev);
+};
 const maybeLoadData = async () => {
 		const bc = new BroadcastChannel('matrix-editor');
-		bc.onmessage = e => {
-			csvOrXml(e.data.f,e.data.fs,e.data.e);
+    const uuid = (new URLSearchParams(window.location.search)).get('uuid');
+		bc.onmessage = async e => {
+      if(e.data.hasOwnProperty('uuid')) {
+        if(e.data.uuid !== uuid) return;
+        if(e.data.handle)
+          loadFileHandle(e.data.handle);
+        return;
+      }
+			csvOrXml(e.data.f,e.data.fs,e.data.e); // TODO: deprecate this
 			bc.close();
 		};
-		bc.postMessage('ready');
+		if(uuid) bc.postMessage({uuid: uuid, state: 'ready'});
+    else bc.postMessage('ready'); // TODO: deprecate this
 
 		const url = (new URLSearchParams(window.location.search)).get('url');
 		if(url) {

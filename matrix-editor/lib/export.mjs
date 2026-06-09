@@ -5,22 +5,25 @@ import { showSaveFilePicker } from '../../lib/native-file-system-adapter/es6.js'
 const Exporter = function(Utils,Xslt) {
     const Find = Utils.find;
     const Make = Utils.make;
+    const Message = Utils.message;
     const TeiNS = Find.teins();
 
     const exp = {
         write: async function(file,handle) {
             const writer = await handle.createWritable();
-            writer.write(file);
-            writer.close();
+            await writer.write(file);
+            await writer.close();
+            const msg = handle.name ? ` to ${handle.name}` : '';
+            Message.write(`Saved${msg}.`);
         },
 
-        xml: async function(doc) {
+        xml: async function(doc,handle) {
             const str = new XMLSerializer().serializeToString(
                 Xslt.sheets.xml.transformToDocument(doc)
             );
             const file = new Blob([str], {type: 'text/xml;charset=utf-8'});
             const fileURL = Find.basename() + '.xml';
-            const fileHandle = await showSaveFilePicker({
+            const fileHandle = handle  || await showSaveFilePicker({
                 _preferPolyfill: false,
                 suggestedName: fileURL,
                 types: [ {description: 'TEI XML', accept: {'text/xml': ['.xml']} } ],
@@ -398,6 +401,11 @@ END;
         saveAs: function() {
             const doc = Find.curxml().cloneNode(true);
             exp.xml(doc);
+        },
+        saveHandle: function() {
+            const doc = Find.curxml().cloneNode(true);
+            const handle = Find.filehandle();
+            exp.xml(doc,handle);
         },
 /*
         showOptions: function(func,optfunc) {
