@@ -449,7 +449,7 @@ const collate = async () => {
         addApparatus(_state.curDoc,app.listapp,app.warnings,alignobj.doc,block.value,alignobj.filename);
         
     }
-
+    // TODO: only preview selected blocks
     const newDoc = await previewDoc(_state.curDoc);
     for(const id of blocklist) {
         const newblock = newDoc.getElementById(id);
