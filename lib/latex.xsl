@@ -148,7 +148,7 @@
       <xsl:choose>
         <xsl:when test="$export-script = 'devanagari'">
 % Download Pedantic Devangari here: https://github.com/chchch/PedanticIndic/tree/master/PedanticDevanagari
-\babelfont[sanskrit]{rm}{PedanticDevanagariLight.otf}[Script=Devanagari,BoldFont={PedanticDevanagariBold.otf}]
+\babelfont[sanskrit]{rm}[Script=Devanagari,BoldFont={PedanticDevanagariBold.otf}]{PedanticDevanagariLight.otf}
 \newICUfeature{AllAlternates}{1}{+aalt}
 \newcommand{\vowelsign}[1]{\foreignlanguage{sanskrit}{\addfontfeature{AllAlternates=1}#1}}
         </xsl:when>
