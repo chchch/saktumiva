@@ -73,7 +73,7 @@
                  </xsl:otherwise>
              </xsl:choose>
              -->
-    <text>\textsc{</text>
+    <text>\siglum{</text>
     <xsl:choose>
         <xsl:when test="$siglum">
           <xsl:apply-templates select="$siglum"/>
@@ -136,6 +136,9 @@
 \babelfont[tamil]{rm}{TSTTamil.otf}[Script=Tamil,Ligatures=Historic,BoldFont={NotoSerifTamil-Bold.ttf}]
 \newICUfeature{AllAlternates}{1}{+aalt}
 \newcommand{\vowelsign}[1]{\foreignlanguage{tamil}{\addfontfeature{AllAlternates=1}#1}}
+
+\newcommand{\siglum}[1]{\textsc{#1}}
+
         </xsl:when>
         <xsl:otherwise>
           <xsl:text>
