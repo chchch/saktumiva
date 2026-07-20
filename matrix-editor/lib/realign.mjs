@@ -17,6 +17,7 @@ const getFilterIndices = doc => {
     ['ta','tamil'],
     ['bo','tibetan'],
     ['pi','pali'],
+    ['si','sinhalese'],
   ]);
 
   const doclang = doc.documentElement.getAttribute('xml:lang')?.split('-')[0];
