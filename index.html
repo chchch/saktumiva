@@ -5,9 +5,10 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-<link rel="stylesheet" href="./tst/css/tufte.css">
-<link rel="stylesheet" href="./tst/css/fonts.css">
-<link rel="stylesheet" href="./tst/css/tst.css">
+<link rel="icon" href="./favicon.ico"/>
+<link rel="stylesheet" href="./tst/css/tufte.css"/>
+<link rel="stylesheet" href="./tst/css/fonts.css"/>
+<link rel="stylesheet" href="./tst/css/tst.css"/>
 <script type="module" src="index.mjs"></script>
 
 <style type="text/css">
@@ -43,6 +44,9 @@
 label {
     font-size: 1.2rem;
     padding: 0.5rem;
+}
+label.special {
+    font-weight: bold;
 }
 .input-box {
     display: flex;
@@ -378,6 +382,12 @@ button:hover, label[for="teifiles"]:hover {
                     <div class="horizontal">
                         <input type="checkbox" name="language" id="check_pali" autocomplete="off"/><label for="check_pali">Pali</label>
                         <details class="pali">
+                            <summary></summary>
+                        </details>
+                    </div>
+                    <div class="horizontal">
+                        <input type="checkbox" name="language" id="check_sinhalese" autocomplete="off"/><label for="check_sinhalese">Sinhalese</label>
+                        <details class="sinhalese">
                             <summary></summary>
                         </details>
                     </div>
