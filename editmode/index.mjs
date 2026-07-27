@@ -587,8 +587,10 @@ const alignPopup = async (opts,e) => {
   shadow.querySelector('#targetedition').value = first;
   res.alltexts = new Map();
 
-  populateFilters(popup);
-  languageSpecificOptions(opts.doc.querySelector('text'),popup);
+  if(!popup.querySelector('#xmltags div')) {
+    populateFilters(popup);
+    languageSpecificOptions(opts.doc.querySelector('text'),popup);
+  }
 
   // do witnesses
   for(const [path, obj] of _state.witnesses) {
