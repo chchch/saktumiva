@@ -1,4 +1,4 @@
-import { loadDoc, XSLTransform } from './utils.mjs';
+import { loadDoc, compileImports, XSLTransform } from './utils.mjs';
 
 const getXSLTSheet = async doc => {
     for(const n of doc.childNodes) {
@@ -11,8 +11,14 @@ const getXSLTSheet = async doc => {
     }
 };
 
-const previewDoc = async doc => {
-    const sheet = await getXSLTSheet(doc);
+const loadXSLT = async fn => {
+  const doc = await loadDoc(fn);
+  return await compileImports(doc);
+};
+
+const previewDoc = async (doc,xsltpath) => {
+    const sheet = xsltpath ?
+      await loadXSLT(xsltpath) : await getXSLTSheet(doc);
     return await XSLTransform(sheet, doc);
 };
 

@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Saktumiva</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<link rel="icon" href="../favicon.ico"/>
+<link rel="stylesheet" href="../tst/css/tufte.css"/>
+<link rel="stylesheet" href="../tst/css/fonts.css"/>
+<link rel="stylesheet" href="../tst/css/tst.css"/>
+<link rel="stylesheet" href="../tst/css/header.css"/>
+<link rel="stylesheet" href="../tst/css/transcription.css"/>
+<link rel="stylesheet" href="../tst/css/apparatus.css"/>
+<link rel="stylesheet" href="./index.css"/>
+<script src="../tst/js/xslt-polyfill.min.js"></script>
+<script type="module" src="./index.mjs"></script>
+
+</head>
+
+<body lang="en">
+    <article>
+        <nav id="filelist">
+          <div id="filelist-content" class="hidden">
+            <details open>
+              <summary>editions</summary>
+              <ul id="edlist"></ul>
+            </details>
+            <details open>
+              <summary>witnesses</summary>
+              <ul id="witlist"></ul>
+            </details>
+            <details>
+              <summary>alignments</summary>
+              <ul id="alignlist"></ul>
+            </details>
+          </div>
+          <div id="filelist-toggler">
+          <div id="filelist-toggler-button"></div>
+          </div>
+        </nav>
+        <article id="loader">
+          <h1>Saktumiva</h1>
+          <section>
+            <button id="startbutton">Select directory</button>
+          </section>
+        </article>
+    </article>
+    <div id="blackout">
+        <dialog id="modified_warning">
+          <p>Warning: <span id="modified_filename">File</span> was modified on disk.</p>
+          <div class="dialog_buttons"><button id="modified_reload">Reload</button> <button id="modified_ignore">Ignore</button></div>
+        </dialog>
+    </div>
+</body>
+    <template id="closeicon">
+      <svg class="closeicon" height="32px" width="32px" fill="#333333" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" version="1.1" style="shape-rendering: geometricprecision; text-rendering: geometricprecision; width: 15px; height: 15px;" viewBox="0 0 847 847" x="0px" y="0px" fill-rule="evenodd" clip-rule="evenodd">
+      <g><path class="fil0" d="M423 272l217 -217c99,-99 251,53 151,152l-216 216 216 217c100,99 -52,251 -151,151l-217 -216 -216 216c-99,100 -251,-52 -152,-151l217 -217 -217 -216c-99,-99 53,-251 152,-152l216 217z"></path></g></svg>
+    </template>
+</html>

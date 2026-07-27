@@ -340,9 +340,14 @@ button:hover, label[for="teifiles"]:hover {
                             <label for="treetype_ncd"><abbr title="Normalized compression distance">NCD</abbr></label>
                         </div>
                         <div>
+                            <input type="radio" name="input_treetype" id="treetype_bpe" value="bpe" />
+                            <label for="treetype_bpe"><abbr title="Byte pair encoding">BPE</abbr></label>
+                            <input type="number" id="tree_bpeiters" title="number of iterations" value="600"/>
+                        </div>
+                        <div>
                             <input type="radio" name="input_treetype" id="treetype_ngrams" value="ngrams" checked />
                             <label for="treetype_ngrams">Ngrams</label>
-                            <input type="number" id="tree_ngramsize" value="3"/>
+                            <input type="number" id="tree_ngramsize" title="ngram size, in tokens" value="3"/>
                         </div>
                         <details open>
                             <summary>Tokenization</summary>

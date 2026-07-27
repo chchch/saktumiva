@@ -52,6 +52,20 @@
     font-style: normal;
 }
 */
+
+@font-face {
+  'Alegreya Sans';
+  src: url('../fonts/AlegreyaSans-Regular.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  'Alegreya Sans';
+  src: url('../fonts/AlegreyaSans-Bold.ttf');
+  font-weight: bold;
+  font-style: normal;
+}
+
 body {
     font-family: 'Alegreya Sans', 'PedanticDevanagari', 'PedanticMalayalam', 'PedanticTelugu', 'Noto Serif Tamil', 'TST Grantha', sans-serif;
     color: black;
@@ -219,7 +233,7 @@ hr {
     z-index: 8;
     background: rgb(232,232,231);
     display: flex;
-    justify-content: space-between;
+    /*justify-content: space-between;*/
 }
 
 #menu {

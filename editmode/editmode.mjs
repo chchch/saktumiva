@@ -4,14 +4,13 @@ import { showSaveFilePicker } from '../lib/native-file-system-adapter/es6.js';
 import { loadDoc } from './utils.mjs';
 import previewDoc from './preview.mjs';
 import { exportLaTeX } from '../lib/export.mjs';
+import doCollate from '../lib/collateui.mjs';
 
 const _state = {
     curDoc: null,
     shadowRoot: null,
     alignments: new Map(),
     //doneFindAlignments: false
-    appid: null,
-    transid: null
 };
 const _opts = {
     alignmentDir: 'alignments',
@@ -30,15 +29,17 @@ const init = async () => {
     injectCSS();
     injectHTML();
     
+    const rc = document.getElementById('recordcontainer');
+
     const appchannel = new BroadcastChannel('apparatus');
     appchannel.addEventListener('message',e => {
-      if(e.data.uuid) _state.appid = e.data.uuid;
+      if(e.data.uuid) rc.dataset.appid = e.data.uuid;
     });
     appchannel.postMessage({uuid: null});
 
     const transchannel = new BroadcastChannel('transliterator');
     transchannel.addEventListener('message',e => {
-      if(e.data.uuid) _state.transid = e.data.uuid;
+      if(e.data.uuid) rc.dataset.transid = e.data.uuid;
     });
     transchannel.postMessage({uuid: null});
 };
@@ -209,7 +210,7 @@ const addEditButton = blockel => {
   minieditbutton.className = 'editbutton';
   const appsvg = document.getElementById('apparatussvg').cloneNode(true);
   appsvg.style.display = 'block';
-  delete appsvg.dataset.anno;
+  //delete appsvg.dataset.anno;
   minieditbutton.appendChild(appsvg);
   minieditbutton.dataset.anno = `Edit apparatus for ${xmlid}`;
   minieditbutton.addEventListener('click',editApp.bind(null,{block: xmlid}));
@@ -406,36 +407,48 @@ const findAlignments = async opts => {
   //_state.doneFindAlignments = true;
 };
 
-const collate = async () => {
-    const checked = _state.shadowRoot.querySelector('#blocklist input[value]:checked');
+const collate = async e => {
+    const popup = e.target.closest('#variants-popup');
+    const opts = {
+      witnessDir: _opts.witnessDir,
+      mode: 'serverless'
+    };
+    const blocklist = await doCollate(_state.curDoc,document,_state.alignments,popup,opts);
+    addEditButtons(blocklist);
+};
+/*
+const collate = async (xmldoc,htmldoc,alignments,mode,e) => {
+    const popup = e.target.closest('#variants-popup');
+    const cachefunc = mode === 'serverless' ? cacheWitnesses : cacheWitnesses2;
+    const checked = popup.querySelector('#blocklist input[value]:checked');
     if(!checked) {
         alert('No block selected.');
         return;
     }
-    const button = _state.shadowRoot.getElementById('collatebutton');
+    const button = popup.querySelector('#collatebutton');
     button.style.display = 'none';
-    const spinner = _state.shadowRoot.getElementById('variants-popup').querySelector('.spinner');
+    const spinner = popup.querySelector('.spinner');
     spinner.style.display = 'inline-block';
     const cachedwitnesses = new Map();
     const cachedfiles = new Map();
-    await cacheWitnesses(_state.curDoc,cachedwitnesses,cachedfiles);
-    const siglum = _state.curDoc.querySelector('idno[type="siglum"]')?.textContent || _state.curDoc.documentElement.getAttribute('n');
+    await cachefunc(xmldoc,cachedwitnesses,cachedfiles);
+    const siglum = xmldoc.querySelector('idno[type="siglum"]')?.textContent || xmldoc.documentElement.getAttribute('n');
     const blocklist = [];
-    for(const block of _state.shadowRoot.querySelectorAll('#blocklist input[value]')) {
+    for(const block of popup.querySelectorAll('#blocklist input[value]')) {
         if(!block.checked) continue;
         blocklist.push(block.value);
 
-        const base = _state.curDoc.querySelector(`[*|id='${block.value}']`).closest('text').getAttribute('corresp')?.replace(/^#/,'') || siglum;
+        const base = xmldoc.querySelector(`[*|id='${block.value}']`).closest('text').getAttribute('corresp')?.replace(/^#/,'') || siglum;
         const alignobj = _state.alignments.get(block.value);
         if(!alignobj.doc)
             alignobj.doc = await loadDoc(alignobj.filename);
-        await cacheWitnesses(alignobj.doc,cachedwitnesses,cachedfiles);
-        const app = makeApp(alignobj.doc, _state.curDoc, {
+        await cachefunc(alignobj.doc,cachedwitnesses,cachedfiles);
+        const app = makeApp(alignobj.doc, xmldoc, {
             base: base,
-            normlem: _state.shadowRoot.getElementById('normlem').checked,
-            mergerdgs: _state.shadowRoot.getElementById('mergerdgs').checked,
-            maxomlength: _state.shadowRoot.getElementById('maxom').checked ?
-              _state.shadowRoot.getElementById('maxomlen').value : null,
+            normlem: popup.querySelector('#normlem').checked,
+            mergerdgs: popup.querySelector('#mergerdgs').checked,
+            maxomlength: popup.querySelector('#maxom').checked ?
+              popup.querySelector('#maxomlen').value : null,
             blockid: block.value,
             witnesses: cachedwitnesses
         });
@@ -445,18 +458,20 @@ const collate = async () => {
           spinner.style.display = 'none';
           return;
         }
-        addWitnesses(_state.curDoc,app.listwit);
-        addApparatus(_state.curDoc,app.listapp,app.warnings,alignobj.doc,block.value,alignobj.filename);
+        addWitnesses(xmldoc,app.listwit);
+        addApparatus(xmldoc,app.listapp,app.warnings,alignobj.doc,block.value,alignobj.filename);
         
     }
     // TODO: only preview selected blocks
-    const newDoc = await previewDoc(_state.curDoc);
+    const newDoc = mode === 'serverless' ? 
+        await previewDoc(xmldoc) :
+        await shadowPreview(xmldoc);
     for(const id of blocklist) {
         const newblock = newDoc.getElementById(id);
         const newpar = newblock.closest('.wide');
         const newwide = newpar || newblock; // TODO: this is ugly
 
-        const oldblock = document.getElementById(id);
+        const oldblock = htmldoc.querySelector(`#${id}`);
         const oldpar = oldblock.closest('.wide');
         const oldwide = oldpar || oldblock;
 
@@ -464,23 +479,23 @@ const collate = async () => {
         //newblock.style.border = '1px dashed red';
         newwide.classList.add('edited');
         if(!newwide.id) newwide.id = `edited_${crypto.randomUUID()}`;
-        (new BroadcastChannel('apparatus')).postMessage({id: newwide.id, uuid: _state.appid});
-        (new BroadcastChannel('transliterator')).postMessage({id: newwide.id, uuid: _state.transid});
+        const rc = htmldoc.querySelector('#recordcontainer');
+        (new BroadcastChannel('apparatus')).postMessage({id: newwide.id, uuid: rc.dataset.appid});
+        (new BroadcastChannel('transliterator')).postMessage({id: newwide.id, uuid: rc.dataset.transid});
     }
-    document.getElementById('editblackout').style.display = 'none';
-    document.getElementById(blocklist[0]).scrollIntoView({behavior: 'smooth',block: 'center'}); 
-    addEditButtons(blocklist);
+    htmldoc.querySelector('#editblackout').style.display = 'none';
+    htmldoc.querySelector(`#${blocklist[0]}`).scrollIntoView({behavior: 'smooth',block: 'center'}); 
+    if(mode === 'serverless') addEditButtons(blocklist);
 
     // keep clicking until the apparatus appears... pretty hacky solution
-    const appbutton = document.getElementById('apparatusbutton');
+    const appbutton = htmldoc.querySelector('#apparatusbutton');
     appbutton.click();
-    if(document.querySelector('.apparatus-block.hidden'))  {
+    if(htmldoc.querySelector('.apparatus-block.hidden'))  {
         appbutton.click();
     }
     button.style.display = 'unset';
     spinner.style.display = 'none';
 };
-
 const cacheWitnesses = async (doc, witmap, filemap) => {
   for(const wit of getWits(doc)) {
     if(!wit.filename) continue;
@@ -509,6 +524,34 @@ const cacheWitnesses = async (doc, witmap, filemap) => {
   }
 };
 
+const cacheWitnesses2 = async (doc, witmap, filemap) => {
+  for(const wit of getWits(doc)) {
+    if(!wit.filename) continue;
+    if(!witmap.get(wit.name)) {
+      let file = filemap.get(wit.filename);
+      let newfilename;
+      if(!file) {
+        file = await loadDoc(wit.filename);
+        if(!file) {
+          newfilename = `${_opts.witnessDir}/${wit.filename}`;
+          file = await loadDoc(newfilename);
+        }
+        if(file) filemap.set(wit.filename,file);
+      }
+      if(file) {
+        witmap.set(wit.name, {
+            name: wit.name,
+            type: wit.type,
+            select: wit.select,
+            xml: file
+        });
+      if(newfilename)
+        witmap.get(wit.name).updatedfilename = newfilename;
+      }
+    }
+  }
+};
+*/
 const exportFile = async () => {
     const libRoot = document.getElementById('injectedscript')?.dataset.root;
     const outdoc = await exportLaTeX(_state.curDoc,libRoot,_state.shadowRoot);

@@ -478,6 +478,14 @@ const matrixLoad = (fs,str) => {
 
 	else menuPopulate();
 
+  const allchanges = {attributes: true, childList: true, subtree: true, characterData: true};
+  const observer = new MutationObserver(() => {
+    const savebutton = document.querySelector('#menubox_save');
+    savebutton.style.display = 'block';
+    observer.disconnect();
+    setTimeout(() => observer.observe(_state.xml.documentElement,allchanges), 1000);
+  });
+  observer.observe(_state.xml.documentElement,allchanges);
 };
 
 	const setDiff = (setA,setB)  => {
@@ -613,9 +621,9 @@ const matrixLoadAdditional = function(fs) {
 const menuPopulate = function() {
   let savebox;
   if(_state.filehandle !== null) {
-    savebox = new menuItem('Save');
+    savebox = new menuItem('Save','menubox_save');
     savebox.setFunction(Exporter.saveHandle);
-    savebox.setStyle({fontWeight: 'bold'});
+    savebox.setStyle({fontWeight: 'bold', display: 'none'});
   }
   else {
     savebox = new menuItem('Save As...');
@@ -934,10 +942,11 @@ const contextMenu = {
 /*** Classes ***/
 
 class menuItem {
-	constructor(name) {
+	constructor(name,idname) {
 		this.name = name;
 		this.box = document.createElement('div');
 		this.box.classList.add('menubox');
+    if(idname) this.box.id = idname;
 		const heading = document.createElement('div');
 		heading.classList.add('heading');
 		heading.appendChild(document.createTextNode(name));
@@ -1869,9 +1878,9 @@ const maybeLoadData = async () => {
         if(e.data.uuid !== uuid) return;
         if(e.data.handle)
           loadFileHandle(e.data.handle);
-        return;
       }
-			csvOrXml(e.data.f,e.data.fs,e.data.e); // TODO: deprecate this
+      else
+        csvOrXml(e.data.f,e.data.fs,e.data.e); // TODO: deprecate this
 			bc.close();
 		};
 		if(uuid) bc.postMessage({uuid: uuid, state: 'ready'});

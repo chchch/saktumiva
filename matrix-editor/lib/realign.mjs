@@ -1,6 +1,6 @@
-import { charSplit, aksaraSplit, graphemeSplit, slpish } from '../../lib/split.mjs';
+import { charSplit, aksaraSplit, graphemeSplit, wylie, iast, wylish, slpish } from '../../lib/split.mjs';
 import { parseString, readOne } from '../../lib/browserutils.mjs';
-import { processFile, preProcess, findSplitfunc, cleanup1, cleanup2, makeWitList } from '../../lib/collate.mjs';
+import { processFile, preProcess, findSplitfunc, cleanup1, cleanup2, makeWitList, untransliterate } from '../../lib/collate.mjs';
 import { filters, unfilterAll } from '../../lib/normalize.mjs';
 import tagstoignore from '../../lib/tagfilters.mjs';
 import Sanscript from '../../lib/sanscript.mjs';
@@ -80,58 +80,81 @@ const arrayEqual = (a1, a2) => {
   return true;
 };
 
-const detectTokenization = eddecl => {
+const detectTokenization = (eddecl,lang='sa') => {
+  const ish = lang === 'bo' ? 'wylish' : 'slpish';
+  const charset = lang === 'bo' ? wylie : iast;
   const specified = eddecl?.querySelector('segmentation > ab[type="tokenization"]')?.innerHTML;
   if(specified) return specified;
 
   const line = _state.xml.querySelector('text');
   const tokenized = [...line.querySelectorAll('w')].map(w => {
     const lem = w.getAttribute('lemma');
-    if(lem) return Sanscript.t(lem,'iast','slpish');
-    return Sanscript.t(w.textContent,'iast','slpish');
+    if(lem) return Sanscript.t(lem,'iast',ish);
+    return Sanscript.t(w.textContent,'iast',ish);
   },'').filter(w => w);
   const smushed = tokenized.join('');
   
-  const char = charSplit(smushed);
+  const char = charSplit(smushed,charset);
   if(arrayEqual(char,tokenized)) return 'character';
 
-  const aksara = aksaraSplit(smushed).map(c => c.join(''));
+  const aksara = aksaraSplit(smushed,charset).map(c => c.join(''));
   if(arrayEqual(aksara,tokenized)) return 'aksara';
 
-  const grapheme = graphemeSplit(smushed).map(c => c.join(''));
+  const grapheme = graphemeSplit(smushed,charset).map(c => c.join(''));
   if(arrayEqual(grapheme,tokenized)) return 'grapheme';
   
   return 'whitespace';
 };
 
-const realign = (newtexts,selectedsigla,blockid/*,opts*/) => {
+const getAcPcSigla = (revisedsigla,xml) => {
+  const listwit = xml.querySelector('teiHeader > listWit');
+  if(!listwit) return new Set();
+  
+  const acpcsigla = new Set();
+  for(const siglum of revisedsigla) {
+    const wit = listwit.querySelector(`witness[*|id='${siglum}']`);
+      if(!wit) continue;
+      const acsig = wit.querySelector('witness[n="ac"]')?.getAttribute('xml:id');
+      const pcsig = wit.querySelector('witness[n="pc"]')?.getAttribute('xml:id');
+      if(acsig) acpcsigla.add(acsig);
+      if(pcsig) acpcsigla.add(pcsig);
+  }
+  return acpcsigla;
+};
+
+const realignPreflight = (selectedsigla,blockid) => {
+  const lang = _state.xml.documentElement.getAttribute('xml:lang')?.split('-')[0];
   const eddecl = _state.xml.querySelector('editorialDecl');
 
   const targeted = eddecl?.querySelector('segmentation > ab[type="targetedition"]')?.textContent || _state.xml.querySelector('TEI').getAttribute('n');
-  const tok = detectTokenization(eddecl);
+  const tokenization = detectTokenization(eddecl,lang);
               'character';
   const tagfilters = getTagFilters(eddecl);
   const recursive = eddecl?.querySelector('segmentation > ab[type="scoring"] > ab[type="recursive"]')?.innerHTML || false;
-  const configfunc = tok === 'character' ? 'character' :
-      recursive ? 'arr' : 'arr_simple';
   const scores = getScores(eddecl);
 
-  const selectedtexts = [...selectedsigla].map(s => {return {siglum: s, text: newtexts.get(s)};});
+  const selectedtexts = [...selectedsigla].map(s => {return {siglum: s, text: _state.textsinfo.get(s)};});
   const toadd = preProcess(blockid, selectedtexts,
-      {splitfunc: findSplitfunc(tok), selectedfilters: getFilterIndices(_state.xml), ignoretags: tagfilters}
+      {splitfunc: findSplitfunc(tokenization), selectedfilters: getFilterIndices(_state.xml), ignoretags: tagfilters}
   )
-  const toaddobjs = toadd.map(t => {
-    return {siglum: t.siglum, textobj: 
-      t.text.map(tt => {return {norm: tt};})
-    };
-  });
-  const revisedsigla = new Set(toadd.map(t => t.siglum)); // ac/pc might get merged into main
 
-  const filtersmap = new Map(toadd.map(t => [t.siglum,t.filters]));
+  const sigla = new Set(toadd.map(t => t.siglum)); 
+  // ac/pc might get merged into main
+  const ignoresigla = getAcPcSigla(sigla,_state.xml);
 
+  const opts = { 
+    scores: scores, 
+    tokenization: tokenization, 
+    recursive: recursive, 
+    lang: lang,
+    targeted: targeted
+  };
+  
+  return [toadd, ignoresigla, opts];
+  /*
   const oldtexts = [..._state.xml.querySelectorAll('TEI')].map(tei => {
     const siglum = tei.getAttribute('n');
-    if(revisedsigla.has(siglum)) return null;
+    if(ignoresigla.has(siglum)) return null;
 
     const textobj = [...tei.querySelectorAll('w')].map(w => {
       const ret = {};
@@ -179,24 +202,82 @@ const realign = (newtexts,selectedsigla,blockid/*,opts*/) => {
     bc.close();
   };
   return ret;
+  */
   /*
   const ma = new MultiAligner(configfunc,scores);
   const alignment = ma.alignAppend(oldtexts,toaddobjs);
   */
 };
 
-const untransliterate = (str, lang='sa') => {
-  // TODO: deal with Tibetan
-  if(lang === 'bo') return str;
-  if(Array.isArray(str))
-    for(let m=0;m<str.length;m++)
-      str[m] = Sanscript.t(str[m],'slpish','iast');
-  else
-    str = Sanscript.t(str,'slpish','iast');
-  return str;
+const realign = (toadd,ignoresigla,opts) => {
+  const toaddobjs = toadd.map(t => {
+    return {siglum: t.siglum, textobj: 
+      t.text.map(tt => {return {norm: tt};})
+    };
+  });
+
+  const filtersmap = new Map(toadd.map(t => [t.siglum,t.filters]));
+
+  const configfunc = opts.tokenization === 'character' ? 'character' :
+      opts.recursive ? 'arr' : 'arr_simple';
+  const revisedsigla = new Set(toaddobjs.map(t => t.siglum)); 
+  const ish = opts.lang === 'bo' ? 'wylish' : 'slpish';
+  const charset = opts.lang === 'bo' ? wylish : slpish;
+  const oldtexts = [..._state.xml.querySelectorAll('TEI')].map(tei => {
+    const siglum = tei.getAttribute('n');
+    if(ignoresigla.has(siglum)) return null;
+
+    const textobj = [...tei.querySelectorAll('w')].map(w => {
+      const ret = {};
+      const cl = w.closest('cl');
+      if(cl) {
+        if(cl.firstElementChild === w)
+          ret.clstart = true;
+        else if(cl.lastElementChild === w)
+          ret.clend = true;
+      }
+      ret.unnorm = Sanscript.t(w.innerHTML,'iast',ish);
+      const lemma = w.getAttribute('lemma');
+      ret.norm = lemma === null ? ret.unnorm : lemma; 
+      ret.norm = Sanscript.t(ret.norm,'iast',ish);
+      if(opts.tokenization !== 'character' && opts.recursive === 'true')
+        ret.norm = charSplit(ret.norm,charset);
+      return ret;
+    });
+    return {siglum: siglum, textobj: textobj};
+  }).filter(e => e);
+  const alignWorker = new Worker(new URL('./realignworker.mjs',import.meta.url),{type: 'module'});
+  alignWorker.postMessage([JSON.stringify(oldtexts),JSON.stringify(toaddobjs),configfunc,opts.scores]);
+
+  const ret = {};
+
+  alignWorker.onmessage = e => {
+    if(e.data.hasOwnProperty('progress')) {
+      // TODO: do something with e.data.message
+      return;
+    }
+    const alignment = JSON.parse(e.data);
+    const meta = {
+      tokenization: opts.tokenization,
+      lang: opts.lang,
+      targeted: revisedsigla.has(opts.targeted) ? oldtexts[0].siglum : opts.targeted
+    };
+    const clean = postProcess(alignment, 
+                              filtersmap,
+                              meta);
+    const newwits = makeWitList(_state.textsinfo);
+
+    ret.rows = clean;
+    ret.tree = alignment.tree;
+    ret.witnesses = newwits;
+    const bc = new BroadcastChannel('realigner');
+    bc.postMessage('done');
+    bc.close();
+  };
+  return ret;
 };
 
-const postProcess = (alignment, filtersmap, meta, targeted) => {
+const postProcess = (alignment, filtersmap, meta) => {
   const clean = alignment.alignment.map(arr => arr.map(obj => {
     const norm = Array.isArray(obj.norm) ?  obj.norm.join('') : obj.norm;
     if(!obj.hasOwnProperty('unnorm')) return norm;
@@ -210,13 +291,13 @@ const postProcess = (alignment, filtersmap, meta, targeted) => {
   let targetrow = alignment.alignment[0];
   for(const [index, row] of clean.entries()) {
     const id = alignment.sigla.shift();
-    if(id === targeted) targetrow = alignment.alignment[index];
+    if(id === meta.targeted) targetrow = alignment.alignment[index];
     const f = filtersmap.get(id);
     if(!f) {
       const newrow = row.map(c => {
         if(Array.isArray(c))
-          return c.map(cc => untransliterate(cc));
-        return untransliterate(c);
+          return c.map(cc => untransliterate(cc,meta.lang));
+        return untransliterate(c,meta.lang);
       });
       newclean.push({siglum: id, text: newrow});
       continue;
@@ -225,9 +306,9 @@ const postProcess = (alignment, filtersmap, meta, targeted) => {
     const ret = new Array(unfiltered.length);
     for(let n=0;n<unfiltered.length;n++) {
       if(unfiltered[n] === row[n])
-        ret[n] = untransliterate(unfiltered[n]);
+        ret[n] = untransliterate(unfiltered[n],meta.lang);
       else
-        ret[n] = [untransliterate(unfiltered[n]),untransliterate(row[n])];
+        ret[n] = [untransliterate(unfiltered[n],meta.lang),untransliterate(row[n],meta.lang)];
     }
     newclean.push({siglum: id, text: ret});
     cleanup2(newclean, meta);
@@ -282,7 +363,8 @@ const restoreGroups = (alignment, ref) => {
 
 const Realigner = {
   init: state => {_state = state;},
-  realign: realign
+  realign: realign,
+  realignPreflight: realignPreflight
 };
 
 export default Realigner;

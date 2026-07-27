@@ -15,6 +15,9 @@ const Exporter = function(Utils,Xslt) {
             await writer.close();
             const msg = handle.name ? ` to ${handle.name}` : '';
             Message.write(`Saved${msg}.`);
+            const bc = new BroadcastChannel('matrix-editor');
+            bc.postMessage({state: 'saved'});
+            bc.close();
         },
 
         xml: async function(doc,handle) {
@@ -405,7 +408,11 @@ END;
         saveHandle: function() {
             const doc = Find.curxml().cloneNode(true);
             const handle = Find.filehandle();
+            const bc = new BroadcastChannel('matrix-editor');
+            bc.postMessage({state: 'saving'});
+            bc.close();
             exp.xml(doc,handle);
+            document.querySelector('#menubox_save').style.display = 'none';
         },
 /*
         showOptions: function(func,optfunc) {

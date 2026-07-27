@@ -56,4 +56,11 @@ const XSLTransform = async (xsltsheet, doc) => {
     return xproc.transformToDocument(doc);
 };
 
-export { loadDoc, compileImports, XSLTransform };
+const handleToXML = async handle => {
+  const file = await handle.getFile();
+  if(!file) return false;
+  const txt = await file.text();
+  return (new DOMParser()).parseFromString(txt, 'text/xml');
+};
+
+export { loadDoc, compileImports, XSLTransform, handleToXML };

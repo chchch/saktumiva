@@ -5,6 +5,7 @@ import JSZip from '../lib/jszip.mjs';
 import { processFile, preProcess, groupBySpace, findSplitfunc } from '../lib/collate.mjs';
 import { parseString, readOne } from '../lib/browserutils.mjs';
 import guideTree from '../lib/tree.mjs';
+import { appendList, updateCheckboxes, uncheckType } from '../lib/uiutils.mjs';
 
 const _state = {
     alltexts: new Map(),
@@ -100,33 +101,6 @@ const updatePreview = async () => {
 
 };
 
-const appendList = (par, els) => {
-    par.innerHTML = '';
-    const item1 = document.createElement('div');
-    const input1 = document.createElement('input');
-    input1.setAttribute('type','checkbox');
-    input1.setAttribute('name','selectall');
-    input1.id = `input_${Date.now() + Math.random()}`;
-    const label1 = document.createElement('label');
-    label1.textContent = 'Select all';
-    label1.setAttribute('for',input1.id);
-    item1.appendChild(input1);
-    item1.appendChild(label1);
-    par.appendChild(item1);
-    for(const el of els) {
-        const item = document.createElement('div');
-        const input = document.createElement('input');
-        input.id = `input_${Date.now() + Math.random()}`;
-        input.setAttribute('type','checkbox');
-        const label = document.createElement('label');
-        label.setAttribute('for',input.id);
-        label.textContent = el;
-        item.appendChild(input);
-        item.appendChild(label);
-        par.appendChild(item);
-    }
-};
-
 const getFilterIndices = () => {
     const ret = [];
     const par = document.getElementById('normalization');
@@ -165,15 +139,6 @@ const getSelected = par => {
     return ret;
 };
 
-const getScores = () => {
-    const nums = [...document.querySelectorAll('#scoring input.score')].map(i => parseFloat(i.value));
-    const recursive = document.getElementById('check_recursive').checked;
-    const scalegap = document.getElementById('input_scalegap').checked;
-    const distancefunc = document.getElementById('treetype_ncd').checked ? 'ncd' : 'ngrams';
-    const ngramsize = document.getElementById('tree_ngramsize').value;
-    return {scores: nums, recursive: recursive, distancefunc: distancefunc, ngramsize: ngramsize, scalegap: scalegap};
-};
-
 const makeTree = () => {
     const tok = document.querySelector('input[name="tokenization"]:checked').value;
     const splitfunc = findSplitfunc(tok);
@@ -196,8 +161,11 @@ const makeTree = () => {
 
     const selectedtexts = selectedsigla.map(s => {return {siglum: s, text:_state.alltexts.get(s)};});
     const texts = preProcess(null, selectedtexts, {splitfunc: splitfunc, selectedfilters: filtersindices, ignoretags: tagfilters}); 
-    const distancefunc = document.getElementById('treetype_ncd').checked ? 'ncd' : 'ngrams';
+    const distancefunc = document.getElementById('treetype_ncd').checked ? 'ncd' : 
+                         document.getElementById('treetype_bpe').checked ? 'bpe' : 
+                        'ngrams';
     const ngramsize = document.getElementById('tree_ngramsize').value;
+    const bpeiters = document.getElementById('tree_bpeiters').value;
     
     const textarr = texts.map(a => [a.siglum, a.text]).sort((a,b) => a[0].localeCompare(b[0]));
     //const guidetree = guideTree(textarr, distancefunc, ngramsize);
@@ -209,7 +177,7 @@ const makeTree = () => {
       popupmessage.innerHTML = `<button id="treesave">Save file</button></div>`;
       document.getElementById('treesave').addEventListener('click', saveAs.bind(null,nexus));
     }
-    treeWorker.postMessage([textarr, distancefunc, ngramsize]);
+    treeWorker.postMessage([textarr, distancefunc, ngramsize, bpeiters]);
 };
 
 const nexusExport = matrix => {
@@ -248,34 +216,6 @@ const saveAs = async str => {
 
 };
 
-const updateCheckboxes = e => {
-    if(e.target.tagName !== 'INPUT') return;
-    const par = e.target.closest('.checklist');
-    const parbox = par.querySelector('input[name="selectall"]');
-    if(e.target === parbox) {
-        for(const box of par.querySelectorAll('input')) {
-            box.checked = parbox.checked;
-        }
-        return;
-    }
-
-    let checked = null;
-    let unchecked = null;
-    for(const box of par.querySelectorAll('input')) {
-        if(box === parbox) continue;
-        if(box.checked)
-            checked = true;
-        else unchecked = true;
-        if(checked === true && unchecked === true) {
-            parbox.indeterminate = true;
-            return;
-        }
-    }
-    if(checked) parbox.checked = true;
-    else parbox.checked = false;
-    parbox.indeterminate = false;
-};
-
 const makeOption = (index,obj) => {
     const div = document.createElement('div');
     const box = document.createElement('input');
@@ -308,22 +248,8 @@ const checkAll = e => {
     }
 };
 
-const uncheckAC = () => uncheckType('ac');
-const uncheckPC = () => uncheckType('pc');
-const uncheckType = acpc => {
-  let indet = false;
-  let parbox;
-  for(const input of document.querySelectorAll('#file-input-box > .checklist input')) {
-    if(input.name === 'selectall') parbox = input;
-    const siglum = input.nextElementSibling.textContent;
-    const text = _state.alltexts.get(siglum);
-    if(text?.type === acpc) {
-      input.checked = false;
-      indet = true;
-    }
-  }
-  if(indet && parbox.checked) parbox.indeterminate = true;
-};
+const uncheckAC = () => uncheckType(document.querySelector('#file-input-box > .checklist'),_state.alltexts,'ac');
+const uncheckPC = () => uncheckType(document.querySelector('#file-input-box > .checklist'),_state.alltexts,'pc');
 
 const updateBoxes = e => {
     if(e.target.tagName !== 'INPUT') return;

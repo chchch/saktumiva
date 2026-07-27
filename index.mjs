@@ -1,9 +1,11 @@
 import { showSaveFilePicker } from './lib/native-file-system-adapter/es6.js';
-import { filters as allFilters } from './lib/normalize.mjs';
 import tagsToIgnore from './lib/tagfilters.mjs';
 import JSZip from './lib/jszip.mjs';
 import { processFile, preProcess, postProcess, groupBySpace, findSplitfunc } from './lib/collate.mjs';
 import { parseString, readOne } from './lib/browserutils.mjs';
+import { appendList, acPcButtons, updateCheckboxes, populateFilters, languageSpecificOptions } from './lib/uiutils.mjs';
+import { alignPreflight } from './lib/alignui.mjs';
+
 const _state = {
     alltexts: new Map(),
     allblocks: new Set()
@@ -24,55 +26,6 @@ const upload = async (arr) => {
     return await Promise.all(files);
 };
 */
-
-const languageSpecificOptions = textel => {
-    const langcode = textel.getAttribute('xml:lang') || textel.querySelector('[*|lang]')?.getAttribute('xml:lang');
-    if(!langcode) return;
-    
-    const lang = langcode === 'ta' || langcode.startsWith('ta-Taml') ? 'tamil' :
-                 langcode === 'sa' || langcode.startsWith('sa-Latn') ? 'sanskrit' :
-                 langcode === 'pi' || langcode.startsWith('pi-Latn') ? 'pali' :
-                 langcode === 'bo' || langcode.startsWith('bo-') ? 'tibetan' :
-                 null;
-    if(!lang) return;
-
-    const toks = document.querySelectorAll('input[name="tokenization"]');
-    for(const tok of toks) {
-        if(tok.value === 'grapheme' && lang === 'tamil')
-            tok.checked = true;
-        else if(tok.value === 'character' && lang === 'sanskrit' || lang === 'pali')
-            tok.checked = true;
-        else if (tok.value === 'whitespace' && lang === 'tibetan')
-            tok.checked = true;
-        else
-            tok.checked = false;
-    }
-
-    const normies = document.getElementById('normalization');
-    normies.querySelector('input').checked = true; // ignore punctuation
-    if(lang === 'pali') 
-        normies.querySelector('input[value="1"').checked = true; // ignore case
-    if(lang === 'sanskrit' || lang === 'tamil' || lang === 'pali')
-        normies.querySelector(`label[title="Search: \\\\s Replace: () => ''"]`).previousElementSibling.checked = true; // remove spaces
-
-    const filterhead = lang === 'sanskrit' ? normies.querySelector('.sanskrit') :
-                    lang === 'tamil' ? normies.querySelector('.tamil') :
-                    lang === 'pali' ? normies.querySelector('.pali') :
-                    null;
-    if(filterhead) {
-        const input = filterhead.parentNode.querySelector('input');
-        if(!input.checked) {
-            input.click();
-            filterhead.open = false;
-        }
-        if(lang === 'tamil') {
-            const arr = [5,6,7,8,9,10];
-            for(const n of arr)
-                filterhead.parentNode.querySelector(`input[value="${n}"]`).click();
-        }
-    }
-};
-
 const updatePreview = async () => {
     const preview = document.getElementById('file-input-box');
     const idpreview = document.getElementById('xml-ids-box');
@@ -94,15 +47,16 @@ const updatePreview = async () => {
             for(const warning of warnings)
                 alert(warning);
     }
-    
+
     const sigla = [..._state.alltexts.keys()].sort(natSort);
     updateTargetEd(sigla);
     appendList(preview.querySelector('.checklist'), sigla);
+    acPcButtons(preview.querySelector('.checklist'), _state.alltexts);
     appendList(idpreview.querySelector('.checklist'), [..._state.allblocks].sort(natSort));
-        
+
     document.getElementById('alignsubmit').style.display = 'block';
     document.querySelector('.options').style.display = 'flex';
-    
+
     idpreview.style.opacity = 1;
     idpreview.style.display = 'flex';
 
@@ -130,143 +84,17 @@ const updateTargetEd = sigla => {
     }
 };
 
-const appendList = (par, els) => {
-    par.innerHTML = '';
-    const item1 = document.createElement('div');
-    const input1 = document.createElement('input');
-    input1.setAttribute('type','checkbox');
-    input1.setAttribute('name','selectall');
-    input1.id = `input_${Date.now() + Math.random()}`;
-    const label1 = document.createElement('label');
-    label1.textContent = 'Select all';
-    label1.setAttribute('for',input1.id);
-    item1.appendChild(input1);
-    item1.appendChild(label1);
-    par.appendChild(item1);
-    for(const el of els) {
-        const item = document.createElement('div');
-        const input = document.createElement('input');
-        input.id = `input_${Date.now() + Math.random()}`;
-        input.setAttribute('type','checkbox');
-        const label = document.createElement('label');
-        label.setAttribute('for',input.id);
-        label.textContent = el;
-        item.appendChild(input);
-        item.appendChild(label);
-        par.appendChild(item);
-    }
-};
-
-const getFilterIndices = () => {
-    const ret = [];
-    const par = document.getElementById('normalization');
-    for(const box of par.querySelectorAll('input:checked')) {
-        const i = parseInt(box.value);
-        if(isNaN(i)) continue;
-        ret.push([i,box.nextElementSibling.textContent]);
-    }
-    ret.sort((a,b) => a[0] - b[0]);
-    //return [ret.map(r => r[0]), ret.map(r => r[1])];
-    return ret.reduce((acc,cur) => {
-        acc[0].push(cur[0]);
-        acc[1].push(cur[1]);
-        return acc;
-    },[[],[]]);
-};
-
-const getTagFilters = () => {
-    const ret = [];
-    const par = document.getElementById('xmltags');
-    for(const box of par.querySelectorAll('input:checked')) {
-        ret.push(box.value);
-    }
-    return ret;
-};
-
-const getSelected = (par) => {
-    const ret = [];
-    for(const input of par.querySelectorAll('input')) {
-        if(input.getAttribute('name') === 'selectall')
-            continue;
-        if(!input.checked)
-            continue;
-        ret.push(input.nextElementSibling.textContent);
-    }
-    return ret;
-};
-
-const getScores = () => {
-    const nums = [...document.querySelectorAll('#scoring input.score')].map(i => parseFloat(i.value));
-    const recursive = document.getElementById('check_recursive').checked;
-    const scalegap = document.getElementById('input_scalegap').checked;
-    const distancefunc = document.getElementById('treetype_ncd').checked ? 'ncd' : 'ngrams';
-    const ngramsize = document.getElementById('tree_ngramsize').value;
-    return {scores: nums, recursive: recursive, distancefunc: distancefunc, ngramsize: ngramsize, scalegap: scalegap};
-};
-
 const align = () => {
-    const tok = document.querySelector('input[name="tokenization"]:checked').value;
-
-    const splitfunc = findSplitfunc(tok);
-
-    const scores = getScores();
-    const scoring = {
-        match: scores.scores[0],
-        mismatch: scores.scores[1],
-        gap_open: scores.scores[2],
-        gap_extend: scores.scores[3],
-        gap_skip_initial: true,
-        scalegap: scores.scalegap,
-        recursive: scores.recursive,
-        realigndepth: scores.scores[4],
-        distancefunc: scores.distancefunc,
-        ngramsize: scores.ngramsize
-    };
-    const configfunc = tok === 'character' ? 'character' : 
-        scores.recursive ? 'arr' : 'arr_simple';
-
-    const selectedsigla = getSelected(document.getElementById('file-input-box'));
-    const selectedblocks = getSelected(document.getElementById('xml-ids-box'));
-    if(selectedblocks.length === 0 || selectedsigla.length === 0) {
-        alert('Nothing selected to be aligned.');
-        return;
-    }
-    
-    const [filtersindices, filtersnames] = getFilterIndices();
-    const tagfilters = getTagFilters();
-    const targetedition = document.getElementById('targetedition').value;
+    const ret = alignPreflight(document, _state.alltexts);
+    if(!ret) return;
+    const {todo: todo, meta: meta} = ret;
 
     const alignedblocks = new Map();
-    const todo = [];
-    const selectedtexts = selectedsigla.map(s => {return {siglum: s, text:_state.alltexts.get(s)};});
-    const notdone = [];
-    for(const block of selectedblocks) {
-        const texts = preProcess(block, selectedtexts, {splitfunc: splitfunc, selectedfilters: filtersindices, ignoretags: tagfilters}); 
-        if(texts.length === 1) {
-            notdone.push(block);
-            alert(`Nothing to align in ${block}.`);
-            continue;
-        }
-
-        todo.push({workerdata: [texts,configfunc,scoring], block: block});
-    }
-
-    if(todo.length === 0) return;
 
     document.getElementById('blackout').style.display = 'flex';
     const popupmessage = document.getElementById('popupmessage');
     popupmessage.innerHTML = '';
     document.getElementById('spinner').style.display = 'flex';
-
-    const meta = {
-        alltexts: _state.alltexts,
-        filtersnames: filtersnames,
-        tagfilters: tagfilters,
-        lang: todo[0].workerdata[0][0].lang,
-        tokenization: tok,
-        scoring: scoring,
-        targetedition: targetedition
-    };
 
     const alignWorker = new Worker('./lib/multialignworker.mjs',{type: 'module'});
     let n = 0;
@@ -306,9 +134,9 @@ const align = () => {
                 popupmessage.innerHTML = '<div class="vertcentre"><button id="xmlopen">Open files</button><button id="xmlsave">Save each file</button><button id="xmlsave2">Save ZIP</button>';
                 document.getElementById('xmlsave2').addEventListener('click', saveAsZip.bind(null,alignedblocks));
             }
-            if(notdone.length > 0) {
+            if(meta.notdone.length > 0) {
               const warnings = document.createElement('div');
-              warnings.textContent = `Not aligned: ${notdone.join(', ')}.`;
+              warnings.textContent = `Not aligned: ${meta.notdone.join(', ')}.`;
               popupmessage.firstElementChild.appendChild(warnings);
             }
             document.getElementById('xmlopen').addEventListener('click',openInEditor.bind(null,alignedblocks));
@@ -377,86 +205,6 @@ const saveAsZip = async blocks => {
        });
 };
 
-const updateCheckboxes = (e) => {
-    if(e.target.tagName !== 'INPUT') return;
-    const par = e.target.closest('.checklist');
-    const parbox = par.querySelector('input[name="selectall"]');
-    if(e.target === parbox) {
-        for(const box of par.querySelectorAll('input')) {
-            box.checked = parbox.checked;
-        }
-        return;
-    }
-
-    let checked = null;
-    let unchecked = null;
-    for(const box of par.querySelectorAll('input')) {
-        if(box === parbox) continue;
-        if(box.checked)
-            checked = true;
-        else unchecked = true;
-        if(checked === true && unchecked === true) {
-            parbox.indeterminate = true;
-            return;
-        }
-    }
-    if(checked) parbox.checked = true;
-    else parbox.checked = false;
-    parbox.indeterminate = false;
-};
-
-const makeOption = (index,obj) => {
-    const div = document.createElement('div');
-    const box = document.createElement('input');
-    box.setAttribute('type','checkbox');
-    box.id = `checkbox_${Date.now() + Math.random()}`;
-    box.value = index;
-    if(obj.hasOwnProperty('checked')) {
-      if(obj.checked === true) box.setAttribute('checked',true);
-      else box.dataset.default = 'off';
-    }
-    const label = document.createElement('label');
-    label.setAttribute('for',box.id);
-    if(obj.search && obj.replace)
-        label.title = `Search: ${obj.search} Replace: ${obj.replace.toString()}`;
-    label.append(obj.name);
-    div.appendChild(box);
-    div.appendChild(label);
-    return div;
-};
-
-const checkAll = (e) => {
-    const details = e.target.parentNode.querySelector('details');
-    details.open = true;
-    const kids = details.querySelectorAll('input');
-    for(const kid of kids) {
-        if(kid.dataset.default === 'off')
-          continue;
-        else
-          kid.checked = e.target.checked;
-    }
-};
-
-const updateBoxes = (e) => {
-    if(e.target.tagName !== 'INPUT') return;
-    const par = e.target.closest('details');
-    const parbox = par.parentNode.querySelector('input');
-    let checked = null;
-    let unchecked = null;
-    for(const box of par.querySelectorAll('input')) {
-        if(box.checked)
-            checked = true;
-        else unchecked = true;
-        if(checked === true && unchecked === true) {
-            parbox.indeterminate = true;
-            return;
-        }
-    }
-    if(checked) parbox.checked = true;
-    else parbox.checked = false;
-    parbox.indeterminate = false;
-};
-
 const closeBlackout = e => {
 	if(e.target.closest('#popup')) return;
     if(!document.querySelector('#popup button')) return;
@@ -490,35 +238,9 @@ window.addEventListener('load', () => {
         box.addEventListener('click',updateCheckboxes);
 
     document.getElementById('alignsubmit').addEventListener('click', align);
-	
+
     document.getElementById('blackout').addEventListener('click',closeBlackout);
-
-    const normies = document.getElementById('normalization');
-    
-    for(const checkbox of normies.querySelectorAll('input'))
-        checkbox.addEventListener('click',checkAll);
-
-    const tamil = normies.querySelector('details.tamil');
-    tamil.addEventListener('click',updateBoxes);
-    const sanskrit = normies.querySelector('details.sanskrit');
-    sanskrit.addEventListener('click',updateBoxes);
-    const pali = normies.querySelector('details.pali');
-    pali.addEventListener('click',updateBoxes);
-
-    for(const [i, filter] of allFilters.entries()) {
-        if(filter.group === 'general')
-            normies.insertBefore(makeOption(i,filter),tamil.parentNode);
-        else if(filter.group === 'tamil')
-            tamil.appendChild(makeOption(i,filter));
-        else if(filter.group === 'pali')
-            pali.appendChild(makeOption(i,filter));
-        else
-            sanskrit.appendChild(makeOption(i,filter));
-    }
-    const xmltags = document.getElementById('xmltags');
-    for(const tag of tagsToIgnore) {
-        const opt = makeOption(tag,{name: `Ignore <${tag}>`,checked: true});
-        xmltags.appendChild(opt);
-    }
+  
+    populateFilters(document);
 });
 

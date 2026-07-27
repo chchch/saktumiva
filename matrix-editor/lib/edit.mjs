@@ -163,17 +163,17 @@ const edit = {
     Make.blackout(frag,() => edit.finishUpdateRow(newthings.alltexts));
   },
 
-  finishUpdateRow: function(alltexts) {
+  finishUpdateRow: alltexts => {
       const blackout = document.createElement('div');
       blackout.id = 'blackout';
       const spinner = document.createElement('div');
       spinner.id = 'spinner';
       blackout.appendChild(spinner);
       document.body.appendChild(blackout);
-      const texts = new Set([...document.querySelectorAll('#add_selectedtexts input')].filter(i => i.checked).map(i => i.name));
+      const updatesigla = new Set([...document.querySelectorAll('#add_selectedtexts input')].filter(i => i.checked).map(i => i.name));
       const blockel = document.getElementById('add_selectedblock');
       const block = blockel[blockel.selectedIndex].text;
-      Realigner.init(_state);
+      Realigner.init({..._state, textsinfo: alltexts});
       /*
       const opts = {
         realigndepth: document.getElementById('realigndepth').value 
@@ -181,7 +181,8 @@ const edit = {
       */
       const bc = new BroadcastChannel('realigner');
 
-      const ret = Realigner.realign(alltexts,texts,block/*,opts*/);
+      const args = Realigner.realignPreflight(updatesigla,block);
+      const ret = Realigner.realign(...args);
 
       bc.onmessage = e => {
         const {rows, tree, witnesses} = ret;
@@ -1482,11 +1483,11 @@ edit.editCell = {
 		//cell.classList.remove('highlitcell');
 		const cell = _state.editing;
 		_state.editing = null;
-		cell.contentEditable = 'false';
 		cell.removeEventListener('blur',edit.editCell.finish);
 		cell.removeEventListener('keydown',edit.cellKeyDown);
 		cell.blur();
 		events.deselect();
+		cell.contentEditable = 'false';
 		const content = cell.textContent;
 		
 		const cellnum = parseInt(cell.dataset.n);
