@@ -16,7 +16,7 @@ const Exporter = function(Utils,Xslt) {
             const msg = handle.name ? ` to ${handle.name}` : '';
             Message.write(`Saved${msg}.`);
             const bc = new BroadcastChannel('matrix-editor');
-            bc.postMessage({state: 'saved'});
+            setTimeout(() => bc.postMessage({state: 'saved'}), 500);
             bc.close();
         },
 

@@ -43,7 +43,7 @@ sidebar.click = (e,params) => {
 
   const li = targ.closest('[data-path]');
   if(li) {
-    if(li.classList.contains('active')) return;
+    if(li.classList.contains('active') || li.classList.contains('loading')) return;
     document.querySelector('li[data-path].active')?.classList.remove('active');
     for(const box of document.querySelectorAll('.shadowbox'))
       box.style.display = 'none';
