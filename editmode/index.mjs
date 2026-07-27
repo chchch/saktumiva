@@ -757,7 +757,7 @@ const align = async (shadow, alltexts, e) =>  {
       // TODO: close popup, open alignments sidebar
       spinnerdiv.style.display = 'none';
       messagediv.textContent = `Done.`;
-      sidebar.update('witnesses');
+      sidebar.update('alignments');
       fsObserver.apaused = false;
       setTimeout(() => shadow.querySelector('#aligner-popup .closeicon').click(),300);
       return;
