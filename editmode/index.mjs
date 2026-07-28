@@ -52,9 +52,10 @@ sidebar.click = (e,params) => {
       li.classList.add('active');
       warnModified(li.dataset.path);
     }
-    else
+    else {
       openBox(li,params);
-
+      li.scrollIntoView({behavior: 'smooth', block: 'center'});
+    }
   }
 };
 
