@@ -859,6 +859,7 @@ const collate = async (xmlDoc,e) => {
   const alignments = new Map([..._state.alignments].map(el => {
       return [el[1].blockid, {
         filename: el[1].filename,
+        path: el[0],
         handle: el[1].handle
       }];
     })
