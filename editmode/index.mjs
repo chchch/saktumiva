@@ -96,8 +96,8 @@ const openBox = async (li,params) => {
 const closeBox = (li,loadnext=true) => {
   const type = findListType(li);
   const box = document.querySelector(`.shadowbox[data-path="${li.dataset.path}"]`);
-  const appid = box.shadowRoot.firstChild.dataset.appid;
-  const transid = box.shadowRoot.firstChild.dataset.transid;
+  const appid = box.shadowRoot.firstChild?.dataset.appid;
+  const transid = box.shadowRoot.firstChild?.dataset.transid;
   if(appid) {
     const bc = new BroadcastChannel('apparatus');
     bc.postMessage({uuid: appid, shutdown: true});
