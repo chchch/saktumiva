@@ -1559,7 +1559,7 @@ edit.shiftCell = {
 			nums.add(cell.dataset.n);
 		}
 
-    if(nums.length === 0) return; // tried to shift empty cells
+    if(nums.size === 0) return; // tried to shift empty cells
 
     _state.shifting = nums;
 		multi.unHighlightAll();
