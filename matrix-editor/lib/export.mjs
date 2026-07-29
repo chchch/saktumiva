@@ -14,12 +14,10 @@ const Exporter = function(Utils,Xslt) {
             await writer.write(file);
             await writer.close();
             const msg = handle.name ? ` to ${handle.name}` : '';
-            setTimeout(() => {
-              Message.write(`Saved${msg}.`);
-              const bc = new BroadcastChannel('matrix-editor');
-              bc.postMessage({state: 'saved'});
-              bc.close();
-            }, 500);
+            Message.write(`Saved${msg}.`);
+            const bc = new BroadcastChannel('matrix-editor');
+            bc.postMessage({state: 'saved'});
+            bc.close();
         },
 
         xml: async function(doc,handle) {

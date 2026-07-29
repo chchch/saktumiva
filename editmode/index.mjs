@@ -561,16 +561,16 @@ const saveDoc = async (opts, e) => {
   const button = e.target.closest('button');
   if(button.classList.contains('disabled')) return;
   
-  fsObserver.epaused = true;
-  fsObserver.wpaused = true;
+  fsObserver.epause(true);
+  fsObserver.wpause(true);
   const out = (new XMLSerializer()).serializeToString(opts.doc);
   const handle = _state.editions.get(opts.path)?.handle || _state.witnesses.get(opts.path)?.handle;
   const writable = await handle.createWritable();
   await writable.write(out);
   await writable.close();
   
-  fsObserver.epaused = false;
-  fsObserver.wpaused = false;
+  fsObserver.epause(false);
+  fsObserver.wpause(false);
 
   for(const edited of button.getRootNode().querySelectorAll('.edited'))
     edited.classList.remove('edited');
@@ -773,7 +773,7 @@ const align = async (shadow, alltexts, e) =>  {
       spinnerdiv.style.display = 'none';
       messagediv.textContent = `Done.`;
       sidebar.update('alignments');
-      fsObserver.apaused = false;
+      fsObserver.apause(false);
       setTimeout(() => shadow.querySelector('#aligner-popup .closeicon').click(),300);
       return;
     }
@@ -847,7 +847,7 @@ const align = async (shadow, alltexts, e) =>  {
       alignworker.postMessage(obj.workerdata);
     }
   };
-  fsObserver.apaused = true;
+  fsObserver.apause(true);
   doOne(res.todo,0);
 };
 
@@ -1010,12 +1010,25 @@ const insertListItem = (path, li, listid, objmap) => {
 };
 
 const fsObserver = {
-  apaused: false,
-  epaused: false,
-  wpaused: false
+  aobserver: null,
+  apause: state => state === true ? 
+    fsObserver.aobserver.disconnect(): 
+    fsObserver.aobserver.observe(_state.alignmentsdirHandle),
+  eobserver: null,
+  epause: state => state === true ?
+    fsObserver.eobserver.disconnect(): 
+    fsObserver.eobserver.observe(_state.dirHandle),
+  wobservers: [],
+  wpause: state => {
+    if(state === true)
+      for(const obs of fsObserver.wobservers)
+        obs[0].disconnect();
+    else
+      for(const obs of fsObserver.wobservers)
+        obs[0].observe(obs[1]);
+  }
 };
 fsObserver.editions = async (records, _) => {
-  if(fsObserver.epaused) return;
   for(const record of records) {
     if(!record.relativePathComponents[0].endsWith('.xml')) continue;
 
@@ -1052,7 +1065,6 @@ fsObserver.editions = async (records, _) => {
   }
 };
 fsObserver.witnesses = async (records, _) => {
-  if(fsObserver.wpaused) return;
   for(const record of records) {
     if(!record.relativePathComponents[0].endsWith('.xml')) continue;
 
@@ -1091,7 +1103,6 @@ fsObserver.witnesses = async (records, _) => {
   }
 };
 fsObserver.alignments = async (records, _) => {
-  if(fsObserver.apaused) return;
   for(const record of records) {
     if(!record.relativePathComponents[0].endsWith('.xml')) continue;
 
@@ -1216,13 +1227,15 @@ const loadDir = async () => {
     sidebar.update();
     sidebar.show();
 
-    const observer1 = new FileSystemObserver(fsObserver.editions);
-    observer1.observe(_state.dirHandle);
-    const observer2 = new FileSystemObserver(fsObserver.witnesses);
-    for(const handle of _state.witnessesdirHandles)
-      observer2.observe(handle);
-    const observer3 = new FileSystemObserver(fsObserver.alignments);
-    observer3.observe(_state.alignmentsdirHandle);
+    fsObserver.eobserver = new FileSystemObserver(fsObserver.editions);
+    fsObserver.eobserver.observe(_state.dirHandle);
+    for(const handle of _state.witnessesdirHandles) {
+      const obs = new FileSystemObserver(fsObserver.witnesses);
+      obs.observe(handle);
+      fsObserver.wobservers.push([obs,handle]);
+    }
+    fsObserver.aobserver = new FileSystemObserver(fsObserver.alignments);
+    fsObserver.aobserver.observe(_state.alignmentsdirHandle);
 
     document.getElementById('loader').style.display = 'none';
 };
@@ -1235,10 +1248,10 @@ const init = () => {
   const bc = new BroadcastChannel('matrix-editor');
   bc.onmessage = e => {
     if(e.data.state === 'saving')  {
-      fsObserver.apaused = true;
+      fsObserver.apause(true);
     }
     if(e.data.state === 'saved') {
-      fsObserver.apaused = false;
+      fsObserver.apause(false);
     }
   }
 };
