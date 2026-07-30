@@ -1879,7 +1879,7 @@ const maybeLoadData = async () => {
         if(e.data.handle)
           loadFileHandle(e.data.handle);
       }
-      else
+      else if(e.data.f)
         csvOrXml(e.data.f,e.data.fs,e.data.e); // TODO: deprecate this
 			bc.close();
 		};

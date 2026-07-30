@@ -59,7 +59,7 @@ const Exporter = function(Utils,Xslt) {
             const textWalkers = texts.map(el => Find.textWalker(el));
             const nchar = texts[0].querySelectorAll('w').length;
             const charstatelabels = [];
-            const matrix = taxlabels.map(s => [s + ' ']);
+            const matrix = taxlabels.map(_ => []);
             for(let n=0;n<nchar;n++) {
                 const statelabels = new Set();
                 const readings = [];
@@ -92,13 +92,14 @@ const Exporter = function(Utils,Xslt) {
                 }
             }
             const charstatestr = charstatelabels.map((x,i) => (i+1) +' / '+ [...x].map(s => `'${s}'`).join(' ')).join(',\n');
-            const flatmatrix = matrix.map(arr => arr.join(''))
-                // ignore long gaps, even if "gaps are significant" is selected
-                .map(str => str.replace(/0+1/g, match => '?'.repeat(match.length)))
-                .map(str => str.replace(/10+/g, match => '?'.repeat(match.length)))
-                .map(str => str.replace(/0{8,}/g, match => '-'.repeat(match.length)))
-                //.map(str => str.replace(/0/g,'-')) // why did I do this????
-                .reduce((acc,cur) => acc + '\n'+cur);
+            const flatmatrix = matrix.map((arr,n) => 
+                taxlabels[n] + arr.join('')
+                  // ignore long gaps, even if "gaps are significant" is selected
+                  .replace(/0+1/g, match => '?'.repeat(match.length))
+                  .replace(/10+/g, match => '?'.repeat(match.length))
+                  .replace(/0{8,}/g, match => '-'.repeat(match.length))
+                  //.replace(/0/g,'-') // why did I do this????
+            ).reduce((acc,cur) => acc + '\n'+cur,'');
             const str =
 `#NEXUS
 
