@@ -1550,16 +1550,18 @@ edit.editCell = {
 
 edit.shiftCell = {
 	start: () => {
+    let foundone = false;
 		const cells = Find.highlitcells();
 		if(cells.length === 0) return;
 		const nums = new Set();
 		for(const cell of cells) {
-      if(cell.textContent !== '' || cell.dataset.hasOwnProperty('normal'))
+      if(cell.textContent !== '' || cell.dataset.hasOwnProperty('normal')) {
         cell.classList.add('dragging');
+        foundone = true;
+      }
 			nums.add(cell.dataset.n);
 		}
-
-    if(nums.size === 0) return; // tried to shift empty cells
+    if(!foundone) return; // tried to shift empty cells
 
     _state.shifting = nums;
 		multi.unHighlightAll();
