@@ -6,6 +6,17 @@ body {
   height: unset;
   max-width: unset;
 }
+#loader {
+  display: flex;
+  width: 100vw;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: #1c1c2e;
+  color: white;
+  font-variant-caps: small-caps;
+}
+
 th {
   text-align: left;
 }
@@ -197,10 +208,23 @@ button, label[for="teifiles"] {
 #file-input-box legend {
   display: none;
 }
-button:hover, label[for="teifiles"]:hover {
+button:hover {
   background: #eeee99;
   border-color: #eeee99;
 }
+#startbutton {
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  border-radius: 2px;
+  background: rgb(266,266,233);
+  border: 1px solid black;
+}
+
+#startbutton:hover {
+  background-color: rgba(68,24,155,0.9);
+  color: white;
+}
+
 #alignsubmit {
   font-size: 1.2rem;
   padding: 0.5rem;
