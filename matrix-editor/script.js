@@ -481,7 +481,7 @@ const matrixLoad = (fs,str) => {
   const allchanges = {attributes: true, childList: true, subtree: true, characterData: true};
   const observer = new MutationObserver(() => {
     const savebutton = document.querySelector('#menubox_save');
-    savebutton.style.display = 'block';
+    if(savebutton) savebutton.style.display = 'block';
     observer.disconnect();
     setTimeout(() => observer.observe(_state.xml.documentElement,allchanges), 1000);
   });
