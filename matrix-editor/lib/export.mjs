@@ -47,10 +47,13 @@ const Exporter = function(Utils,Xslt) {
         },
   
         nexus: async function(doc) {
+            // empty cells are transformed from [] to 0; missing are ‡ -> 1
+            // TODO: add missing character option
             const texts = [...Find.texts(doc)];
             const ntax = texts.length;
             const symbols = '0 1 2 3 4 5 6 7 8 9 A B C D E F G H K L M N P Q R S T U V W X Y Z a b c d e f g h k l m n p q r s t u v w x y z';
-            const [siggap,...symbolarr] = symbols.split(' ');
+            // TODO: don't use 0 and 1 as reserved characters
+            const [siggap,missing,...symbolarr] = symbols.split(' ');
             const gap = '-';
             const taxlabels = texts.map(el => '\''+el.parentElement.getAttribute('n')+'\'');
             const textWalkers = texts.map(el => Find.textWalker(el));
@@ -69,7 +72,7 @@ const Exporter = function(Utils,Xslt) {
                     if(reading !== '' && reading !== '[]')
                         statelabels.add(reading);
                 }
-                charstatelabels.push(['[]',...statelabels]);
+                charstatelabels.push(['[]','‡',...statelabels]);
                 const statesymbols = new Map([...statelabels].map((x,i) => [x,symbolarr[i]]));
                 for(let p=0;p<readings.length;p++) {
                     const r = ((p) => {
@@ -78,6 +81,8 @@ const Exporter = function(Utils,Xslt) {
                             return gap;
                         case '[]':
                             return siggap;
+                        case '‡':
+                            return missing;
                         default:
                             return statesymbols.get(readings[p]);
                         }
@@ -89,7 +94,9 @@ const Exporter = function(Utils,Xslt) {
             const charstatestr = charstatelabels.map((x,i) => (i+1) +' / '+ [...x].map(s => `'${s}'`).join(' ')).join(',\n');
             const flatmatrix = matrix.map(arr => arr.join(''))
                 // ignore long gaps, even if "gaps are significant" is selected
-                .map(str => str.replace(/0{8,}/g, match => match.replace(/0/g,'-')))
+                .map(str => str.replace(/0+1/g, match => '?'.repeat(match.length)))
+                .map(str => str.replace(/10+/g, match => '?'.repeat(match.length)))
+                .map(str => str.replace(/0{8,}/g, match => '-'.repeat(match.length)))
                 //.map(str => str.replace(/0/g,'-')) // why did I do this????
                 .reduce((acc,cur) => acc + '\n'+cur);
             const str =
