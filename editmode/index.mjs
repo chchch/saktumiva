@@ -208,6 +208,7 @@ const displayFile = async (objmap, path, params) => {
   const obj = objmap.get(path);
   const doc = await handleToXML(obj.handle);
   const {shadow: shadow, scrollel: scrollel, osd: osd} = await shadowpreview(path, doc, params);
+  // TODO: make this a worker
   if(osd) obj.osd = osd;
   hijackLinks(shadow);
   shadow.host.style.display = 'flex';
@@ -1030,7 +1031,7 @@ const fsObserver = {
 };
 fsObserver.editions = async (records, _) => {
   for(const record of records) {
-    if(!record.relativePathComponents[0].endsWith('.xml')) continue;
+    if(!record.relativePathComponents[0]?.endsWith('.xml')) continue;
 
     if(record.type === 'modified') {
       if(_state.editionfiles.length > 0 && !_state.editionfiles.includes(record.changedHandle.name))
