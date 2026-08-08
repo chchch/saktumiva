@@ -251,6 +251,14 @@ const realign = (toadd,ignoresigla,opts) => {
 
   const ret = {};
 
+  const getFirstSiglum = (arr,ignoreset) => {
+    for(const obj of arr) {
+      if(!ignoreset.has(obj.siglum))
+        return obj.siglum;
+    }
+    return arr[0].siglum;
+  };
+
   alignWorker.onmessage = e => {
     if(e.data.hasOwnProperty('progress')) {
       // TODO: do something with e.data.message
@@ -260,7 +268,7 @@ const realign = (toadd,ignoresigla,opts) => {
     const meta = {
       tokenization: opts.tokenization,
       lang: opts.lang,
-      targeted: revisedsigla.has(opts.targeted) ? oldtexts[0].siglum : opts.targeted
+      targeted: revisedsigla.has(opts.targeted) ? getFirstSiglum(oldtexts,revisedsigla) : opts.targeted
     };
     const clean = postProcess(alignment, 
                               filtersmap,
