@@ -1615,6 +1615,7 @@ edit.shiftCell = {
     for(const d of _state.shifting)
       nums.add(d);
     
+    let firstcell = null;
 		const trs = _state.matrix.boxdiv.querySelectorAll('tr:has(td.dragging)');
 		for(const tr of trs) {
 			//for(let cellnum=low; cellnum<=(high||low); cellnum++) {
@@ -1622,6 +1623,7 @@ edit.shiftCell = {
 				const rownum = tr.dataset.n;
 				const cell = tr.querySelector(`td[data-n="${cellnum}"]`);
 				cell.classList.remove('dragging');
+        if(!firstcell) firstcell = cell;
 				const node = cell.hasOwnProperty('IAST') ? cell.IAST : cell;
 				
 				const stuff = { content: node.textContent };
@@ -1639,6 +1641,7 @@ edit.shiftCell = {
 		edit.doStack([edit.doMulti,[dolist]],'do');
 		_state.shifting = null;
 		multi.clearTrees();
+    if(firstcell) firstcell.click();
 	},
 };
 
@@ -1747,10 +1750,11 @@ edit.slideCell = (direction = 'left') => {
   }
 
   const dolist = [];
+  let cell;
   for(const [rownum, cellnums] of tochange.entries()) {
     const htmlrow = Find.tr(rownum);
     for(const cellnum of cellnums) {
-      const cell = htmlrow.querySelector(`td[data-n="${cellnum}"]`);
+      cell = htmlrow.querySelector(`td[data-n="${cellnum}"]`);
       const node = cell.hasOwnProperty('IAST') ? cell.IAST : cell;
     
       const stuff = { content: node.textContent };
@@ -1767,6 +1771,7 @@ edit.slideCell = (direction = 'left') => {
   edit.doStack([edit.doMulti,[dolist]],'do');
   multi.clearTrees();
   multi.unHighlightAll(); 
+  cell.click();
 };
 
 const events = {
