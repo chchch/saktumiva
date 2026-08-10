@@ -912,6 +912,7 @@ const editApp = (opts,e) => {
     if(path && _state.alignments.has(path)) {
       targblock.dataset.path = path;
       targblock.checked = true;
+      targblock.disabled = false;
     }
     else 
      targblock.disabled = true; 
@@ -924,8 +925,10 @@ const editApp = (opts,e) => {
     if(input.value === opts.block) continue;
     input.checked = false;
     const path = alignlist.querySelector(`[data-blockid="${input.value}"]`)?.dataset.path;
-    if(path && _state.alignments.has(path))
+    if(path && _state.alignments.has(path)) {
       input.dataset.path = path;
+      input.disabled = false;
+    }
     else 
       input.disabled = true; 
   }
