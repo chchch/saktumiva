@@ -21,9 +21,12 @@ const Exporter = function(Utils,Xslt) {
         },
 
         xml: async function(doc,handle) {
-            const str = new XMLSerializer().serializeToString(
-                Xslt.sheets.xml.transformToDocument(doc)
+            let str = (new XMLSerializer()).serializeToString(
+                //Xslt.sheets.xml.transformToDocument(doc)
+                doc
             );
+            // TODO: very hacky
+            if(!str.startsWith('?xml')) str = '<?xml version="1.0" encoding="UTF-8" ?>\n' + str;
             const file = new Blob([str], {type: 'text/xml;charset=utf-8'});
             const fileURL = Find.basename() + '.xml';
             const fileHandle = handle  || await showSaveFilePicker({
