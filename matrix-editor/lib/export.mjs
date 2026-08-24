@@ -26,7 +26,7 @@ const Exporter = function(Utils,Xslt) {
                 doc
             );
             // TODO: very hacky
-            if(!str.startsWith('?xml')) str = '<?xml version="1.0" encoding="UTF-8" ?>\n' + str;
+            if(!str.startsWith('<?xml')) str = '<?xml version="1.0" encoding="UTF-8" ?>\n' + str;
             const file = new Blob([str], {type: 'text/xml;charset=utf-8'});
             const fileURL = Find.basename() + '.xml';
             const fileHandle = handle  || await showSaveFilePicker({
