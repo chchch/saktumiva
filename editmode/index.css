@@ -378,12 +378,27 @@ body > article {
 #filelist li.loading {
   background: #4c4c6b;
 }
-#filelist li.loading:before {
+#filelist .loadingloader {
+/*
  content: url('loader.svg');
   width: 1.5ch;
   display: inline-block;
   margin-left: -1.5ch;
-  vertical-align: baseline;
+*/
+  width: 1.5ch;
+  height: 1.5ch;
+  border: 3px solid rgba(0,0,0,.3);
+  border-radius: 50%;
+  border-top-color: rgb(0,0,0);
+  animation: spin 1s linear infinite;
+  position: relative;
+  top: 0.5ch;
+  padding: 0;
+  margin-left: -1.5ch;
+  display: inline-block;
+}
+@keyframes spin {
+  to {transform: rotate(360deg);}
 }
 
 #filelist li.loaded {

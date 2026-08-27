@@ -80,11 +80,15 @@ const openBox = async (li,params) => {
   }
   else {
     li.classList.add('loading');
+    const loader = document.createElement('span');
+    loader.className = 'loadingloader';
+    li.prepend(loader);
     if(type === _state.alignments)
       startMatrixEditor(li.dataset.path);
     else
       await displayFile(type,li.dataset.path,params);
     li.classList.remove('loading');
+    loader.remove();
     li.classList.add('loaded');
     const template = document.querySelector('#closeicon');
     const clone = document.importNode(template.content,true);
