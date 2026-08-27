@@ -500,8 +500,30 @@ const matrixLoad = (fs,str) => {
 		return ret;
 	};
 
+const addWitnesses = newxml => {
+  const listwit = _state.xml.querySelector('teiHeader > listWit');
+  outerloop: for(const witness of newxml.querySelector('teiHeader > listWit').querySelectorAll('witness[*|id]')) {
+    const siglum = witness.getAttribute('xml:id');
+    const oldwit = listwit.querySelector(`witness[*|id="${siglum}"]`);
+    if(oldwit) continue outerloop;
+    let par = witness.parentNode.closest('witness[*|id]');
+    while(par) {
+      const parsiglum = par.getAttribute('xml:id');
+      const oldpar = listwit.querySelector(`witness[*|id="${parsiglum}"]`);
+      if(oldpar) {
+        oldpar.appendChild(_state.xml.importNode(witness,true));
+        continue outerloop;
+      }
+      par = par.parentNode.closest('witness[*|id]');
+    }
+    if(!par)
+      listwit.appendChild(_state.xml.importNode(witness,true));
+  }
+};
+
 const loadAdditionalGo = (add,e) => {
   const newxml = parseString(e.target.result);
+  addWitnesses(newxml);
 	
 	const oldteis = new Map();
 	for(const tei of Find.teis()) {
@@ -544,17 +566,32 @@ const loadAdditionalGo = (add,e) => {
 			oldteis.delete(parid);
 		}
 		// if _state.xml has XX and newxml has XX-A, XX-B, etc.
-		else if(!oldteis.has(siglum) && parid && oldteis.has(parid)) {
+		else if(/*!oldteis.has(siglum) &&*/ parid && oldteis.has(parid)) {
 			const oldrow = oldteis.get(parid);
 			const newrow = oldrow.cloneNode(true);
 			newrow.setAttribute('n',siglum);
 			oldrow.after(newrow);
 			oldteis.set(siglum,newrow);
 		}
-		// TODO: if _state.xml has XX-A, XX-B, etc. and newxml has only XX
-
 		newteis.set(siglum,tei);
+
 	}
+  for(const siglum of setDiff(oldteis.keys(),newteis.keys())) {
+    // if _state.xml has XX-A, XX-B, etc. and newxml has only XX
+    const thiswit = _state.xml.querySelector(`witness[*|id="${siglum}"]`);
+    let par = thiswit.parentNode.closest('witness[*|id]');
+    while(par) {
+      const parsiglum = par.getAttribute('xml:id');
+      const tei = newteis.get(parsiglum);
+      if(tei) {
+        const newrow = tei.cloneNode(true);
+        newrow.setAttribute('n',siglum);
+        newteis.set(siglum,newrow);
+      }
+      par = par.parentNode.closest('witness[*|id]');
+    }
+  }
+
 	const oldsigla = new Set(oldteis.keys());
 	const newsigla = new Set(newteis.keys());
 
