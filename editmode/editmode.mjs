@@ -4,7 +4,7 @@ import { showSaveFilePicker } from '../lib/native-file-system-adapter/es6.js';
 import { loadDoc } from './utils.mjs';
 import previewDoc from './preview.mjs';
 import { exportLaTeX } from '../lib/export.mjs';
-import doCollate from '../lib/collateui.mjs';
+import { doCollate } from '../lib/collateui.mjs';
 
 const _state = {
     curDoc: null,

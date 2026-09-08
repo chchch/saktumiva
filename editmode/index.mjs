@@ -6,10 +6,11 @@ import { processFile, findSplitfunc, filterTexts, postProcess } from '../lib/col
 import { handleToXML } from './utils.mjs';
 import { appendList, acPcButtons, updateCheckboxes, uncheckType, populateFilters, languageSpecificOptions } from '../lib/uiutils.mjs';
 import { alignPreflight } from '../lib/alignui.mjs';
-import doCollate from '../lib/collateui.mjs';
+import {doCollate, previewBlocks} from '../lib/collateui.mjs';
 import Sanscript from '../lib/sanscript.mjs';
 import Realigner from '../matrix-editor/lib/realign.mjs';
 import { exportLaTeX } from '../lib/export.mjs';
+import newMirror from './cmwrapper.mjs';
 
 const _state = {
   dirHandle: null,
@@ -259,6 +260,9 @@ const addEditButton = (root,id,xmlDoc) => {
   const iddiv = document.createElement('div');
   iddiv.textContent = id;
   iddiv.className = 'editid';
+  const edittext = document.createElement('button');
+  edittext.textContent = 'edit text';
+  edittext.className = 'edittext';
   const editalign = document.createElement('button');
   editalign.textContent = 'edit alignment';
   editalign.className = 'editalign';
@@ -268,12 +272,18 @@ const addEditButton = (root,id,xmlDoc) => {
   const updateapp = document.createElement('button');
   updateapp.className = 'updateapp';
   updateapp.textContent = 'update apparatus';
-  editbar.append(iddiv, editalign, updatealign, updateapp);
+  editbar.append(iddiv, edittext, editalign, updatealign, updateapp);
   (wideblock || block).append(editbar);
   editbar.addEventListener('click',editbarClick.bind(null,root,id,xmlDoc));
 };
 
 const editbarClick = (root,id,xmlDoc,e) => {
+  const edittext = e.target.closest('.edittext');
+  if(edittext) {
+    startEditor(id,xmlDoc,e);
+    return;
+  }
+
   const editalign = e.target.closest('.editalign');
   if(editalign) {
     const alignlist = document.querySelector('#alignlist');
@@ -301,6 +311,104 @@ const editbarClick = (root,id,xmlDoc,e) => {
     editApp({par: par, doc: xmlDoc, block: id});
     return;
   }
+};
+
+const NSCleaner = (() => {
+  const Sheet = (new DOMParser()).parseFromString(`
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:tei="http://www.tei-c.org/ns/1.0" exclude-result-prefixes="tei">
+  <xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes"/>
+
+  <xsl:template match="*">
+    <xsl:element name="{local-name()}">
+      <xsl:copy-of select="@*"/>
+      <xsl:apply-templates/>
+    </xsl:element>
+  </xsl:template>
+</xsl:stylesheet>
+  `,'text/xml');
+  const xproc = new XSLTProcessor();
+  xproc.importStylesheet(Sheet);
+  return xproc;
+})();
+
+const serializer = new XMLSerializer();
+
+const serialize = el => {
+  const newdoc = NSCleaner.transformToFragment(el,el.ownerDocument);
+  return serializer.serializeToString(newdoc);
+};
+
+const startEditor = (id,xmlDoc,e) => {
+  const tb = e.target.closest('.lg').querySelector('.text-block');
+  tb.style.display = 'none';
+  const editbuttons = e.target.closest('.editbuttons');
+  editbuttons.style.display = 'none';
+
+  const editdiv = document.createElement('div');
+  editdiv.className = 'text-block';
+  editdiv.setAttribute('lang','en');
+  tb.after(editdiv);
+
+  const block = xmlDoc.querySelector(`[*|id=${id}]`);
+  const xmltext = serialize(block);
+  const cm = newMirror(editdiv,xmltext);
+  const buttondiv = document.createElement('div');
+  buttondiv.className = 'cmbuttons';
+  const savebutton = document.createElement('button');
+  savebutton.append('preview');
+  savebutton.addEventListener('click',saveEditor.bind(null,cm,block));
+  const cancelbutton = document.createElement('button');
+  cancelbutton.append('cancel');
+  cancelbutton.addEventListener('click',cancelEditor.bind(null,cm,tb,editdiv,editbuttons));
+  buttondiv.append(savebutton, cancelbutton);
+  editdiv.appendChild(buttondiv);
+};
+
+const saveEditor = async (cm,block,e) => {
+  const str = `<TEI xmlns="http://www.tei-c.org/ns/1.0">${cm.state.doc.text.join('\n')}</TEI>`;
+  const blockid = block.getAttribute('xml:id');
+  const xmlDoc = block.ownerDocument; 
+  const shadow = e.target.getRootNode();
+  const parser = new DOMParser();
+  const parsed = parser.parseFromString(str,'text/xml');
+  const parsererror = parsed.querySelector('parsererror');
+  if(parsererror) {
+    alert(parsererror.textContent);
+    return;
+  }
+  const newel = parsed.documentElement.firstElementChild;
+  if(newel !== parsed.documentElement.lastElementChild) {
+    alert('Only one root element is allowed.');
+    return;
+  }
+  const newid = newel.getAttribute('xml:id');
+  if(!newid) {
+    alert('Root element must have an xml:id.');
+    return;
+  }
+  if(newid !== blockid) {
+    if(xmlDoc.querySelector(`[*|id="${newid}"]`)) {
+      alert(`The xml:id was changed to "${newid}", but that is already in use elsewhere.`);
+      return;
+    }
+    alert(`Warning: the xml:id was changed from "${blockid}" to "${newid}".`);
+    block.setAttributeNS('http://www.w3.org/XML/1998/namespace','xml:id',newid);
+    for(const standOff of xmlDoc.querySelectorAll(`standOff[corresp="#${blockid}"]`))
+      standOff.setAttribute('corresp',`#${newid}`);
+    shadow.querySelector(`#${blockid}`).setAttribute('id',newid);
+  }
+  block.after(xmlDoc.adoptNode(newel));
+  block.remove();
+  cm.destroy();
+  await previewBlocks(shadow,xmlDoc,[newid],{mode: null});
+  addEditButton(shadow,newid,xmlDoc);
+};
+
+const cancelEditor = (cm,tb,editdiv,editbuttons,e) => {
+  cm.destroy();
+  editdiv.remove();
+  tb.style.display = 'unset';
+  editbuttons.style.display = 'unset';
 };
 
 const closePopup = (blackout,e) => {
@@ -443,11 +551,21 @@ button:not(.disabled):hover {
   background: rgb(245,245,238);
 }
 
-.editbuttons button {
+.editbuttons button, .cmbuttons button {
   font-size: 1rem;
   border-radius: 2px;
   background: rgb(226,226,223);
   border: 1px solid black;
+}
+.text-block .cm-editor {
+  font-size: 1.1rem;
+}
+
+.cmbuttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 `
     );
@@ -1146,24 +1264,24 @@ fsObserver.alignments = async (records, _) => {
 
 const warnModified = filename => {
   document.getElementById('blackout').style.display = 'block';
+  document.getElementById('modified_warning').style.display = 'flex';
   if(!filename) filename = document.querySelector('li.active').dataset.path;
   document.getElementById('modified_filename').textContent = filename;
 };
 
 const warnModifiedActions = async e => {
   const blackout = document.getElementById('blackout');
+  const dialog = document.getElementById('modified_warning');
   const ignore = e.target.closest('#modified_ignore');
-  if(ignore) {
-    blackout.style.display = 'none';
-    return;
+  if(!ignore) {
+    const filename = blackout.querySelector('#modified_filename').textContent;
+    const li =  document.querySelector('li.active');
+    closeBox(li,false);
+    openBox(li);
+    li.classList.remove('modified');
   }
-
-  const filename = blackout.querySelector('#modified_filename').textContent;
-  const li =  document.querySelector('li.active');
-  closeBox(li,false);
-  openBox(li);
-  li.classList.remove('modified');
   blackout.style.display = 'none';
+  dialog.style.display = 'non';
 };
 
 const loadPrefs = async handle => {
