@@ -342,7 +342,7 @@ const startEditor = (id,xmlDoc,e) => {
   const tb = e.target.closest('.lg').querySelector('.text-block');
   tb.style.display = 'none';
   const editbuttons = e.target.closest('.editbuttons');
-  editbuttons.style.display = 'none';
+  editbuttons.classList.add('disabled');
 
   const editdiv = document.createElement('div');
   editdiv.className = 'text-block';
@@ -408,7 +408,7 @@ const cancelEditor = (cm,tb,editdiv,editbuttons,e) => {
   cm.destroy();
   editdiv.remove();
   tb.style.display = 'unset';
-  editbuttons.style.display = 'unset';
+  editbuttons.classList.remove('disabled');
 };
 
 const closePopup = (blackout,e) => {
@@ -549,6 +549,10 @@ button:not(.disabled):hover {
   width: 100%;
   visibility: hidden;
   background: rgb(245,245,238);
+}
+
+.editbuttons.disabled {
+  display: none;
 }
 
 .editbuttons button, .cmbuttons button {
