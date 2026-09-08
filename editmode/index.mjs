@@ -349,7 +349,7 @@ const startEditor = (id,xmlDoc,e) => {
   editdiv.setAttribute('lang','en');
   tb.after(editdiv);
 
-  const block = xmlDoc.querySelector(`[*|id=${id}]`);
+  const block = xmlDoc.querySelector(`[*|id="${id}"]`);
   const xmltext = serialize(block);
   const cm = newMirror(editdiv,xmltext);
   const buttondiv = document.createElement('div');
