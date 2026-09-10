@@ -339,7 +339,7 @@ const serialize = el => {
 };
 
 const startEditor = (id,xmlDoc,e) => {
-  const tb = e.target.closest('.lg').querySelector('.text-block');
+  const tb = e.target.closest('.lg, p').querySelector('.text-block');
   tb.style.display = 'none';
   const editbuttons = e.target.closest('.editbuttons');
   editbuttons.classList.add('disabled');
@@ -1364,6 +1364,9 @@ const loadDir = async () => {
       obs.observe(handle);
       fsObserver.wobservers.push([obs,handle]);
     }
+
+    if(!_state.alignmentsdirHandle)
+      _state.alignmentsdirHandle = await _state.dirHandle.getDirectoryHandle('alignments', {create: true});
     fsObserver.aobserver = new FileSystemObserver(fsObserver.alignments);
     fsObserver.aobserver.observe(_state.alignmentsdirHandle);
 
