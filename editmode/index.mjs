@@ -37,12 +37,17 @@ sidebar.click = (e,params) => {
     return;
   }
 
+  const li = targ.closest('[data-path]');
+
   if(targ.closest('.closeicon')) {
-    closeBox(targ.closest('[data-path]'));
+    const list = targ.closest('ul');
+    if(list.id === 'alignlist' || list.id === 'edlist')
+      warnUnsaved(li);
+    else
+      closeBox(li);
     return;
   }
 
-  const li = targ.closest('[data-path]');
   if(li) {
     if(li.classList.contains('active') || li.classList.contains('loading')) return;
     document.querySelector('li[data-path].active')?.classList.remove('active');
@@ -1274,10 +1279,13 @@ const warnModified = filename => {
 };
 
 const warnModifiedActions = async e => {
+  const ignore = e.target.closest('#modified_ignore');
+  const reload = e.target.closest('#modified_reload');
+  if(!reload && !ignore) return;
+
   const blackout = document.getElementById('blackout');
   const dialog = document.getElementById('modified_warning');
-  const ignore = e.target.closest('#modified_ignore');
-  if(!ignore) {
+  if(reload) {
     const filename = blackout.querySelector('#modified_filename').textContent;
     const li =  document.querySelector('li.active');
     closeBox(li,false);
@@ -1285,7 +1293,49 @@ const warnModifiedActions = async e => {
     li.classList.remove('modified');
   }
   blackout.style.display = 'none';
-  dialog.style.display = 'non';
+  dialog.style.display = 'none';
+};
+
+const checkUnsaved = shadowbox => {
+  const iframe = shadowbox.querySelector('iframe');
+  if(iframe) {
+    const savebutton = iframe.contentWindow.document.querySelector('#menubox_save');
+    if(savebutton.style.display !== 'none') return true;
+  }
+  else {
+    const savebutton = shadowbox.shadowRoot.querySelector('#button_savebutton');
+    if(!savebutton.classList.contains('disabled')) return true;
+  }
+  return false;
+};
+
+const warnUnsaved = li => {
+  const path = li.dataset.path;
+  const shadowbox = document.querySelector(`.shadowbox[data-path="${path}"]`);
+  const unsaved = checkUnsaved(shadowbox);
+  if(!unsaved) {
+    closeBox(li);
+    return;
+  }
+  document.getElementById('blackout').style.display = 'block';
+  document.getElementById('unsaved_warning').style.display = 'flex';
+  document.getElementById('unsaved_filename').textContent = path;
+};
+
+const warnUnsavedActions = async e => {
+  const cancel = e.target.closest('#unsaved_cancel');
+  const ignore = e.target.closest('#unsaved_ignore');
+  if(!cancel && !ignore) return;
+
+  const blackout = document.getElementById('blackout');
+  const dialog = document.getElementById('unsaved_warning');
+  if(!cancel) {
+    const filename = blackout.querySelector('#unsaved_filename').textContent;
+    const li =  document.querySelector(`li[data-path="${filename}"]`);
+    closeBox(li);
+  }
+  blackout.style.display = 'none';
+  dialog.style.display = 'none';
 };
 
 const loadPrefs = async handle => {
@@ -1378,6 +1428,7 @@ const init = () => {
   sidebar.el = document.getElementById('filelist-content');
   document.getElementById('filelist').addEventListener('click',sidebar.click);
   document.getElementById('modified_warning').addEventListener('click',warnModifiedActions);
+  document.getElementById('unsaved_warning').addEventListener('click',warnUnsavedActions);
   const bc = new BroadcastChannel('matrix-editor');
   bc.onmessage = e => {
     if(e.data.state === 'saving')  {
