@@ -283,7 +283,7 @@ const Utils = function(_state) {
                 for(const walker of trWalkers) {
                     const word = walker.nextNode();
                     if(emptylemma) {
-                        if(word.textContent !== '')
+                        if(word.dataset.hasOwnProperty('normal') || word.textContent !== '')
                             emptylemma = false;
                     }
                 }
