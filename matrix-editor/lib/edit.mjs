@@ -56,35 +56,54 @@ const edit = {
 
 	cellKeyDown: function(e) {
 		switch(e.key) {
-		case 'Enter':
-			edit.editCell.finish(e);
-			break;
-		case 'Escape':
-			edit.editCell.finish(e,true);
-			break;
-		case 'ArrowRight': {
-			const pos = Find.cursorPos(e.target);
-			if(pos[0] === pos[1] && window.getSelection().type === 'Caret') {
-				e.preventDefault();
-				edit.editCell.finish(e);
-				e.target.dispatchEvent(new KeyboardEvent('keydown', {'key': 'ArrowRight'}));
-				edit.editCell.start(Find.highlitcell()); 
-			}
-			break;
-		}
-		case 'ArrowLeft': {
-			const pos = Find.cursorPos(e.target);
-			if(pos[0] === 0) {
-				e.preventDefault();
-				edit.editCell.finish(e);
-				e.target.dispatchEvent(new KeyboardEvent('keydown', {'key': 'ArrowLeft'}));
-				edit.editCell.start(Find.highlitcell()); 
-			}
-			break;
-		}
-		
-		}
-	},
+      case 'Enter':
+        edit.editCell.finish(e);
+        break;
+      case 'Escape':
+        edit.editCell.finish(e,true);
+        break;
+      case 'ArrowRight': {
+        const pos = Find.cursorPos(e.target);
+        if(pos[0] === pos[1] && window.getSelection().type === 'Caret') {
+          e.preventDefault();
+          edit.editCell.finish(e);
+          e.target.dispatchEvent(new KeyboardEvent('keydown', {'key': 'ArrowRight'}));
+          edit.editCell.start(Find.highlitcell()); 
+        }
+        break;
+      }
+      case 'ArrowLeft': {
+        const pos = Find.cursorPos(e.target);
+        if(pos[0] === 0) {
+          e.preventDefault();
+          edit.editCell.finish(e);
+          e.target.dispatchEvent(new KeyboardEvent('keydown', {'key': 'ArrowLeft'}));
+          edit.editCell.start(Find.highlitcell()); 
+        }
+        break;
+      }
+      case 'ArrowDown': {
+        const tr = e.target.closest('tr');
+        if(!tr.nextElementSibling) return;
+
+        e.preventDefault();
+        edit.editCell.finish(e);
+        e.target.dispatchEvent(new KeyboardEvent('keydown', {'key': 'ArrowDown'}));
+        edit.editCell.start(Find.highlitcell()); 
+        break;
+      }
+      case 'ArrowUp': {
+        const tr = e.target.closest('tr');
+        if(!tr.previousElementSibling || tr.previousElementSiblong.className === 'header') return;
+
+        e.preventDefault();
+        edit.editCell.finish(e);
+        e.target.dispatchEvent(new KeyboardEvent('keydown', {'key': 'ArrowDown'}));
+        edit.editCell.start(Find.highlitcell()); 
+        break;
+      }
+    }
+  },
  
 	startMarkAs: function(type,nums,e) {
 		const targ = e.target.tagName === 'INPUT' ?
