@@ -377,14 +377,14 @@ const findAlignment = async (input, opts) => {
     let srcname = `${_opts.alignmentDir}/${blockid}.xml`;
     let res = await fetch(srcname,{method: 'HEAD', cache: 'no-cache'});
     if(!res.ok) {
-      for(const corresp of input.dataset.corresp.split(' ')) {
-        srcname = `${_opts.alignmentDir}/${corresp}.xml`;
-        res = await fetch(srcname,{method: 'HEAD', cache: 'no-cache'});
-        if(res.ok) break;
+      if(input.dataset.hasOwnProperty('corresp')) {
+        for(const corresp of input.dataset.corresp.split(' ')) {
+          srcname = `${_opts.alignmentDir}/${corresp}.xml`;
+          res = await fetch(srcname,{method: 'HEAD', cache: 'no-cache'});
+          if(res.ok) break;
+        }
       }
-
-      if(!res.ok)
-        return;
+      if(!res.ok) return;
     }
 
     _state.alignments.set(blockid,{filename: srcname});
