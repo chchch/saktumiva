@@ -1,0 +1,14 @@
+{
+  "name": "saktumiva1-converter",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "convert.mjs",
+  "license": "MIT",
+  "scripts": {
+    "convert": "node convert.mjs"
+  },
+  "dependencies": {
+    "jsdom": "^30.1.1",
+    "w3c-xmlserializer": "^6.0.0"
+  }
+}
