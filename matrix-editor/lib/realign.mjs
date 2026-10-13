@@ -222,8 +222,9 @@ const realign = (toadd,ignoresigla,opts) => {
   const configfunc = opts.tokenization === 'character' ? 'character' :
       opts.recursive ? 'arr' : 'arr_simple';
   const revisedsigla = new Set(toaddobjs.map(t => t.siglum)); 
-  const ish = opts.lang === 'bo' ? 'wylish' : 'slpish';
-  const charset = opts.lang === 'bo' ? wylish : slpish;
+  const [fromscript,toscript,charset] = opts.lang === 'bo' ? 
+        ['wylie',   'wylish',wylie  ] :
+        ['iast',    'slpish',iast   ];
   const oldtexts = [..._state.xml.querySelectorAll('TEI')].map(tei => {
     const siglum = tei.getAttribute('n');
     if(ignoresigla.has(siglum)) return null;
@@ -237,10 +238,10 @@ const realign = (toadd,ignoresigla,opts) => {
         else if(cl.lastElementChild === w)
           ret.clend = true;
       }
-      ret.unnorm = Sanscript.t(w.innerHTML,'iast',ish);
+      ret.unnorm = Sanscript.t(w.innerHTML,fromscript,toscript);
       const lemma = w.getAttribute('lemma');
       ret.norm = lemma === null ? ret.unnorm : lemma; 
-      ret.norm = Sanscript.t(ret.norm,'iast',ish);
+      ret.norm = Sanscript.t(ret.norm,fromscript,toscript);
       if(opts.tokenization !== 'character' && opts.recursive === 'true')
         ret.norm = charSplit(ret.norm,charset);
       return ret;
