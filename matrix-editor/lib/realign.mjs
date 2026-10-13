@@ -81,16 +81,17 @@ const arrayEqual = (a1, a2) => {
 };
 
 const detectTokenization = (eddecl,lang='sa') => {
-  const ish = lang === 'bo' ? 'wylish' : 'slpish';
-  const charset = lang === 'bo' ? wylie : iast;
+  const [fromscript,toscript,charset] = lang === 'bo' ? 
+        ['wylie',   'wylish',wylie  ] :
+        ['iast',    'slpish',iast   ];
   const specified = eddecl?.querySelector('segmentation > ab[type="tokenization"]')?.innerHTML;
   if(specified) return specified;
 
   const line = _state.xml.querySelector('text');
   const tokenized = [...line.querySelectorAll('w')].map(w => {
     const lem = w.getAttribute('lemma');
-    if(lem) return Sanscript.t(lem,'iast',ish);
-    return Sanscript.t(w.textContent,'iast',ish);
+    if(lem) return Sanscript.t(lem,fromscript,toscript);
+    return Sanscript.t(w.textContent,fromscript,toscript);
   },'').filter(w => w);
   const smushed = tokenized.join('');
   
