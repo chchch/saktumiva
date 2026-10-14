@@ -14,6 +14,12 @@ const processManifest = data => {
     return data.sequences[0].canvases.map(c => {
       if(c.images[0].resource.service) { // v2
         const m = c.images[0].resource.service;
+        if(m.profile === 'http://iiif.io/api/image/2/level0.json') {
+          return {
+            type: 'image',
+            url: c.images[0].resource['@id']
+          };
+        }
         m['@context'] = 'http://iiif.io/api/image/2/context.json';
         m.protocol = 'http://iiif.io/api/image';
         m.width = c.width;
