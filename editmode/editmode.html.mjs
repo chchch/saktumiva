@@ -286,7 +286,7 @@ input:disabled+label {
     </div>
     <fieldset class="options">
         <legend>Options</legend>
-        <details id="scoring" open>
+        <details id="scoring" open="true">
             <summary>Scoring</summary>
             <details id="guidetree">
                 <summary>Guide tree</summary>
@@ -295,7 +295,7 @@ input:disabled+label {
                     <label for="treetype_ncd"><abbr title="Normalized compression distance">NCD</abbr></label>
                 </div>
                 <div>
-                    <input type="radio" name="input_treetype" id="treetype_ngrams" value="ngrams" checked />
+                    <input type="radio" name="input_treetype" id="treetype_ngrams" value="ngrams" checked="true" />
                     <label for="treetype_ngrams">Ngrams</label>
                     <input type="number" id="tree_ngramsize" value="3"/>
                 </div>
@@ -305,10 +305,10 @@ input:disabled+label {
             <div><label for="input_gapopen">Gap opening score</label><input class="score" id="input_gapopen" type="number" value="-2"/></div>
             <div><label for="input_gapext">Gap extension score</label><input class="score" id="input_gapext" type="number" value="-0.25"/></div>
             <div><input type="checkbox" id="input_scalegap" /><label style="text-decoration: 2px gray dotted underline" title="Automatically scale gap scores based on text similarity and length" for="input_scalegap">Autoscale gap scores</label></div>
-            <div><input type="checkbox" id="check_recursive" checked /><label style="text-decoration: 2px gray dotted underline" title="When scoring akṣaras or larger units, recursively score the consonants and vowels within them" for="check_recursive">Recursive scoring</label></div>
+            <div><input type="checkbox" id="check_recursive" checked="true" /><label style="text-decoration: 2px gray dotted underline" title="When scoring akṣaras or larger units, recursively score the consonants and vowels within them" for="check_recursive">Recursive scoring</label></div>
             <div><label for="input_realigndepth" style="text-decoration: 2px gray dotted underline" title="Number of iterative re-alignments to perform, starting from the leaves and moving up the guide tree">Re-alignment depth</label><input class="score" id="input_realigndepth" type="number" value="20"/></div>
         </details>
-        <details open>
+        <details open="true">
             <summary>Tokenization</summary>
             <div>
                 <input type="radio" name="tokenization" value="whitespace" id="radio_whitespace"/><label for="radio_whitespace">Whitespace-delimited</label>
@@ -317,7 +317,7 @@ input:disabled+label {
                 <input type="radio" name="tokenization" value="aksara" id="radio_aksara"/><label for="radio_aksara">Akṣara (conjuncts and vowels together)</label>
             </div>
             <div>
-                <input type="radio" name="tokenization" value="grapheme" id="radio_grapheme" checked/><label for="radio_grapheme">Eḻuttu (without conjuncts)</label>
+                <input type="radio" name="tokenization" value="grapheme" id="radio_grapheme" checked="true"/><label for="radio_grapheme">Eḻuttu (without conjuncts)</label>
             </div>
             <div>
                 <input type="radio" name="tokenization" id="radio_character" value="character"/><label for="radio_character">Consonants and vowels separate</label>
@@ -326,7 +326,7 @@ input:disabled+label {
                 <select name="targetedition" id="targetedition"></select><label for="targetedition">Target edition</label>
             </div>
         </details>
-        <details id="normalization" open>
+        <details id="normalization" open="true">
             <summary>Normalization</summary>
             <!--div><input type="checkbox"><label>Remove whitespace</label></div-->
             <div class="horizontal">
