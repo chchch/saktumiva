@@ -27,6 +27,10 @@
     * different options for parallel translation, etc.
 * HTML export
 
+## Documentation
+
+* update documentation
+
 ## Cosmetic
 
 * open an edition upon loading a project
