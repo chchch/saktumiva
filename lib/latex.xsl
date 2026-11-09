@@ -136,9 +136,6 @@
 \babelfont[tamil]{rm}{TSTTamil.otf}[Script=Tamil,Ligatures=Historic,BoldFont={NotoSerifTamil-Bold.ttf}]
 \newICUfeature{AllAlternates}{1}{+aalt}
 \newcommand{\vowelsign}[1]{\foreignlanguage{tamil}{\addfontfeature{AllAlternates=1}#1}}
-
-\newcommand{\siglum}[1]{\textsc{#1}}
-
         </xsl:when>
         <xsl:otherwise>
           <xsl:text>
@@ -158,6 +155,7 @@
         <xsl:otherwise>
         <xsl:text>
 \newfontfamily\sanskritfont{Brill-Roman.ttf}[BoldFont={Brill-Bold.ttf}]
+\newcommand{\siglum}[1]{\textsc{#1}}
         </xsl:text>
         </xsl:otherwise>
       </xsl:choose>
@@ -194,7 +192,13 @@
 </xsl:template>
 
 <xsl:template match="x:text">
+    <xsl:if test="not(.//x:div[@rend='parallel'])">
+\beginnumbering
+    </xsl:if>
     <xsl:apply-templates/>
+    <xsl:if test="not(.//x:div[@rend='parallel'])">
+\endnumbering
+    </xsl:if>
 </xsl:template>
 
 <xsl:template match="x:div[@rend='parallel']">
