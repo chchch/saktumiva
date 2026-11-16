@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="tei-to-html.xsl" ?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" n="Ed">
+  <script xmlns="http://www.w3.org/1999/xhtml" src="./lib/js/xslt-polyfill.min.js"></script>
+   <teiHeader>
+      <fileDesc>
+         <titleStmt>
+            <title><!-- title of the edition --></title>
+            <editor>
+                <persName>
+                    <forename><!-- first name --></forename>
+                    <surname><!-- last name --></surname>
+                </persName>
+                <orgName><!-- affiliation --></orgName>
+            </editor>
+         </titleStmt>
+         <publicationStmt>
+            <publisher><!-- name of project --></publisher>
+            <date><!-- date of publication --></date>
+         </publicationStmt>
+         <sourceDesc>
+            <msDesc>
+              <msContents>
+                <summary><!-- short description --></summary>
+              </msContents>
+            </msDesc>
+         </sourceDesc>
+      </fileDesc>
+      <revisionDesc></revisionDesc>
+   </teiHeader>
+   <text type="edition">
+   </text>
+</TEI>
