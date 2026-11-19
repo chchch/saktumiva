@@ -23,7 +23,7 @@ const init = (state, xslt, utils, Edit, Multi, View) => {
 	_state.viewdiv.addEventListener('click',events.textClick);
 	document.addEventListener('keydown',events.keyDown,{capture: true});
 	document.addEventListener('contextmenu',events.rightClick);
-	document.addEventListener('mouseup',contextMenu.remove);
+	document.addEventListener('click',contextMenu.remove);
 };
 
 const touchUpNode = node => {
@@ -1051,7 +1051,7 @@ const contextMenu = {
 			}
 			else
 				li.appendChild(document.createTextNode(item.text));
-			li.addEventListener('mouseup',item.func);
+			li.addEventListener('click',item.func);
 			if(item.hasOwnProperty('shortcut')) {
 				const frag = document.createRange().createContextualFragment(
 					`<span>${item.shortcut}</span>`
@@ -1304,13 +1304,13 @@ events.rightClick = e => {
         {text: 'shift cells',
           func: edit.shiftCell.start
         },
-        {text: 'merge columns',
-          func: edit.merge.start.bind(null,nums)
-        },
         {text: 'group columns',
           alt: 'ungroup columns',
           toggle: Check.grouped,
           func: edit.group.start.bind(null,false)
+        },
+        {text: 'merge columns',
+          func: edit.merge.start.bind(null,nums)
         },
         {text: 'delete columns',
           func: edit.removeCol.start.bind(null,nums)
@@ -1330,15 +1330,15 @@ events.rightClick = e => {
           toggle: Check.manyhighlitcells,
           func: edit.shiftCell.start
         },
-        {text: 'delete column',
-          func: edit.removeCol.start.bind(null,nums)
-        },
         {text: 'insert column',
           func: edit.addCol.insert
         },
         {text: 'append column',
           func: edit.addCol.append
-        }
+        },
+        {text: 'delete column',
+          func: edit.removeCol.start.bind(null,nums)
+        },
         /*                {text: 'insignificant',
        cond: Check.checkbox.bind(null,'insignificant',nums),
        func: edit.startMarkAs.bind(null,'insignificant',nums),

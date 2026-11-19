@@ -714,15 +714,15 @@ const menuPopulate = function() {
 			toggle: Check.manyhighlit,
 			func: edit.removeCol.start.bind(null,false)
 		},
-		{text: 'Merge columns',
-			greyout: Check.manyhighlit,
-			func: edit.merge.start.bind(null,false)
-		},
 		{text: 'Group columns',
 			alt: 'Ungroup columns',
 			greyout: Check.oneGrouped,
 			toggle: Check.grouped,
 			func: edit.group.start.bind(null,false),
+		},
+		{text: 'Merge columns',
+			greyout: Check.manyhighlit,
+			func: edit.merge.start.bind(null,false)
 		},
 		{text: 'Insert column',
 			greyout: Check.anyhighlit,
