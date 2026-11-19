@@ -248,8 +248,7 @@ const editAlignment = /*async*/ obj => {
 };
 
 const fillBlocks = (blocks) => {
-    const blocklist = _state.shadowRoot.getElementById('blocklist');
-    blocklist.classList.add('checklist');
+    const blocklist = _state.shadowRoot.querySelector('#blocklist .checklist');
     blocklist.addEventListener('click',updateChecklist);
     const div1 = document.createElement('div');
     const input1 = document.createElement('input');
@@ -341,7 +340,7 @@ const editApp = (opts,e) => {
     for(const foundlabel of _state.shadowRoot.querySelectorAll('.foundlabel'))
         foundlabel.remove();
     if(opts.block) {
-      for(const input of _state.shadowRoot.querySelectorAll('#blocklist input[type="checkbox"][value]')) {
+      for(const input of _state.shadowRoot.querySelectorAll('#blocklist .checklist input[type="checkbox"][value]')) {
         input.checked = false;
         if(input.value === opts.block) {
           findAlignment(input,opts);
@@ -398,7 +397,7 @@ const findAlignment = async (input, opts) => {
 };
 
 const findAlignments = async opts => {
-  for(const input of _state.shadowRoot.querySelectorAll('#blocklist input[type="checkbox"][value]')) {
+  for(const input of _state.shadowRoot.querySelectorAll('#blocklist .checklist input[type="checkbox"][value]')) {
     await findAlignment(input,opts);
     // clear other checkboxes if block is selected
     if(opts.block !== input.value)

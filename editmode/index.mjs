@@ -14,6 +14,7 @@ import newMirror from './cmwrapper.mjs';
 
 const _state = {
   dirHandle: null,
+  configHandle: null,
   editions: new Map(),
   editionfiles: [],
   witnesses: new Map(),
@@ -307,7 +308,7 @@ const editbarClick = (root,id,xmlDoc,e) => {
   const updatealign = e.target.closest('.updatealign');
   if(updatealign) {
     const path = root.host.dataset.path;
-    alignPopup({par: e.target.getRootNode(), doc: xmlDoc, path: path, block: id});
+    alignPopup({par: par, doc: xmlDoc, path: path, block: id});
     return;
   }
 
@@ -597,7 +598,7 @@ const fillBlocks = (par,blocks) => {
       */
       return obj;
     });
-    const blocklist = par.querySelector('#editblackout').shadowRoot.querySelector('#blocklist');
+    const blocklist = par.querySelector('#editblackout').shadowRoot.querySelector('#blocklist .checklist');
     blocklist.replaceChildren();
     appendList(blocklist,els);
 };
@@ -725,9 +726,9 @@ const alignPopup = async (opts,e) => {
  
   // do edition first
   warnings.push(...processFile(opts.doc, opts.path, res));
-  const edblocks = [...res.allblocks];
-  const edsigla = new Map(res.alltexts);
-  const first = [...edsigla][0][0];
+  const edsiglamap = new Map(res.alltexts);
+  const edsiglaarr = [...edsiglamap];
+  const first = edsiglaarr[0][0];
   shadow.querySelector('#targetedition').innerHTML = `<option value="${first}"></option>`;
   shadow.querySelector('#targetedition').value = first;
   res.alltexts = new Map();
@@ -744,16 +745,16 @@ const alignPopup = async (opts,e) => {
     warnings.push(...processFile(witdoc, path, res));
   }
 
-  const sigla = [...edsigla.keys(), ...[...res.alltexts.keys()].sort(natSort)];
+  const sigla = [...edsiglamap.keys(), ...[...res.alltexts.keys()].sort(natSort)];
   const fib = popup.querySelector('#file-input-box .checklist');
   appendList(fib, sigla);
   acPcButtons(fib,res.alltexts);
   const textblocklist = new Set(
-    [...shadow.querySelectorAll('#blocklist input[value]')].map(i => i.value)
+    [...shadow.querySelectorAll('#blocklist .checklist input[value]')].map(i => i.value)
   );
   const blocks = [...res.allblocks].sort(natSort).map(b => {
     const obj = { textContent: b, value: b };
-    if(!textblocklist.has(b)) obj.disabled = true;
+    if(!textblocklist.has(b)) obj.disabled = true; // TODO: Why is this needed?
     return obj;
   });;
   const xmlidsbox = popup.querySelector('#xml-ids-box .checklist');
@@ -766,7 +767,7 @@ const alignPopup = async (opts,e) => {
   button.id = 'alignsubmit';
   shadow.querySelector('#submitdiv').replaceChildren(button);
 
-  for(const [key, val] of [...edsigla])
+  for(const [key, val] of edsiglaarr)
     res.alltexts.set(key,val);
   button.addEventListener('click',align.bind(null, shadow, res.alltexts));
 
@@ -1000,6 +1001,7 @@ const collate = async (xmlDoc,e) => {
     mode: 'filesystem',
     witnesses: new Map([..._state.witnesses,..._state.editions])
   };
+  Prefs.collate.save(filename,popup);
   const blocklist = await doCollate(xmlDoc,shadow,alignments,popup,opts);
   addEditButtons(shadow,blocklist,xmlDoc);
 };
@@ -1033,36 +1035,59 @@ const checkAlignment = (alignfile, todo) => {
 const editApp = (opts,e) => {
   const blackout = opts.par.querySelector('#editblackout');
   blackout.style.display = 'flex';
-  const shadow = blackout.shadowRoot;
-  shadow.querySelector('#variants-popup').style.display = 'flex';
+  const popup = blackout.shadowRoot.querySelector('#variants-popup');
+  popup.style.display = 'flex';
   const alignlist = document.getElementById('alignlist');
-  shadow.querySelector('#blocklist input[name="selectall"]').checked = false;
+  const fieldset = popup.querySelector('#blocklist');
+  const singleblock = popup.querySelector('#singleblock');
+  const collatebutton = popup.querySelector('#collatebutton');
+  fieldset.querySelector('.checklist input[name="selectall"]').checked = false;
   if(opts.block) {
-    const targblock = shadow.querySelector(`#blocklist input[value="${opts.block}"]`);
-    const path = alignlist.querySelector(`[data-blockid="${targblock.value}"]`)?.dataset.path;
-    if(path && _state.alignments.has(path)) {
-      targblock.dataset.path = path;
-      targblock.checked = true;
-      targblock.disabled = false;
+    fieldset.style.display = 'none';
+    singleblock.style.display = 'block';
+    singleblock.textContent = 'Update the alignment first.';
+    for(const input of fieldset.querySelectorAll('.checklist input[type="checkbox"][value]')) {
+      if(input.value === opts.block) {
+        const path = alignlist.querySelector(`[data-blockid="${input.value}"]`)?.dataset.path;
+        if(path && _state.alignments.has(path)) {
+          input.dataset.path = path;
+          input.disabled = false;
+          input.checked = true;
+          singleblock.textContent = opts.block;
+          collatebutton.disabled = false;
+        }
+        else { 
+          input.disabled = true; 
+          input.checked = false; 
+          collatebutton.disabled = true;
+        }
+        continue;
+      }
+      input.checked = false;
+      input.disabled = true;
     }
-    else 
-     targblock.disabled = true; 
-
-    targblock.scrollIntoView({behavior: 'smooth', block: 'center'});
   }
-
-  // then do the rest in order
-  for(const input of shadow.querySelectorAll('#blocklist input[type="checkbox"][value]')) {
-    if(input.value === opts.block) continue;
-    input.checked = false;
-    const path = alignlist.querySelector(`[data-blockid="${input.value}"]`)?.dataset.path;
-    if(path && _state.alignments.has(path)) {
-      input.dataset.path = path;
-      input.disabled = false;
+  else {
+    fieldset.style.display = 'flex';
+    singleblock.style.display = 'none';
+    singleblock.textContent = '';
+    let oneenabled = false;
+    for(const input of fieldset.querySelectorAll('.checklist input[type="checkbox"][value]')) {
+      if(input.value === opts.block) continue;
+      input.checked = false;
+      const path = alignlist.querySelector(`[data-blockid="${input.value}"]`)?.dataset.path;
+      if(path && _state.alignments.has(path)) {
+        input.dataset.path = path;
+        input.disabled = false;
+        oneenabled = true;
+      }
+      else 
+        input.disabled = true; 
     }
-    else 
-      input.disabled = true; 
+    if(oneenabled) collatebutton.disabled = false;
+    else collatebutton.disabled = true;
   }
+  Prefs.collate.load(opts.par.host.dataset.path,popup);
 };
 
 const hijackLinks = par => {
@@ -1338,24 +1363,68 @@ const warnUnsavedActions = async e => {
   dialog.style.display = 'none';
 };
 
-const loadPrefs = async handle => {
+const Prefs = {};
+
+Prefs.open = async handle => {
   const file = await handle.getFile();
   const text = await file.text();
-  const json = parseJson(text);
+  return parseJson(text);
+};
+
+Prefs.load = async handle => {
+  const json = await Prefs.open(handle);
   if(!json) {
     // save default prefs
     const prefsobj = {};
     prefsobj.editionfiles = _state.editionfiles;
     prefsobj.witnessesdirs = _state.witnessesdirs;
     prefsobj.alignmentsdir = _state.alignmentsdir;
-    const writable = await handle.createWritable();
-    await writable.write(JSON.stringify(prefsobj));
-    await writable.close();
+    Prefs.write(handle,prefsobj);
   }
   else {
     if(json.editionfiles) _state.editionfiles = json.editionfiles;
     if(json.witnessesdirs) _state.witnessesdirs = json.witnessesdirs;
     if(json.alignmentsdir) _state.alignmentsdir = json.alignmentsdir;
+  }
+};
+
+Prefs.write = async (handle,prefsobj) => {
+  const writable = await handle.createWritable();
+  await writable.write(JSON.stringify(prefsobj));
+  await writable.close();
+};
+
+Prefs.collate = {};
+
+Prefs.collate.save = async (filename,popup) => {
+  const json = await Prefs.open(_state.configHandle);
+  if(!json.preferences) json.preferences = {collate: {}};
+  if(!json.preferences.collate) json.preferences.collate = {};
+  if(!json.preferences.collate.hasOwnProperty(filename)) 
+    json.preferences.collate[filename] = {blocks: [], options: []};
+  if(popup.querySelector('#singleblock').style.display === 'none') {
+    const blocks = [...popup.querySelectorAll('#blocklist .checklist input[value]:checked')].map(b => b.value);
+    json.preferences.collate[filename].blocks = blocks;
+  }
+  const options = [...popup.querySelectorAll('#variantsfileselect input:checked')].map(b => b.id);
+  json.preferences.collate[filename].options = options;
+  Prefs.write(_state.configHandle,json);
+};
+
+Prefs.collate.load = async (filename,popup) => {
+  const json = await Prefs.open(_state.configHandle);
+  if(!json?.preferences?.collate) return;
+  if(!json.preferences.collate.hasOwnProperty(filename)) return;
+
+  if(popup.querySelector('#singleblock').style.display === 'none') {
+    for(const block of popup.querySelectorAll('#blocklist .checklist input[value]:enabled')) {
+      if(json.preferences.collate[filename].blocks.includes(block.value))
+        block.checked = true;
+    }
+  }
+  for(const option of popup.querySelectorAll('#variantsfileselect input')) {
+    if(json.preferences.collate[filename].options.includes(option.id))
+      option.checked = true;
   }
 };
 
@@ -1373,8 +1442,8 @@ const parseJson = str => {
 const loadDir = async () => {
     _state.dirHandle = await window.showDirectoryPicker({mode: 'readwrite'});
 
-    const confighandle = await _state.dirHandle.getFileHandle('saktumiva.config.json',{create: true});
-    await loadPrefs(confighandle);
+    _state.configHandle = await _state.dirHandle.getFileHandle('saktumiva.config.json',{create: true});
+    await Prefs.load(_state.configHandle);
 
     if(_state.witnessesdirs.includes('.')) _state.witnessesdirHandles.push(_state.dirHandle);
     // TODO: switch to Promise.all

@@ -2,11 +2,13 @@ const popupHTML =
 `
 <style>
 .popup {
-    width: 80%;
-    min-height: 50%;
     display: flex;
     height: fit-content;
+    width: fit-content;
+    min-height: 50%;
+    min-width: 50%;
     max-height: 100vh;
+    max-width: 80%;
     background: rgba(255,255,248,0.7);
     padding: 1rem;
     margin: 1rem;
@@ -50,7 +52,12 @@ const popupHTML =
 fieldset {
     background: white;
 }
-#blocklist {
+#singleblock {
+  text-align: center;
+  font-size: 1.4em;
+  font-weight: bold;
+}
+#blocklist .checklist {
     overflow-y: scroll;
     max-height: 85vh;
 }
@@ -213,10 +220,11 @@ input:disabled+label {
     </span>
 </div>
 <div class="boxen">
-    <fieldset>
+    <fieldset id="blocklist">
         <legend>Blocks to collate</legend>
-        <div id="blocklist" class="checklist"></div>
+        <div class="checklist"></div>
     </fieldset>
+    <div id="singleblock"></div>
     <div>
         <fieldset style="margin-bottom: 1rem">
             <legend>Options</legend>
@@ -277,10 +285,13 @@ input:disabled+label {
 </div>
 <div class="boxen">
     <div id="inputboxen">
-        <fieldset id="file-input-box"><legend>Texts to align</legend>
-            <div class="checklist"></div>
-        </fieldset>
-        <fieldset id="xml-ids-box"><legend>Blocks to align</legend><div class="checklist"></div></fieldset>
+      <fieldset id="file-input-box"><legend>Texts to align</legend>
+        <div class="checklist"></div>
+      </fieldset>
+      <fieldset id="xml-ids-box">
+        <legend>Blocks to align</legend>
+        <div class="checklist"></div>
+      </fieldset>
     </div>
     <div id="submitdiv" style="display: flex; height: min-content; flex-direction: row; flex-grow: 0; justify-content: center; align-items: center; gap: 1em; margin: 1ch">
     </div>
