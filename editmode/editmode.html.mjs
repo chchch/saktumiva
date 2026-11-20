@@ -231,15 +231,15 @@ input:disabled+label {
             <div id="variantsfileselect">
                 <div>
                     <input type="checkbox" id="normlem" checked="true"/>
-                    <label>Use normalized readings</label>
+                    <label for="normlem">Use normalized readings</label>
                 </div>
                 <div>
                     <input type="checkbox" id="mergerdgs" checked="true"/>
-                    <label>Merge groups</label>
+                    <label for="mergerdgs">Merge groups</label>
                 </div>
                 <div>
                     <input type="checkbox" id="maxom" checked="true"/>
-                    <label>Separate note for omissions over <input type="number" id="maxomlen" value="20" style="width: 6ch"/> characters</label>
+                    <label for="maxom">Separate note for omissions over <input type="number" id="maxomlen" value="20" style="width: 6ch"/> characters</label>
                 </div>
             </div>
         </fieldset>
